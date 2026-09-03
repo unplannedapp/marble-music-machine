@@ -1,0 +1,28 @@
+{
+  "name": "marble-music-machine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "trace": "vite-node scripts/trace.ts",
+    "layout": "vite-node scripts/layout.ts",
+    "screenshot": "node scripts/screenshot.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.20.0",
+    "lil-gui": "^0.21.0",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.4",
+    "playwright-core": "^1.62.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6",
+    "vitest": "^3.2.7"
+  }
+}

@@ -1,0 +1,88 @@
+import type { LevelDef } from './LevelTypes';
+
+/**
+ * Phase 1 playground: a descending course that exercises every mechanism.
+ * Rail -> zigzag of pads -> catch rail -> bumper field -> ramp -> pads -> end rail.
+ */
+export const playground: LevelDef = {
+  name: 'Playground',
+  board: { width: 16, top: 8, bottom: -56 },
+  spawn: { position: [-5.0, 5.05, 0.55], velocity: [1.2, 0, 0] },
+  killY: -53,
+  objects: [
+    { type: 'wall', id: 'wall_left', position: [-8.2, -24, 0.6], size: [0.4, 64, 1.2] },
+    { type: 'wall', id: 'wall_right', position: [8.2, -24, 0.6], size: [0.4, 64, 1.2] },
+
+    // Opening rail: gentle S-curve that releases the marble mid-air.
+    {
+      type: 'rail',
+      id: 'rail_start',
+      points: [
+        [-5.4, 5.0, 0],
+        [-3.5, 4.75, 0],
+        [-1.5, 4.2, 0],
+        [0.6, 3.9, 0],
+        [2.2, 3.4, 0],
+      ],
+    },
+
+    // Zigzag pads, placed on the simulated path by scripts/autolayout.ts.
+    // Positive angle raises the right end and sends a falling marble to the left.
+    { type: 'pad', id: 'pad_1', position: [3.7, 2.32, 0], angle: 53, color: '#d9534f', note: 'C4' },
+    { type: 'pad', id: 'pad_2', position: [1.44, 0.15, 0], angle: -38, color: '#f0ad4e', note: 'E4' },
+    { type: 'pad', id: 'pad_3', position: [4.46, -1.99, 0], angle: 42, color: '#5bc0de', note: 'G4' },
+    { type: 'pad', id: 'pad_4', position: [1.45, -4.15, 0], angle: -41, color: '#8e6bd6', note: 'C5' },
+    { type: 'pad', id: 'pad_5', position: [4.53, -6.29, 0], angle: 41.5, color: '#5cb85c', note: 'A4' },
+    { type: 'pad', id: 'pad_6', position: [1.46, -8.45, 0], angle: -41.5, color: '#e86fb0', note: 'F4' },
+    { type: 'pad', id: 'pad_7', position: [4.54, -10.59, 0], angle: 41.5, color: '#f7f7f7', note: 'D4' },
+
+    // Catch rail: crosses the marble's path off pad_7 at a shallow angle so it
+    // lands in the groove and carries it left.
+    {
+      type: 'rail',
+      id: 'rail_catch',
+      points: [
+        [3.0, -12.0, 0],
+        [1.6, -12.35, 0],
+        [0.0, -12.9, 0],
+        [-1.8, -13.6, 0],
+        [-3.5, -14.5, 0],
+        [-4.7, -15.4, 0],
+      ],
+    },
+
+
+    // Second pad run, placed by scripts/layout.ts.
+    { type: 'pad', id: 'padB_1', position: [-6.77, -17.53, 0], angle: -48, color: '#d9534f', note: 'E4' },
+    { type: 'pad', id: 'padB_2', position: [-3.04, -19.39, 0], angle: 42.5, color: '#f0ad4e', note: 'G4' },
+    { type: 'pad', id: 'padB_3', position: [-6.03, -21.23, 0], angle: -43, color: '#5bc0de', note: 'B4' },
+    { type: 'pad', id: 'padB_4', position: [-3.29, -23.05, 0], angle: 41.5, color: '#8e6bd6', note: 'C5' },
+    { type: 'pad', id: 'padB_5', position: [-5.99, -24.86, 0], angle: -41.5, color: '#5cb85c', note: 'G4' },
+    { type: 'pad', id: 'padB_6', position: [-3.31, -26.69, 0], angle: 41.5, color: '#e86fb0', note: 'E4' },
+
+    // Bumper finale (first two placed by scripts/layout.ts; the rest is deliberately
+    // unpredictable, so it comes last and the funnel below gathers whatever happens).
+    { type: 'bumper', id: 'bump_1', position: [-6.65, -29.25, 0], color: '#e8c44a' },
+    { type: 'bumper', id: 'bump_2', position: [-0.59, -31.33, 0], color: '#e8c44a' },
+    { type: 'bumper', id: 'bump_3', position: [-6.4, -33.6, 0], color: '#e8c44a' },
+    { type: 'bumper', id: 'bump_4', position: [1.6, -35.4, 0], color: '#e8c44a' },
+
+    // Funnel: two ramps meeting at a centre gap, so the marble leaves at a known place.
+    { type: 'ramp', id: 'funnel_left', position: [-4.35, -39.5, 0.45], rotation: [0, 0, -22.3], size: [7.9, 0.4, 0.9] },
+    { type: 'ramp', id: 'funnel_right', position: [4.35, -39.5, 0.45], rotation: [0, 0, 22.3], size: [7.9, 0.4, 0.9] },
+
+    // Closing rail under the funnel gap: carries the marble out of the machine.
+    {
+      type: 'rail',
+      id: 'rail_end',
+      points: [
+        [-1.6, -42.2, 0],
+        [0.0, -42.6, 0],
+        [1.8, -43.2, 0],
+        [3.4, -44.1, 0],
+        [4.6, -45.4, 0],
+        [5.2, -47.0, 0],
+      ],
+    },
+  ],
+};

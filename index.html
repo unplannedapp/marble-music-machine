@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Marble Music Machine</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #2b2a33; }
+      #app { position: fixed; inset: 0; }
+      canvas { display: block; }
+      #hud {
+        position: fixed; left: 16px; top: 12px; color: #f2f0f7; font: 500 13px/1.5 system-ui, sans-serif;
+        pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,.6); white-space: pre;
+      }
+      #hint {
+        position: fixed; left: 16px; bottom: 12px; color: rgba(242,240,247,.65); font: 12px/1.5 system-ui, sans-serif;
+        pointer-events: none;
+      }
+      .lil-gui { --width: 280px; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="hud"></div>
+    <div id="hint">R reset · Space pause · . step · C free camera</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
