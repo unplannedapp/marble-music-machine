@@ -94,6 +94,8 @@ async function main(): Promise<void> {
     onSimulate: () => {
       editor.disable();
       gameHud.hidden = false;
+      pauseBtn.hidden = false;
+      tuneBtn.hidden = false;
       selectMachine(machine);
       loop.paused = false;
     },
@@ -104,6 +106,8 @@ async function main(): Promise<void> {
     },
     onExit: () => {
       editor.disable();
+      pauseBtn.hidden = false;
+      tuneBtn.hidden = false;
       loop.paused = true;
       menu.show();
     },
@@ -130,6 +134,8 @@ async function main(): Promise<void> {
     rings = new TargetRings(sim, scoring);
     overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
     gameHud.hidden = true;
+    pauseBtn.hidden = true;
+    tuneBtn.hidden = true;
     editor.enable();
   };
   let lastNote = '';
