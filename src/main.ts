@@ -170,9 +170,9 @@ async function main(): Promise<void> {
         follow.update(marblePos, marbleVel, frameDt);
       }
       follow.currentFocus(focus);
-      view.followLight(freeCamera ? marblePos : focus);
+      view.followLight(freeCamera ? marblePos : focus, marblePos);
       debug.update();
-      view.render();
+      view.render(frameDt);
 
       fps = fps * 0.95 + (1 / Math.max(frameDt, 1e-3)) * 0.05;
       const lc = sim.lastContact;

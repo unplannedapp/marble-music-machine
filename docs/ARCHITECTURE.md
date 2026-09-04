@@ -122,6 +122,17 @@ a level paired with the song it performs; the menu lists machines.
 `Simulation.addObject` / `removeObject` work on a live machine, which is the
 API the editor will use.
 
+## Rendering
+
+`SceneRenderer` is built for the reference look: a neutral room as image-based
+lighting so metal and lacquered paint reflect, a low raking key light casting
+long soft shadows (2048 PCF on desktop, 1024 on phones), a cool rim light for
+edge definition, a small warm point light riding with the marble, ACES tone
+mapping, and a post chain of MSAA render target, bloom, vignette and grain
+before the output pass. Pads are clearcoat physical materials with an emissive
+core the environment can raise (neon worlds glow). Every one of these levers is
+in the level's `environment`, so a world is graded as data.
+
 ## Environment
 
 Every song has its own world in the references, so the look is level data:

@@ -25,6 +25,7 @@ export class Pad extends InteractiveObject<PadDef> {
   private readonly mesh: THREE.Mesh;
   private flash = 0;
   private readonly baseColor: THREE.Color;
+  private readonly baseGlow: number;
 
   constructor(def: PadDef, ctx: BuildContext) {
     super(def, ctx);
@@ -64,7 +65,9 @@ export class Pad extends InteractiveObject<PadDef> {
     this.inertiaZ = (this.padBody.mass() * (len * len + thick * thick)) / 12;
 
     this.baseColor = new THREE.Color(def.color ?? '#c8783c');
-    this.mesh = new THREE.Mesh(geometries.unitBox, visuals.colored(this.baseColor));
+    const material = visuals.colored(this.baseColor);
+    this.baseGlow = material.emissiveIntensity;
+    this.mesh = new THREE.Mesh(geometries.unitBox, material);
     this.mesh.scale.set(len, thick, depth);
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
@@ -107,10 +110,10 @@ export class Pad extends InteractiveObject<PadDef> {
   }
 
   override renderUpdate(frameDt: number): void {
-    const mat = this.mesh.material as THREE.MeshStandardMaterial;
+    const mat = this.mesh.material as THREE.MeshPhysicalMaterial;
     if (this.flash <= 0) return;
     this.flash = Math.max(0, this.flash - frameDt * 3);
-    mat.emissive.copy(this.baseColor).multiplyScalar(this.flash * 0.6);
+    mat.emissiveIntensity = this.baseGlow + this.flash * 1.2;
   }
 
   override reset(): void {

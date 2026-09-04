@@ -89,6 +89,23 @@ export interface EnvironmentDef {
   marble?: string;
   /** Target ring colour. */
   ring?: string;
+  /** Cool rim light colour and strength. */
+  rim?: string;
+  rimIntensity?: number;
+  /** Sky fill strength. */
+  fillIntensity?: number;
+  /** Colour of the warm light that rides with the marble. */
+  marbleLight?: string;
+  /** Strength of the reflected room (image-based lighting). */
+  envIntensity?: number;
+  exposure?: number;
+  /** Bloom strength and the brightness above which things glow. */
+  bloom?: number;
+  bloomThreshold?: number;
+  /** Edge darkening, 0 to 1. */
+  vignette?: number;
+  /** Pad paint glow (emissive scale) so neon worlds light up. */
+  padGlow?: number;
 }
 
 export interface LevelDef {
