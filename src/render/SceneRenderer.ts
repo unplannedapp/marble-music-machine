@@ -59,7 +59,7 @@ export class SceneRenderer {
   resize(): void {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    this.renderer.setSize(w, h, false);
+    this.renderer.setSize(w, h, true);
     this.camera.aspect = w / h;
     this.camera.fov = config.camera.fov;
     this.camera.updateProjectionMatrix();
