@@ -75,7 +75,17 @@ function solveNormal(d: [number, number], o: [number, number], e: number, speed:
 }
 
 const base: LevelDef = JSON.parse(JSON.stringify(playground));
+// Keep the level's object order: placed objects go where the replaced ones were.
+// Insertion order affects the solver, so the tool must simulate the same world
+// the level will build.
+const firstIdx = base.objects.findIndex((o) => o.id?.startsWith(prefix));
+const insertAt = firstIdx >= 0 ? firstIdx : base.objects.length;
 base.objects = base.objects.filter((o) => !o.id?.startsWith(prefix));
+const withPlaced = (placedSoFar: ObjectDef[]): ObjectDef[] => [
+  ...base.objects.slice(0, insertAt),
+  ...placedSoFar,
+  ...base.objects.slice(insertAt),
+];
 const placed: ObjectDef[] = [];
 const colors = ['#d9534f', '#f0ad4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f'];
 const notes = ['C4', 'E4', 'G4', 'C5', 'A4', 'F4', 'D4', 'B4'];
@@ -83,7 +93,7 @@ let lastY = 0;
 for (let k = 0; k < steps.length; k++) {
   const step = steps[k];
   const yTarget = step.y ?? lastY - (step.drop ?? 1.8);
-  const level = { ...base, objects: [...base.objects, ...placed] };
+  const level = { ...base, objects: withPlaced(placed) };
   const { state, hits } = simulate(level, yTarget, afterT);
   if (!state) {
     console.log(`step ${k}: marble never reached y=${yTarget}. Contacts: ${hits.join(' ')}`);
@@ -124,7 +134,7 @@ for (let k = 0; k < steps.length; k++) {
   console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ${step.k} normal ${angle}deg`);
 }
 
-const final = { ...base, objects: [...base.objects, ...placed] };
+const final = { ...base, objects: withPlaced(placed) };
 const { hits } = simulate(final, -1000, 0);
 console.log('\nVerification contact sequence:\n  ' + hits.filter((h) => !h.startsWith('wall')).join('\n  '));
 console.log('\nObjects TS:');

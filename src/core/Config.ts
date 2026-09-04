@@ -19,9 +19,18 @@ export interface MaterialProps {
   bounceRule?: 'max' | 'average';
 }
 
+/**
+ * Pace. The machine is tuned as a time-scaled system: gravity sets how fast
+ * everything happens, and every per-second quantity (damping, springs, kicks)
+ * is scaled with sqrt(gravity / 9.81) so the marble follows the same paths at
+ * any pace. 28 gives roughly two pad hits per second, like the references.
+ */
+const GRAVITY = 28;
+const PACE = Math.sqrt(GRAVITY / 9.81);
+
 export const config = {
   physics: {
-    gravity: 9.81,
+    gravity: GRAVITY,
     tiltDeg: 58,
     fixedDt: 1 / 120,
     maxSubSteps: 8,
@@ -33,9 +42,9 @@ export const config = {
     density: 2.4,
     friction: 0.55,
     restitution: 0.32,
-    linearDamping: 0.02,
+    linearDamping: 0.02 * PACE,
     /** Rapier has no rolling resistance; angular damping stands in for it. */
-    angularDamping: 0.15,
+    angularDamping: 0.15 * PACE,
   },
   materials: {
     board: { friction: 0.12, restitution: 0.05, bounceRule: 'average' } as MaterialProps,
@@ -47,14 +56,14 @@ export const config = {
   },
   bumper: {
     /** Extra outward speed (units/s) added on impact, pinball pop-bumper style. */
-    kick: 1.5,
+    kick: 1.5 * PACE,
   },
   pad: {
     density: 20.0,
     /** Spring that returns the pad to its rest angle (acceleration-based motor). */
-    stiffness: 150,
-    damping: 6,
-    angularDamping: 0.5,
+    stiffness: 150 * PACE * PACE,
+    damping: 6 * PACE,
+    angularDamping: 0.5 * PACE,
   },
   camera: {
     distance: 14,

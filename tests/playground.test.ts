@@ -34,6 +34,12 @@ function runLevel(level: LevelDef, seconds = 70): RunResult {
   return { order: [...new Set(contacts.map((c) => c.id))], resets, minZ, maxSpeed, contacts };
 }
 
+/** Every guided object in the playground, in the order the marble must meet them. */
+const GUIDED_ORDER = [
+  'rail_start', 'pad_1', 'pad_2', 'pad_3', 'pad_4', 'pad_5', 'pad_6', 'pad_7', 'rail_catch',
+  'padB_1', 'padB_2', 'padB_3', 'padB_4', 'padB_5', 'padB_6', 'rail_mid', 'bump_1', 'rail_gather',
+];
+
 /**
  * Headless run of the playground. This is both a regression test and the
  * level-tuning tool: it prints the sequence of contacts so a level author can
@@ -50,23 +56,19 @@ describe('playground level', () => {
     expect(r.minZ).toBeGreaterThan(config.marble.radius - 0.05);
     // The objects guide the marble the whole way: every one is touched, in machine order,
     // and the run ends at rest in the finish tray, never by falling out or hitting a wall.
-    const expected = [
-      'rail_start', 'pad_1', 'pad_2', 'pad_3', 'pad_4', 'pad_5', 'pad_6', 'pad_7', 'rail_catch',
-      'padB_1', 'padB_2', 'padB_3', 'padB_4', 'padB_5', 'padB_6', 'rail_mid', 'bump_1', 'rail_gather',
-    ];
-    expect(r.order.slice(0, expected.length)).toEqual(expected);
+    expect(r.order.slice(0, GUIDED_ORDER.length)).toEqual(GUIDED_ORDER);
     expect(r.order.some((id) => id.startsWith('funnel_'))).toBe(true);
     expect(r.order).toContain('rail_end');
     expect(r.order.some((id) => id.startsWith('tray_'))).toBe(true);
     expect(r.order.some((id) => id.startsWith('wall_'))).toBe(false);
     expect(r.resets[r.resets.length - 1]).toMatch(/^finished/);
-    // The pad zigzag settles into a steady rhythm: consecutive pad hits ~1 s apart.
+    // The pad zigzag settles into a steady rhythm: consecutive pad hits evenly spaced.
     const padHits = r.contacts.filter((c) => /^pad_[2-7]$/.test(c.id));
-    for (let i = 1; i < padHits.length; i++) {
-      const gap = padHits[i].t - padHits[i - 1].t;
-      expect(gap).toBeGreaterThan(0.6);
-      expect(gap).toBeLessThan(1.4);
-    }
+    const gaps = padHits.slice(1).map((c, i) => c.t - padHits[i].t);
+    const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    // eslint-disable-next-line no-console
+    console.log(`pad hop period ${mean.toFixed(2)}s, run length ${r.resets[0]}`);
+    for (const gap of gaps) expect(Math.abs(gap - mean)).toBeLessThan(mean * 0.35);
   }, 60_000);
 
   it('is robust to small perturbations of the launch (controlled unpredictability)', async () => {
@@ -77,11 +79,10 @@ describe('playground level', () => {
       const r = runLevel(level);
       // eslint-disable-next-line no-console
       console.log(`dv=${dv}: ${r.order.join(' -> ')}`);
-      expect(r.order).toContain('pad_7');
-      expect(r.order).toContain('padB_6');
-      expect(r.order).toContain('bump_1');
-      expect(r.order).toContain('rail_gather');
+      expect(r.order.slice(0, GUIDED_ORDER.length)).toEqual(GUIDED_ORDER);
+      expect(r.order.some((id) => id.startsWith('funnel_'))).toBe(true);
       expect(r.order).toContain('rail_end');
+      expect(r.order.some((id) => id.startsWith('tray_'))).toBe(true);
       expect(r.order.some((id) => id.startsWith('wall_'))).toBe(false);
       expect(r.resets[r.resets.length - 1]).toMatch(/^finished/);
     }

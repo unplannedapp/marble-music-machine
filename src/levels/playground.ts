@@ -48,18 +48,18 @@ export const playground: LevelDef = {
         [0.0, -12.9, 0],
         [-1.8, -13.6, 0],
         [-3.5, -14.5, 0],
-        [-4.7, -15.4, 0],
+        [-4.3, -15.1, 0],
       ],
     },
 
 
     // Second pad run, placed by scripts/layout.ts.
-    { type: 'pad', id: 'padB_1', position: [-6.77, -17.53, 0], angle: -48, color: '#d9534f', note: 'E4' },
-    { type: 'pad', id: 'padB_2', position: [-3.04, -19.39, 0], angle: 42.5, color: '#f0ad4e', note: 'G4' },
-    { type: 'pad', id: 'padB_3', position: [-6.03, -21.23, 0], angle: -43, color: '#5bc0de', note: 'B4' },
-    { type: 'pad', id: 'padB_4', position: [-3.29, -23.05, 0], angle: 41.5, color: '#8e6bd6', note: 'C5' },
-    { type: 'pad', id: 'padB_5', position: [-5.99, -24.86, 0], angle: -41.5, color: '#5cb85c', note: 'G4' },
-    { type: 'pad', id: 'padB_6', position: [-3.31, -26.69, 0], angle: 41.5, color: '#e86fb0', note: 'E4' },
+    { type: 'pad', id: 'padB_1', position: [-6.09, -16.72, 0], angle: -50.5, color: '#d9534f', note: 'E4' },
+    { type: 'pad', id: 'padB_2', position: [-2.88, -18.63, 0], angle: 40.5, color: '#f0ad4e', note: 'G4' },
+    { type: 'pad', id: 'padB_3', position: [-5.84, -20.42, 0], angle: -43.5, color: '#5bc0de', note: 'B4' },
+    { type: 'pad', id: 'padB_4', position: [-3.13, -22.25, 0], angle: 41, color: '#8e6bd6', note: 'C5' },
+    { type: 'pad', id: 'padB_5', position: [-5.84, -24.11, 0], angle: -41.5, color: '#5cb85c', note: 'G4' },
+    { type: 'pad', id: 'padB_6', position: [-3.13, -25.92, 0], angle: 41.5, color: '#e86fb0', note: 'E4' },
 
     // Gathering rail: takes the marble off the last pad wherever it lands and
     // releases it from one fixed point, so the bumper run below starts the same way every time.
