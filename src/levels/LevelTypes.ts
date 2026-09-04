@@ -85,7 +85,9 @@ export interface LevelDef {
     position: Vec3Tuple;
     velocity?: Vec3Tuple;
   };
-  /** Marble is reset when its Y drops below this. */
+  /** Marble is reset when its Y drops below this (a safety net; a good level never needs it). */
   killY: number;
+  /** Where the run ends: once the marble comes to rest inside this circle, the run is complete. */
+  finish?: { position: Vec3Tuple; radius: number };
   objects: ObjectDef[];
 }

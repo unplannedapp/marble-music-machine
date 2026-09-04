@@ -34,7 +34,7 @@ export interface MarbleSeparateEvent {
 
 export interface MarbleResetEvent {
   simTime: number;
-  reason: 'fell' | 'manual' | 'stalled';
+  reason: 'fell' | 'manual' | 'stalled' | 'finished';
 }
 
 export interface EventMap {

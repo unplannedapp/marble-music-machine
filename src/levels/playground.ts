@@ -9,6 +9,7 @@ export const playground: LevelDef = {
   board: { width: 16, top: 8, bottom: -58 },
   spawn: { position: [-5.0, 5.05, 0.55], velocity: [1.2, 0, 0] },
   killY: -55,
+  finish: { position: [6.0, -51.6, 0], radius: 1.3 },
   objects: [
     { type: 'wall', id: 'wall_left', position: [-8.2, -25, 0.6], size: [0.4, 66, 1.2] },
     { type: 'wall', id: 'wall_right', position: [8.2, -25, 0.6], size: [0.4, 66, 1.2] },
@@ -75,21 +76,35 @@ export const playground: LevelDef = {
       ],
     },
 
-    // Bumper run, placed by scripts/layout.ts from the gathering rail's release point.
-    { type: 'bumper', id: 'bump_1', position: [1.77, -33.27, 0], radius: 0.7, color: '#e8c44a' },
-    { type: 'bumper', id: 'bump_2', position: [-1.74, -34.23, 0], radius: 0.7, color: '#e8c44a' },
-    { type: 'bumper', id: 'bump_3', position: [1.73, -35.38, 0], radius: 0.7, color: '#e8c44a' },
-    { type: 'bumper', id: 'bump_4', position: [-1.85, -36.48, 0], radius: 0.7, color: '#e8c44a' },
+    // Single bumper accent, placed by scripts/layout.ts for a fairly central hit.
+    { type: 'bumper', id: 'bump_1', position: [1.48, -33.75, 0], radius: 0.7, color: '#e8c44a' },
+
+    // Wide catch rail: however the bumper sends the marble, it lands in this
+    // groove, climbs, and rolls back to release from the right-hand end.
+    {
+      type: 'rail',
+      id: 'rail_gather',
+      points: [
+        [-7.3, -35.5, 0],
+        [-5.5, -36.0, 0],
+        [-3.5, -36.5, 0],
+        [-1.5, -37.1, 0],
+        [0.3, -37.9, 0],
+        [1.4, -39.0, 0],
+      ],
+    },
 
     // Funnel: two ramps meeting at a centre gap, so the marble leaves at a known place.
     { type: 'ramp', id: 'funnel_left', position: [-4.35, -42.0, 0.45], rotation: [0, 0, -22.3], size: [7.9, 0.4, 0.9] },
     { type: 'ramp', id: 'funnel_right', position: [4.35, -42.0, 0.45], rotation: [0, 0, 22.3], size: [7.9, 0.4, 0.9] },
 
-    // Closing rail under the funnel gap: carries the marble out of the machine.
+    // Closing rail under the funnel gap, carrying the marble to the finish tray.
     {
       type: 'rail',
       id: 'rail_end',
       points: [
+        [-4.6, -43.0, 0],
+        [-3.0, -44.0, 0],
         [-1.6, -44.7, 0],
         [0.0, -45.1, 0],
         [1.8, -45.7, 0],
@@ -98,5 +113,9 @@ export const playground: LevelDef = {
         [5.2, -49.5, 0],
       ],
     },
+
+    // Finish tray: a shallow cup where the marble comes to rest.
+    { type: 'ramp', id: 'tray_left', position: [4.9, -51.4, 0.45], rotation: [0, 0, -30], size: [2.6, 0.4, 0.9], color: '#3a3c44' },
+    { type: 'ramp', id: 'tray_right', position: [7.1, -51.4, 0.45], rotation: [0, 0, 30], size: [2.6, 0.4, 0.9], color: '#3a3c44' },
   ],
 };

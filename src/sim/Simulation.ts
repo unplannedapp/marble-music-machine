@@ -122,7 +122,7 @@ export class Simulation {
     this.scene.add(mesh);
   }
 
-  resetMarble(reason: 'fell' | 'manual' | 'stalled' = 'manual'): void {
+  resetMarble(reason: 'fell' | 'manual' | 'stalled' | 'finished' = 'manual'): void {
     if (!this.level) return;
     this.marble.reset(tupleToVector3(this.level.spawn.position), tupleToVector3(this.level.spawn.velocity));
     for (const o of this.objects) o.reset();
@@ -144,10 +144,13 @@ export class Simulation {
       this.resetMarble('fell');
       return;
     }
-    // Stall detection: a marble that stops moving for a while is put back.
+    // A marble at rest is either finished (inside the finish zone) or stuck.
     if (this.marble.speed() < 0.05) {
       this.stalledFor += dt;
-      if (this.stalledFor > 3) this.resetMarble('stalled');
+      const f = level.finish;
+      const inFinish = f && Math.hypot(p.x - f.position[0], p.y - f.position[1]) <= f.radius;
+      if (inFinish && this.stalledFor > 1.2) this.resetMarble('finished');
+      else if (this.stalledFor > 3) this.resetMarble('stalled');
     } else {
       this.stalledFor = 0;
     }
