@@ -41,6 +41,6 @@ from the command line:
 ```bash
 npx vite-node scripts/trace.ts 10 0.1          # marble trajectory + contacts
 npx vite-node scripts/stateat.ts -12,-14       # marble state when crossing given Y
-npx vite-node scripts/autolayout.ts 7 1.8 15   # place N pads on the real path
+npm run layout '<steps json>' <prefix> <afterT>  # place pads, bumpers, rails, ramps on the real path
 node scripts/screenshot.mjs                    # headless browser screenshots (dev server running)
 ```

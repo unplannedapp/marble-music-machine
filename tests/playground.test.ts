@@ -13,7 +13,7 @@ interface RunResult {
 }
 
 /** Run a level headlessly until the marble falls out of the machine (or 40 s). */
-function runLevel(level: LevelDef, seconds = 70): RunResult {
+function runLevel(level: LevelDef, seconds = 100): RunResult {
   const sim = new Simulation();
   sim.load(level);
   const contacts: RunResult['contacts'] = [];
@@ -36,8 +36,9 @@ function runLevel(level: LevelDef, seconds = 70): RunResult {
 
 /** Every guided object in the playground, in the order the marble must meet them. */
 const GUIDED_ORDER = [
-  'rail_start', 'pad_1', 'pad_2', 'pad_3', 'pad_4', 'pad_5', 'pad_6', 'pad_7', 'rail_catch',
-  'padB_1', 'padB_2', 'padB_3', 'padB_4', 'padB_5', 'padB_6', 'rail_mid', 'bump_1', 'rail_gather',
+  'rail_start',
+  ...Array.from({ length: 49 }, (_, i) => `abc_${i + 1}`),
+  'fin_1', 'fin_2',
 ];
 
 /**
@@ -63,7 +64,7 @@ describe('playground level', () => {
     expect(r.order.some((id) => id.startsWith('wall_'))).toBe(false);
     expect(r.resets[r.resets.length - 1]).toMatch(/^finished/);
     // The pad zigzag settles into a steady rhythm: consecutive pad hits evenly spaced.
-    const padHits = r.contacts.filter((c) => /^pad_[2-7]$/.test(c.id));
+    const padHits = r.contacts.filter((c) => /^abc_[1-6]$/.test(c.id));
     const gaps = padHits.slice(1).map((c, i) => c.t - padHits[i].t);
     const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
     // eslint-disable-next-line no-console
@@ -79,6 +80,7 @@ describe('playground level', () => {
       const r = runLevel(level);
       // eslint-disable-next-line no-console
       console.log(`dv=${dv}: ${r.order.join(' -> ')}`);
+      // The phrase ramps re-gather the marble, so even a long chain stays exact.
       expect(r.order.slice(0, GUIDED_ORDER.length)).toEqual(GUIDED_ORDER);
       expect(r.order.some((id) => id.startsWith('funnel_'))).toBe(true);
       expect(r.order).toContain('rail_end');

@@ -7,17 +7,21 @@
  *   steps: [{ k: 'pad'|'bumper', y?: number, drop?: number, dir: -1|1, exit?: number, note?, color? }]
  *     y     absolute Y where the object meets the marble (first step), or
  *     drop  Y below the previous object's meeting point
- *     dir   -1 sends the marble left, 1 right
+ *     dir   -1 sends the marble left, 1 right, 0 reverses whichever way it is actually moving
+ *           (a rail ignores it and carries toward the centre)
+ *   A 'rail' step is a short catch rail crossing the path, a 'ramp' step a short tilted
+ *   shelf: both re-gather the marble so small deviations do not accumulate over a long
+ *   run, and their lower end is the next drop origin.
  *     exit  outgoing elevation in degrees above horizontal (default 15)
  *   prefix  id prefix; existing objects with this prefix are replaced (default "auto_")
  *   afterT  only consider the trajectory after this simulation time
  */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import type { BumperDef, LevelDef, ObjectDef, PadDef } from '../src/levels/LevelTypes';
+import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef } from '../src/levels/LevelTypes';
 import { playground } from '../src/levels/playground';
 
-interface Step { k: 'pad' | 'bumper'; y?: number; drop?: number; dir: -1 | 1; exit?: number; note?: string; color?: string }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string }
 const steps: Step[] = JSON.parse(process.argv[2] ?? '[]');
 const prefix = process.argv[3] ?? 'auto_';
 let afterT = Number(process.argv[4] ?? 0);
@@ -34,10 +38,16 @@ function simulate(level: LevelDef, yTarget: number, after: number): { state: Sta
   sim.load(level);
   const hits: string[] = [];
   sim.bus.on('marble:contact', (e) => hits.push(`${e.object.id}@${e.simTime.toFixed(2)}(${e.impactSpeed.toFixed(1)})`));
+  let resets = 0;
+  sim.bus.on('marble:reset', (e) => {
+    resets++;
+    hits.push(`RESET(${e.reason})@${e.simTime.toFixed(2)}`);
+  });
   let out: State | null = null;
   const dt = config.physics.fixedDt;
-  for (let t = 0; t < 30; t += dt) {
+  for (let t = 0; t < 60; t += dt) {
     sim.fixedUpdate(dt);
+    if (resets > 0) break; // a second pass of the marble is never the state we want
     const p = sim.marble.body.translation();
     const v = sim.marble.body.linvel();
     if (out === null && t > after && p.y <= yTarget && v.y < 0) {
@@ -102,10 +112,54 @@ for (let k = 0; k < steps.length; k++) {
   const speed = Math.hypot(state.vx, state.vy);
   const d: [number, number] = [state.vx / speed, state.vy / speed];
   const exit = step.exit ?? 15;
-  const o: [number, number] = [step.dir * Math.cos(exit * DEG), Math.sin(exit * DEG)];
+  const dir = step.dir === 0 ? (state.vx > 0 ? -1 : 1) : step.dir;
+  const o: [number, number] = [dir * Math.cos(exit * DEG), Math.sin(exit * DEG)];
   const id = `${prefix}${k + 1}`;
   let def: ObjectDef;
-  let angle: number;
+  let angle = 0;
+  if (step.k === 'rail') {
+    // Carry toward the board centre so the rail never runs into a wall; a marble
+    // moving away from the centre climbs it, stops, and rolls back.
+    const dx = state.x > 0 ? -1 : 1;
+    const x0 = +state.x.toFixed(2);
+    const y0 = +state.y.toFixed(2);
+    // Steep upstream lip: a marble arriving the wrong way stops and turns back quickly.
+    const pts: [number, number, number][] = [
+      [+(x0 - 1.0 * dx).toFixed(2), +(y0 + 0.8).toFixed(2), 0],
+      [+(x0 - 0.5 * dx).toFixed(2), +(y0 + 0.25).toFixed(2), 0],
+      [+(x0 + 0.6 * dx).toFixed(2), +(y0 - 0.2).toFixed(2), 0],
+      [+(x0 + 1.8 * dx).toFixed(2), +(y0 - 0.8).toFixed(2), 0],
+      [+(x0 + 2.6 * dx).toFixed(2), +(y0 - 1.7).toFixed(2), 0],
+    ];
+    const rail: RailDef = { type: 'rail', id, points: pts };
+    def = rail;
+    placed.push(def);
+    lastY = y0 - 1.7;
+    afterT = state.t + 0.05;
+    console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> rail toward ${dx > 0 ? 'right' : 'left'}, ends at y ${lastY.toFixed(2)}`);
+    continue;
+  }
+  if (step.k === 'ramp') {
+    // Tilted shelf descending toward the board centre. The marble lands on its
+    // upper half and rolls off the lower end from a repeatable spot.
+    const dx = state.x > 0 ? -1 : 1;
+    const len = 3.6;
+    const theta = 25 * DEG;
+    const cx = state.x + 0.9 * dx * Math.cos(theta);
+    const cy = state.y - 0.5 - 0.9 * Math.sin(theta) - 0.2;
+    const ramp: RampDef = {
+      type: 'ramp', id,
+      position: [+cx.toFixed(2), +cy.toFixed(2), 0.45],
+      rotation: [0, 0, +(-dx * 25).toFixed(1)],
+      size: [len, 0.4, 0.9],
+    };
+    def = ramp;
+    placed.push(def);
+    lastY = cy - (len / 2) * Math.sin(theta) + 0.2;
+    afterT = state.t + 0.05;
+    console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ramp toward ${dx > 0 ? 'right' : 'left'}, lower end at y ${lastY.toFixed(2)}`);
+    continue;
+  }
   if (step.k === 'pad') {
     angle = solveNormal(d, o, config.materials.pad.restitution, speed, 0);
     const n = [-Math.sin(angle * DEG), Math.cos(angle * DEG)];
@@ -141,4 +195,6 @@ console.log('\nObjects TS:');
 for (const o of placed) {
   if (o.type === 'pad') console.log(`    { type: 'pad', id: '${o.id}', position: [${o.position.join(', ')}], angle: ${o.angle}, color: '${o.color}', note: '${o.note}' },`);
   else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, color: '${o.color}' },`);
+  else if (o.type === 'rail') console.log(`    { type: 'rail', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}] },`);
+  else if (o.type === 'ramp') console.log(`    { type: 'ramp', id: '${o.id}', position: [${o.position.join(', ')}], rotation: [${o.rotation!.join(', ')}], size: [${o.size.join(', ')}] },`);
 }

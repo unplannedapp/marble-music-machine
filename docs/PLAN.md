@@ -38,6 +38,22 @@ Reconciled against the full specification and the five reference videos.
    non-marble bodies), spinners, funnels, seesaws, launchers, branching paths.
 7. **Content / social:** MIDI import, generated machines, sharing.
 
+## Level authoring lessons (from the alphabet-song level)
+
+- Lay objects out with `scripts/layout.ts` on the real simulated path; never
+  hand-edit geometry afterwards. Even resizing the board shifts floating-point
+  contact results enough to diverge a 40-bounce chain, so fix the board first,
+  then lay out, then re-lay if anything changes.
+- A long pad chain accumulates deviation. A tilted ramp every phrase re-gathers
+  the marble (it lands on the shelf, rolls off the lower end from one spot) and
+  doubles as the breath between lines. Ramps are more forgiving than rails here:
+  a groove's lip can wedge a marble arriving from above.
+- Rhythm comes from spacing: quarter notes drop 1.8, the fast L-M-N-O eighths
+  drop 1.1 with a downward deflection, and a held note is a normal pad followed
+  by the phrase ramp. Tiny drops (0.55) trap the marble between pads.
+- Round bumpers are chaotic by nature; use one at a time and follow it with a
+  board-wide funnel.
+
 ## Design decisions carried forward
 
 - Musical timing must emerge from geometry. The regular hop period of a zigzag

@@ -44,21 +44,19 @@ describe('the machine performs the level', () => {
     const dt = config.physics.fixedDt;
     let finished = false;
     sim.bus.on('marble:reset', (e) => (finished = e.reason === 'finished'));
-    for (let i = 0; i < 60 / dt && !finished; i++) sim.fixedUpdate(dt);
+    for (let i = 0; i < 90 / dt && !finished; i++) sim.fixedUpdate(dt);
     expect(finished).toBe(true);
 
-    const melody = player.notes.filter((n) => /^pad_\d$/.test(n.object.id));
-    expect(melody.map((n) => n.note)).toEqual(['A4', 'B4', 'C5', 'D5', 'E5', 'F5', 'G5']);
+    // The whole alphabet song, one strike per pad, in order.
+    const melody = player.notes.filter((n) => /^abc_\d+$/.test(n.object.id) && n.object.type === 'pad');
+    expect(melody.map((n) => n.note)).toEqual(['C5', 'C5', 'G5', 'G5', 'A5', 'A5', 'G5', 'F5', 'F5', 'E5', 'E5', 'D5', 'D5', 'D5', 'D5', 'C5', 'G5', 'G5', 'F5', 'E5', 'E5', 'D5', 'G5', 'G5', 'F5', 'E5', 'E5', 'D5', 'C5', 'C5', 'G5', 'G5', 'A5', 'A5', 'G5', 'F5', 'F5', 'E5', 'E5', 'D5', 'D5', 'C5']);
     expect(melody.every((n) => n.instrument === 'marimba')).toBe(true);
-    // One strike per pad: no double triggers from a marble settling on a pad.
-    expect(melody.length).toBe(7);
+    expect(melody.length).toBe(42);
     // Velocity follows the physics: every strike carries a real, non-trivial velocity.
     for (const n of melody) {
       expect(n.velocity).toBeGreaterThan(0.3);
       expect(n.velocity).toBeLessThanOrEqual(1);
     }
-    const bells = player.notes.filter((n) => n.instrument === 'bell').map((n) => n.note);
-    expect(bells).toEqual(['C5', 'G4', 'A4', 'E4', 'F4', 'G4']);
     expect(player.notes.some((n) => n.instrument === 'kick')).toBe(true);
     // Walls are silent by design.
     expect(player.notes.some((n) => n.object.type === 'wall')).toBe(false);
