@@ -11,7 +11,8 @@
     "test": "vitest run",
     "trace": "vite-node scripts/trace.ts",
     "layout": "vite-node scripts/layout.ts",
-    "screenshot": "node scripts/screenshot.mjs"
+    "screenshot": "node scripts/screenshot.mjs",
+    "bundle": "npm run build && node scripts/bundle.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",
