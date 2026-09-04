@@ -65,6 +65,8 @@ export const visuals = {
   /** Painted, lacquered piece: the coloured pads and bumper caps. */
   colored(color: string | number | THREE.Color): THREE.MeshPhysicalMaterial {
     const c = new THREE.Color(color);
+    // Saturated paint glows like neon; whites and greys only a little, or they blow out.
+    const hsl = c.getHSL({ h: 0, s: 0, l: 0 });
     return new THREE.MeshPhysicalMaterial({
       color: c,
       metalness: 0.0,
@@ -72,7 +74,7 @@ export const visuals = {
       clearcoat: 0.45,
       clearcoatRoughness: 0.25,
       emissive: c.clone(),
-      emissiveIntensity: padGlow,
+      emissiveIntensity: padGlow * (0.3 + 0.7 * hsl.s),
     });
   },
 };

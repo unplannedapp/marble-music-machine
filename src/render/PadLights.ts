@@ -14,7 +14,7 @@ export class PadLights {
 
   constructor(private readonly sim: Simulation, count = 6) {
     for (let i = 0; i < count; i++) {
-      const l = new THREE.PointLight(0xffffff, 0, 6, 2);
+      const l = new THREE.PointLight(0xffffff, 0, 7, 2);
       l.visible = false;
       this.group.add(l);
       this.lights.push(l);
@@ -42,7 +42,7 @@ export class PadLights {
         continue;
       }
       pad.o.position(p);
-      l.position.set(p.x, p.y, 1.4);
+      l.position.set(p.x, p.y, 2.2);
       l.color.set((pad.o.def as { color?: string }).color ?? '#ffffff');
       l.intensity = this.strength;
       l.visible = true;

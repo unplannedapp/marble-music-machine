@@ -338,7 +338,7 @@ export class Editor {
     const env = environmentPresets[name];
     if (!env || !this.sim.level) return;
     this.sim.level.environment = { ...env };
-    this.view.applyEnvironment(env);
+    this.view.applyEnvironment(env, this.sim.level.board);
     this.sim.load(this.sim.level);
     this.follow.manualFocus = this.follow.manualFocus ?? new THREE.Vector3();
     this.select(null);
@@ -361,7 +361,7 @@ export class Editor {
     try {
       const level = parseLevel(JSON.parse(ta.value));
       this.sim.load(level);
-      this.view.applyEnvironment(level.environment);
+      this.view.applyEnvironment(level.environment, level.board);
       this.panel.querySelector<HTMLInputElement>('#ed-name')!.value = level.name;
       this.select(null);
     } catch (err) {

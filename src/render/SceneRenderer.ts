@@ -6,7 +6,8 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { config } from '../core/Config';
-import type { EnvironmentDef } from '../levels/LevelTypes';
+import type { EnvironmentDef, LevelDef } from '../levels/LevelTypes';
+import { LightShafts } from './LightShafts';
 
 /** Screen-space vignette and a touch of film grain, applied after tone mapping. */
 const VignetteShader = {
@@ -36,9 +37,10 @@ const VignetteShader = {
 };
 
 /**
- * The reference look: one raking spotlight high above the action throws long
- * soft shadows down the wall and falls off with distance, so even a dark world
- * reads through the texture it lights. A neutral room provides reflections for
+ * The reference look: slanted shafts of light hang in the haze of the room and
+ * pool on the wall (LightShafts), so even a dark world reads; one raking
+ * spotlight high above the action models the objects and throws long soft
+ * shadows down the wall. A neutral room provides reflections for
  * metal and lacquer, a cool rim light draws edges, and lit pads spill colour
  * (see PadLights). The marble gets no light of its own. Post: MSAA target,
  * bloom for what is actually bright, vignette and grain.
@@ -55,6 +57,8 @@ export class SceneRenderer {
   private readonly bloom: UnrealBloomPass;
   private readonly vignette: ShaderPass;
   private readonly mobile: boolean;
+  private readonly shafts: LightShafts;
+  private board: LevelDef['board'] = { width: 16, top: 8, bottom: -80 };
   private keyOffset = new THREE.Vector3(8, 24, 30);
   private time = 0;
 
@@ -79,7 +83,7 @@ export class SceneRenderer {
     this.scene.add(this.hemi);
 
     // Raking key: a spotlight so light falls off across the wall like a lamp, not a sun.
-    this.keyLight = new THREE.SpotLight(0xfff0d8, 900, 120, Math.PI / 5.2, 0.75, 1.15);
+    this.keyLight = new THREE.SpotLight(0xfff0d8, 900, 120, Math.PI / 4.6, 0.9, 1.15);
     this.keyLight.castShadow = true;
     const size = this.mobile ? 1024 : 2048;
     this.keyLight.shadow.mapSize.set(size, size);
@@ -96,6 +100,9 @@ export class SceneRenderer {
     this.scene.add(this.rimLight);
     this.rimLight.target = this.lightTarget;
 
+    this.shafts = new LightShafts(this.mobile);
+    this.scene.add(this.shafts.group);
+
     const target = new THREE.WebGLRenderTarget(1, 1, { samples: this.mobile ? 2 : 4, type: THREE.HalfFloatType });
     this.composer = new EffectComposer(this.renderer, target);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
@@ -111,12 +118,14 @@ export class SceneRenderer {
   }
 
   /** Every song has its own world: sky, lighting and post come from the level. */
-  applyEnvironment(env: EnvironmentDef | undefined): void {
+  applyEnvironment(env: EnvironmentDef | undefined, board?: LevelDef['board']): void {
+    if (board) this.board = board;
     const background = env?.background ?? '#4b4a58';
     this.scene.background = new THREE.Color(background);
     this.scene.fog = new THREE.Fog(background, 50, 120);
     this.keyLight.color.set(env?.keyLight ?? '#fff0d8');
-    this.keyLight.intensity = (env?.keyIntensity ?? 2.4) * 260;
+    // Softer than a stage lamp: the shafts and fill carry the mood, the key only models the objects.
+    this.keyLight.intensity = (env?.keyIntensity ?? 2.4) * 150;
     const rake = env?.keyRake ?? 0.35;
     // Rake: 0 = overhead, 1 = grazing along the wall (longer shadows, stronger texture).
     this.keyOffset.set(7, 10 + rake * 28, 30 - rake * 14);
@@ -130,6 +139,7 @@ export class SceneRenderer {
     this.bloom.strength = env?.bloom ?? 0.25;
     this.bloom.threshold = env?.bloomThreshold ?? 0.85;
     (this.vignette.uniforms.strength as { value: number }).value = env?.vignette ?? 0.35;
+    this.shafts.build(env, this.board);
   }
 
   /** Keep the lights centred on the action so shadows stay crisp on a long board. */
@@ -152,6 +162,7 @@ export class SceneRenderer {
 
   render(frameDt = 0.016): void {
     this.time += frameDt;
+    this.shafts.update(frameDt);
     (this.vignette.uniforms.time as { value: number }).value = this.time % 1000;
     this.composer.render();
   }

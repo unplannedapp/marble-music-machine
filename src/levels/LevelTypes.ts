@@ -117,6 +117,12 @@ export interface EnvironmentDef {
   padGlow?: number;
   /** Strength of the coloured light lit pads spill onto the wall (0 = none). */
   padLight?: number;
+  /** Strength of the slanted light shafts and dust that hang in the room (0 = none). */
+  shaft?: number;
+  /** Colour of the shafts; defaults to the key light colour. */
+  shaftColor?: string;
+  /** How far the shafts lean from vertical, degrees. */
+  shaftAngle?: number;
   /** How grazing the key light is: 0 overhead, 1 along the wall. */
   keyRake?: number;
   /** Depth of the wall's plaster grain. */

@@ -74,7 +74,7 @@ async function main(): Promise<void> {
       m.level.checkpoints = baked.checkpoints;
     }
     sim.load(m.level);
-    view.applyEnvironment(m.level.environment);
+    view.applyEnvironment(m.level.environment, m.level.board);
     padLights.setStrength(m.level.environment?.padLight ?? 0);
     scoring = new ScoreSystem(sim, m.song);
     flow = new GameFlow(sim, scoring);
@@ -132,7 +132,7 @@ async function main(): Promise<void> {
     scoring.dispose();
     view.scene.remove(rings.group);
     sim.load(target.level);
-    view.applyEnvironment(target.level.environment);
+    view.applyEnvironment(target.level.environment, target.level.board);
     padLights.setStrength(target.level.environment?.padLight ?? 0);
     scoring = new ScoreSystem(sim, target.song);
     flow = new GameFlow(sim, scoring);
