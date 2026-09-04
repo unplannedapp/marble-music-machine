@@ -48,7 +48,7 @@ describe('the machine performs the level', () => {
     expect(finished).toBe(true);
 
     const melody = player.notes.filter((n) => /^pad_\d$/.test(n.object.id));
-    expect(melody.map((n) => n.note)).toEqual(['C5', 'E5', 'G5', 'E5', 'D5', 'F5', 'G5']);
+    expect(melody.map((n) => n.note)).toEqual(['A4', 'B4', 'C5', 'D5', 'E5', 'F5', 'G5']);
     expect(melody.every((n) => n.instrument === 'marimba')).toBe(true);
     // One strike per pad: no double triggers from a marble settling on a pad.
     expect(melody.length).toBe(7);

@@ -29,11 +29,11 @@ export const playground: LevelDef = {
 
     // Zigzag pads, placed on the simulated path by scripts/autolayout.ts.
     // Positive angle raises the right end and sends a falling marble to the left.
-    { type: 'pad', id: 'pad_1', position: [3.7, 2.32, 0], angle: 53, color: '#d9534f', instrument: 'marimba', note: 'C5' },
-    { type: 'pad', id: 'pad_2', position: [1.44, 0.15, 0], angle: -38, color: '#f0ad4e', instrument: 'marimba', note: 'E5' },
-    { type: 'pad', id: 'pad_3', position: [4.46, -1.99, 0], angle: 42, color: '#5bc0de', instrument: 'marimba', note: 'G5' },
-    { type: 'pad', id: 'pad_4', position: [1.45, -4.15, 0], angle: -41, color: '#8e6bd6', instrument: 'marimba', note: 'E5' },
-    { type: 'pad', id: 'pad_5', position: [4.53, -6.29, 0], angle: 41.5, color: '#5cb85c', instrument: 'marimba', note: 'D5' },
+    { type: 'pad', id: 'pad_1', position: [3.7, 2.32, 0], angle: 53, color: '#d9534f', instrument: 'marimba', note: 'A4' },
+    { type: 'pad', id: 'pad_2', position: [1.44, 0.15, 0], angle: -38, color: '#f0ad4e', instrument: 'marimba', note: 'B4' },
+    { type: 'pad', id: 'pad_3', position: [4.46, -1.99, 0], angle: 42, color: '#5bc0de', instrument: 'marimba', note: 'C5' },
+    { type: 'pad', id: 'pad_4', position: [1.45, -4.15, 0], angle: -41, color: '#8e6bd6', instrument: 'marimba', note: 'D5' },
+    { type: 'pad', id: 'pad_5', position: [4.53, -6.29, 0], angle: 41.5, color: '#5cb85c', instrument: 'marimba', note: 'E5' },
     { type: 'pad', id: 'pad_6', position: [1.46, -8.45, 0], angle: -41.5, color: '#e86fb0', instrument: 'marimba', note: 'F5' },
     { type: 'pad', id: 'pad_7', position: [4.54, -10.59, 0], angle: 41.5, color: '#f7f7f7', instrument: 'marimba', note: 'G5' },
 
