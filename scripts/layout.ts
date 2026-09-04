@@ -20,7 +20,7 @@
  */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef } from '../src/levels/LevelTypes';
+import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef } from '../src/levels/LevelTypes';
 import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
@@ -29,7 +29,7 @@ const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -147,6 +147,26 @@ for (let k = 0; k < steps.length; k++) {
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> rail toward ${dx > 0 ? 'right' : 'left'}, ends at y ${lastY.toFixed(2)}`);
     continue;
   }
+  if (step.k === 'pipe') {
+    // Entry mouth on the marble's path, then a hook toward the board centre and down.
+    const dx = state.x > 0 ? -1 : 1;
+    const x0 = +state.x.toFixed(2);
+    const y0 = +state.y.toFixed(2);
+    const pts: [number, number, number][] = [
+      [+(x0 - 0.3 * dx).toFixed(2), +(y0 + 0.9).toFixed(2), 0],
+      [x0, +(y0 - 0.2).toFixed(2), 0],
+      [+(x0 + 1.4 * dx).toFixed(2), +(y0 - 1.3).toFixed(2), 0],
+      [+(x0 + 2.2 * dx).toFixed(2), +(y0 - 2.9).toFixed(2), 0],
+      [+(x0 + 1.4 * dx).toFixed(2), +(y0 - 4.3).toFixed(2), 0],
+    ];
+    const pipe: PipeDef = { type: 'pipe', id, points: pts, color: step.color ?? '#7a3fb0', instrument: 'tube', note: step.note ?? 'C4' };
+    def = pipe;
+    placed.push(def);
+    lastY = y0 - 4.3;
+    afterT = state.t + 0.05;
+    console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> pipe toward ${dx > 0 ? 'right' : 'left'}, exit at y ${lastY.toFixed(2)}`);
+    continue;
+  }
   if (step.k === 'ramp') {
     // Tilted shelf descending toward the board centre. The marble lands on its
     // upper half and rolls off the lower end from a repeatable spot.
@@ -210,5 +230,6 @@ for (const o of placed) {
   if (o.type === 'pad') console.log(`    { type: 'pad', id: '${o.id}', position: [${o.position.join(', ')}], angle: ${o.angle}, color: '${o.color}', note: '${o.note}' },`);
   else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, color: '${o.color}' },`);
   else if (o.type === 'rail') console.log(`    { type: 'rail', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}] },`);
+  else if (o.type === 'pipe') console.log(`    { type: 'pipe', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}], color: '${o.color}' },`);
   else if (o.type === 'ramp') console.log(`    { type: 'ramp', id: '${o.id}', position: [${o.position.join(', ')}], rotation: [${o.rotation!.join(', ')}], size: [${o.size.join(', ')}] },`);
 }

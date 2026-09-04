@@ -40,8 +40,10 @@ Reconciled against the full specification and the five reference videos.
    environment presets, save to the device, JSON copy and paste, simulate.
    Built-in machines are edited as copies. Custom machines get their song by
    baking the level's own run.
-6. **Advanced physics:** object-object chain reactions (contact routing between
-   non-marble bodies), spinners, funnels, seesaws, launchers, branching paths.
+6. **Advanced physics:** pipes are done (curved trimesh tubes the marble
+   travels through, a `pipe` layout step, editor palette). Still to do:
+   object-object chain reactions (contact routing between non-marble bodies),
+   spinners, seesaws, launchers, branching paths.
 7. **Content / social:** MIDI import, generated machines, sharing.
 
 ## Level authoring lessons (from the alphabet-song level)

@@ -65,7 +65,16 @@ export interface PadDef extends BaseObjectDef {
   damping?: number;
 }
 
-export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef;
+export interface PipeDef extends BaseObjectDef {
+  type: 'pipe';
+  /** Path of the pipe's centreline in board coordinates (z = 0 means the default pipe height). */
+  points: Vec3Tuple[];
+  /** Inner radius. Default 1.7 * marble radius. */
+  radius?: number;
+  color?: string;
+}
+
+export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef;
 
 /**
  * The look of a machine: every song has its own world in the references, so the
@@ -106,6 +115,12 @@ export interface EnvironmentDef {
   vignette?: number;
   /** Pad paint glow (emissive scale) so neon worlds light up. */
   padGlow?: number;
+  /** Strength of the coloured light lit pads spill onto the wall (0 = none). */
+  padLight?: number;
+  /** How grazing the key light is: 0 overhead, 1 along the wall. */
+  keyRake?: number;
+  /** Depth of the wall's plaster grain. */
+  boardGrain?: number;
 }
 
 export interface LevelDef {

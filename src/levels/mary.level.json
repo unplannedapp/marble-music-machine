@@ -2,24 +2,26 @@
   "format": 1,
   "name": "Little Lamb Machine",
   "environment": {
-    "board": "#101018",
-    "background": "#06060b",
-    "keyLight": "#c9d4ff",
-    "keyIntensity": 1.6,
-    "fill": "#4a3f9e",
-    "fillIntensity": 0.15,
-    "rim": "#7fe0ff",
-    "rimIntensity": 0.9,
-    "marbleLight": "#ffffff",
-    "metal": "#8f95a8",
+    "board": "#2a2924",
+    "background": "#0a0a0c",
+    "keyLight": "#ffe9c8",
+    "keyIntensity": 2.6,
+    "keyRake": 0.6,
+    "fill": "#2b2740",
+    "fillIntensity": 0.3,
+    "rim": "#4d6fa8",
+    "rimIntensity": 0.4,
+    "metal": "#7f8aa8",
     "wood": "#3f2a52",
-    "ring": "#7fe0ff",
-    "envIntensity": 0.15,
+    "ring": "#ffd84a",
+    "envIntensity": 0.18,
     "exposure": 1,
-    "bloom": 0.6,
-    "bloomThreshold": 0.6,
-    "vignette": 0.55,
-    "padGlow": 0.45
+    "bloom": 0.4,
+    "bloomThreshold": 0.75,
+    "vignette": 0.5,
+    "padGlow": 0.9,
+    "padLight": 9,
+    "boardGrain": 0.7
   },
   "board": {
     "width": 16,
@@ -31,10 +33,6 @@
     "velocity": [1.2, 0, 0]
   },
   "killY": -94,
-  "finish": {
-    "position": [-6, -78.29, 0],
-    "radius": 1.3
-  },
   "objects": [
     {
       "type": "wall",
@@ -67,8 +65,7 @@
       "position": [3.66, 2.31, 0],
       "angle": 50,
       "color": "#f7f7f7",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
@@ -76,8 +73,7 @@
       "position": [1.69, 0.44, 0],
       "angle": -36.5,
       "color": "#5bc0de",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
@@ -85,8 +81,7 @@
       "position": [4.36, -1.39, 0],
       "angle": 42,
       "color": "#e86fb0",
-      "note": "C5",
-      "instrument": "marimba"
+      "note": "C5"
     },
     {
       "type": "pad",
@@ -94,8 +89,7 @@
       "position": [1.71, -3.21, 0],
       "angle": -41,
       "color": "#5cb85c",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
@@ -103,8 +97,7 @@
       "position": [4.4, -5.03, 0],
       "angle": 41.5,
       "color": "#f0ad4e",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
@@ -112,8 +105,7 @@
       "position": [1.65, -6.84, 0],
       "angle": -42,
       "color": "#8e6bd6",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
@@ -121,216 +113,217 @@
       "position": [4.35, -8.65, 0],
       "angle": 41.5,
       "color": "#d9534f",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
-      "type": "ramp",
+      "type": "pipe",
       "id": "lamb_8",
-      "position": [1.07, -11.42, 0.45],
-      "rotation": [0, 0, 25],
-      "size": [3.6, 0.4, 0.9]
+      "points": [
+        [2.1, -9.67, 0],
+        [1.8, -10.77, 0],
+        [0.4, -11.87, 0],
+        [-0.4, -13.47, 0],
+        [0.4, -14.87, 0]
+      ],
+      "color": "#7a3fb0",
+      "instrument": "tube",
+      "note": "C4"
     },
     {
       "type": "pad",
       "id": "lamb_9",
-      "position": [-3.28, -14.09, 0],
-      "angle": -49.5,
+      "position": [1.43, -17.08, 0],
+      "angle": 41,
       "color": "#f7f7f7",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
       "id": "lamb_10",
-      "position": [-0.14, -15.96, 0],
-      "angle": 40.5,
+      "position": [-2.61, -18.88, 0],
+      "angle": -47.5,
       "color": "#5bc0de",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
       "id": "lamb_11",
-      "position": [-3.12, -17.76, 0],
-      "angle": -43.5,
+      "position": [0.54, -20.76, 0],
+      "angle": 42.5,
       "color": "#e86fb0",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
-      "type": "ramp",
+      "type": "pipe",
       "id": "lamb_12",
-      "position": [0.22, -20.56, 0.45],
-      "rotation": [0, 0, -25],
-      "size": [3.6, 0.4, 0.9]
+      "points": [
+        [-2.47, -21.79, 0],
+        [-2.17, -22.89, 0],
+        [-0.77, -23.99, 0],
+        [0.03, -25.59, 0],
+        [-0.77, -26.99, 0]
+      ],
+      "color": "#c0392b",
+      "instrument": "tube",
+      "note": "G3"
     },
     {
       "type": "pad",
       "id": "lamb_13",
-      "position": [4.58, -23.23, 0],
-      "angle": 49.5,
+      "position": [-2.27, -29.2, 0],
+      "angle": -41,
       "color": "#5cb85c",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
       "id": "lamb_14",
-      "position": [1.43, -25.1, 0],
-      "angle": -40.5,
+      "position": [1.26, -31.04, 0],
+      "angle": 45,
       "color": "#f0ad4e",
-      "note": "G5",
-      "instrument": "marimba"
+      "note": "G5"
     },
     {
       "type": "pad",
       "id": "lamb_15",
-      "position": [4.35, -26.89, 0],
-      "angle": 43,
+      "position": [-1.71, -32.91, 0],
+      "angle": -42,
       "color": "#8e6bd6",
-      "note": "G5",
-      "instrument": "marimba"
+      "note": "G5"
     },
     {
-      "type": "ramp",
+      "type": "pipe",
       "id": "lamb_16",
-      "position": [1.04, -29.69, 0.45],
-      "rotation": [0, 0, 25],
-      "size": [3.6, 0.4, 0.9]
+      "points": [
+        [1.32, -33.9, 0],
+        [1.02, -35, 0],
+        [-0.38, -36.1, 0],
+        [-1.18, -37.7, 0],
+        [-0.38, -39.1, 0]
+      ],
+      "color": "#2e6fd8",
+      "instrument": "tube",
+      "note": "E4"
     },
     {
       "type": "pad",
       "id": "lamb_17",
-      "position": [-3.31, -32.34, 0],
-      "angle": -49.5,
+      "position": [0.89, -41.28, 0],
+      "angle": 40.5,
       "color": "#d9534f",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
       "id": "lamb_18",
-      "position": [-0.18, -34.22, 0],
-      "angle": 40.5,
+      "position": [-2.45, -43.06, 0],
+      "angle": -44.5,
       "color": "#f7f7f7",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
       "id": "lamb_19",
-      "position": [-3.1, -36.02, 0],
-      "angle": -43,
+      "position": [0.47, -44.87, 0],
+      "angle": 42.5,
       "color": "#5bc0de",
-      "note": "C5",
-      "instrument": "marimba"
+      "note": "C5"
     },
     {
       "type": "pad",
       "id": "lamb_20",
-      "position": [-0.39, -37.85, 0],
-      "angle": 41,
+      "position": [-2.27, -46.69, 0],
+      "angle": -42,
       "color": "#e86fb0",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
       "id": "lamb_21",
-      "position": [-3.08, -39.65, 0],
-      "angle": -41.5,
+      "position": [0.42, -48.51, 0],
+      "angle": 41.5,
       "color": "#5cb85c",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
       "id": "lamb_22",
-      "position": [-0.4, -41.52, 0],
-      "angle": 41,
+      "position": [-2.26, -50.32, 0],
+      "angle": -41.5,
       "color": "#f0ad4e",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
       "id": "lamb_23",
-      "position": [-3.09, -43.31, 0],
-      "angle": -41.5,
+      "position": [0.43, -52.2, 0],
+      "angle": 41,
       "color": "#8e6bd6",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
       "id": "lamb_24",
-      "position": [-0.36, -45.13, 0],
-      "angle": 41.5,
+      "position": [-2.3, -54.06, 0],
+      "angle": -41.5,
       "color": "#d9534f",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
       "id": "lamb_25",
-      "position": [-3.05, -46.96, 0],
-      "angle": -41.5,
+      "position": [0.42, -55.87, 0],
+      "angle": 41.5,
       "color": "#f7f7f7",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
       "id": "lamb_26",
-      "position": [-0.37, -48.77, 0],
-      "angle": 41.5,
+      "position": [-2.26, -57.72, 0],
+      "angle": -41,
       "color": "#5bc0de",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
       "id": "lamb_27",
-      "position": [-3.03, -50.58, 0],
-      "angle": -41.5,
+      "position": [0.45, -59.58, 0],
+      "angle": 41.5,
       "color": "#e86fb0",
-      "note": "E5",
-      "instrument": "marimba"
+      "note": "E5"
     },
     {
       "type": "pad",
       "id": "lamb_28",
-      "position": [-0.35, -52.41, 0],
-      "angle": 41.5,
+      "position": [-2.26, -61.39, 0],
+      "angle": -41.5,
       "color": "#5cb85c",
-      "note": "D5",
-      "instrument": "marimba"
+      "note": "D5"
     },
     {
       "type": "pad",
       "id": "lamb_29",
-      "position": [-3.05, -54.28, 0],
-      "angle": -41,
+      "position": [0.42, -63.24, 0],
+      "angle": 41,
       "color": "#f0ad4e",
-      "note": "C5",
-      "instrument": "marimba"
+      "note": "C5"
     },
     {
       "type": "rail",
       "id": "fin_1",
       "points": [
-        [-1.35, -55.79, 0],
-        [-0.85, -56.34, 0],
-        [0.25, -56.79, 0],
-        [1.45, -57.39, 0],
-        [2.25, -58.29, 0]
+        [-3.28, -64.76, 0],
+        [-2.78, -65.31, 0],
+        [-1.68, -65.76, 0],
+        [-0.48, -66.36, 0],
+        [0.32, -67.26, 0]
       ]
     },
     {
       "type": "bumper",
       "id": "fin_2",
-      "position": [4.67, -60.44, 0],
+      "position": [2.37, -69.47, 0],
       "radius": 0.7,
       "color": "#e8c44a",
       "instrument": "kick"
@@ -338,7 +331,7 @@
     {
       "type": "ramp",
       "id": "funnel_left",
-      "position": [-4.35, -68.69, 0.45],
+      "position": [-4.35, -77.72, 0.45],
       "rotation": [0, 0, -22.3],
       "size": [7.9, 0.4, 0.9],
       "instrument": "snare"
@@ -346,7 +339,7 @@
     {
       "type": "ramp",
       "id": "funnel_right",
-      "position": [4.35, -68.69, 0.45],
+      "position": [4.35, -77.72, 0.45],
       "rotation": [0, 0, 22.3],
       "size": [7.9, 0.4, 0.9],
       "instrument": "snare"
@@ -355,20 +348,20 @@
       "type": "rail",
       "id": "rail_end",
       "points": [
-        [4.6, -69.69, 0],
-        [3, -70.69, 0],
-        [1.6, -71.39, 0],
-        [0, -71.79, 0],
-        [-1.8, -72.39, 0],
-        [-3.4, -73.29, 0],
-        [-4.6, -74.59, 0],
-        [-5.2, -76.19, 0]
+        [4.6, -78.72, 0],
+        [3, -79.72, 0],
+        [1.6, -80.42, 0],
+        [0, -80.82, 0],
+        [-1.8, -81.42, 0],
+        [-3.4, -82.32, 0],
+        [-4.6, -83.62, 0],
+        [-5.2, -85.22, 0]
       ]
     },
     {
       "type": "ramp",
       "id": "tray_right",
-      "position": [-4.9, -78.09, 0.45],
+      "position": [-4.9, -87.12, 0.45],
       "rotation": [0, 0, 30],
       "size": [2.6, 0.4, 0.9],
       "color": "#3a3c44",
@@ -377,13 +370,17 @@
     {
       "type": "ramp",
       "id": "tray_left",
-      "position": [-7.1, -78.09, 0.45],
+      "position": [-7.1, -87.12, 0.45],
       "rotation": [0, 0, -30],
       "size": [2.6, 0.4, 0.9],
       "color": "#3a3c44",
       "instrument": "thud"
     }
   ],
+  "finish": {
+    "position": [-6, -87.32, 0],
+    "radius": 1.3
+  },
   "checkpoints": [
     {
       "section": 0,
@@ -393,21 +390,21 @@
     },
     {
       "section": 1,
-      "position": [-0.72, -11.706, 0.298],
-      "velocity": [-6.577, -3.136, -0.064],
-      "spin": [10.309, -21.87, 24.233]
+      "position": [-0.569, -13.556, 0.549],
+      "velocity": [1.587, -7.862, 2.986],
+      "spin": [26.319, -12.876, 0.973]
     },
     {
       "section": 2,
-      "position": [2.01, -20.846, 0.298],
-      "velocity": [6.589, -3.17, -0.062],
-      "spin": [10.329, 21.946, -24.287]
+      "position": [-0.263, -26.295, 0.71],
+      "velocity": [-5.194, -3.603, 0.762],
+      "spin": [20.173, 5.125, 5.204]
     },
     {
       "section": 3,
-      "position": [-0.748, -29.975, 0.298],
-      "velocity": [-6.546, -3.137, -0.064],
-      "spin": [10.273, -21.786, 24.14]
+      "position": [-1.05, -38.395, 0.696],
+      "velocity": [4.882, -3.882, 1.511],
+      "spin": [22.355, -5.383, -10.107]
     }
   ]
 }

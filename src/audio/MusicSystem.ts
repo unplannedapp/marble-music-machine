@@ -18,6 +18,7 @@ export const defaultInstrument: Record<string, InstrumentName> = {
   pad: 'marimba',
   bumper: 'pop',
   rail: 'click',
+  pipe: 'tube',
   ramp: 'thud',
   wall: 'thud',
 };
@@ -43,7 +44,8 @@ export class MusicSystem {
     if (!instrument || def.instrument === 'none') return;
     const last = this.lastNoteTime.get(e.object) ?? -Infinity;
     if (e.simTime - last < RETRIGGER_SECONDS) return;
-    // Rails get a faint tick only when landed on, never for every rod segment.
+    // Rails get a faint tick only when landed on, never for every rod segment;
+    // a pipe sounds once as the marble enters it.
     const minImpact = instrument === 'click' ? 1.5 : 0.25;
     if (e.impactSpeed < minImpact) return;
     this.lastNoteTime.set(e.object, e.simTime);
@@ -62,7 +64,7 @@ export class MusicSystem {
 
   /** Per frame: drive the continuous rolling sound from the marble's state. */
   update(): void {
-    const touchingRail = this.sim.objects.some((o) => o.type === 'rail' && this.sim.physics.isTouching(o));
+    const touchingRail = this.sim.objects.some((o) => (o.type === 'rail' || o.type === 'pipe') && this.sim.physics.isTouching(o));
     const speed = this.sim.marble.speed();
     this.player.setRolling(touchingRail ? 1 : 0, speed);
   }

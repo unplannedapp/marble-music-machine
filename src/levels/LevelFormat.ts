@@ -29,7 +29,7 @@ function fail(path: string, msg: string): never {
   throw new Error(`Level ${path}: ${msg}`);
 }
 
-const OBJECT_TYPES = new Set(['rail', 'ramp', 'wall', 'bumper', 'pad']);
+const OBJECT_TYPES = new Set(['rail', 'ramp', 'wall', 'bumper', 'pad', 'pipe']);
 
 function checkObject(o: unknown, i: number): ObjectDef {
   const path = `objects[${i}]`;
@@ -37,8 +37,8 @@ function checkObject(o: unknown, i: number): ObjectDef {
   const d = o as Record<string, unknown>;
   if (typeof d.type !== 'string' || !OBJECT_TYPES.has(d.type)) fail(path, `unknown type "${String(d.type)}"`);
   if (d.id !== undefined && typeof d.id !== 'string') fail(path, 'id must be a string');
-  if (d.type === 'rail') {
-    if (!Array.isArray(d.points) || d.points.length < 2 || !d.points.every(isVec3)) fail(path, 'rail needs at least two [x, y, z] points');
+  if (d.type === 'rail' || d.type === 'pipe') {
+    if (!Array.isArray(d.points) || d.points.length < 2 || !d.points.every(isVec3)) fail(path, `${d.type} needs at least two [x, y, z] points`);
   } else {
     if (!isVec3(d.position)) fail(path, 'needs a [x, y, z] position');
   }

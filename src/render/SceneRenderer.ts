@@ -36,24 +36,26 @@ const VignetteShader = {
 };
 
 /**
- * Cinematic setup for the machine: image-based lighting so metal and glossy
- * paint reflect a room, a warm key light casting long soft shadows, a cool rim
- * light for edge definition, a small warm light travelling with the marble, and
- * a post chain of bloom, vignette and grain. Every environment tunes the mood.
+ * The reference look: one raking spotlight high above the action throws long
+ * soft shadows down the wall and falls off with distance, so even a dark world
+ * reads through the texture it lights. A neutral room provides reflections for
+ * metal and lacquer, a cool rim light draws edges, and lit pads spill colour
+ * (see PadLights). The marble gets no light of its own. Post: MSAA target,
+ * bloom for what is actually bright, vignette and grain.
  */
 export class SceneRenderer {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
-  readonly keyLight: THREE.DirectionalLight;
+  readonly keyLight: THREE.SpotLight;
   readonly rimLight: THREE.DirectionalLight;
-  readonly marbleLight: THREE.PointLight;
   private readonly hemi: THREE.HemisphereLight;
   private readonly lightTarget = new THREE.Object3D();
   private readonly composer: EffectComposer;
   private readonly bloom: UnrealBloomPass;
   private readonly vignette: ShaderPass;
   private readonly mobile: boolean;
+  private keyOffset = new THREE.Vector3(8, 24, 30);
   private time = 0;
 
   constructor(container: HTMLElement) {
@@ -66,45 +68,34 @@ export class SceneRenderer {
     this.renderer.toneMappingExposure = 1.0;
     container.appendChild(this.renderer.domElement);
 
-    // Image-based lighting: a neutral room so surfaces have something to reflect.
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    this.scene.environmentIntensity = 0.55;
+    this.scene.environmentIntensity = 0.3;
     pmrem.dispose();
 
     this.camera = new THREE.PerspectiveCamera(config.camera.fov, 1, 0.1, 200);
 
-    this.hemi = new THREE.HemisphereLight(0xdcd8ff, 0x2a2630, 0.3);
+    this.hemi = new THREE.HemisphereLight(0xdcd8ff, 0x2a2630, 0.25);
     this.scene.add(this.hemi);
 
-    this.keyLight = new THREE.DirectionalLight(0xfff4e6, 2.4);
+    // Raking key: a spotlight so light falls off across the wall like a lamp, not a sun.
+    this.keyLight = new THREE.SpotLight(0xfff0d8, 900, 120, Math.PI / 5.2, 0.75, 1.15);
     this.keyLight.castShadow = true;
     const size = this.mobile ? 1024 : 2048;
     this.keyLight.shadow.mapSize.set(size, size);
-    this.keyLight.shadow.bias = -0.0004;
+    this.keyLight.shadow.bias = -0.0003;
     this.keyLight.shadow.normalBias = 0.02;
-    this.keyLight.shadow.radius = this.mobile ? 3 : 5;
-    const cam = this.keyLight.shadow.camera;
-    cam.near = 1;
-    cam.far = 120;
-    cam.left = -16;
-    cam.right = 16;
-    cam.top = 16;
-    cam.bottom = -16;
+    this.keyLight.shadow.radius = this.mobile ? 2 : 3;
+    this.keyLight.shadow.camera.near = 4;
+    this.keyLight.shadow.camera.far = 110;
     this.scene.add(this.keyLight);
     this.scene.add(this.lightTarget);
     this.keyLight.target = this.lightTarget;
 
-    // Rim light from the opposite side, cool, no shadows: separates objects from the board.
-    this.rimLight = new THREE.DirectionalLight(0xbfd4ff, 0.9);
+    this.rimLight = new THREE.DirectionalLight(0xbfd4ff, 0.7);
     this.scene.add(this.rimLight);
     this.rimLight.target = this.lightTarget;
 
-    // A small warm light rides with the marble so the pads it approaches brighten.
-    this.marbleLight = new THREE.PointLight(0xffd9a8, 3.5, 5, 2);
-    this.scene.add(this.marbleLight);
-
-    // Post: MSAA render target, bloom for glow, vignette and grain, then output (tone map + sRGB).
     const target = new THREE.WebGLRenderTarget(1, 1, { samples: this.mobile ? 2 : 4, type: THREE.HalfFloatType });
     this.composer = new EffectComposer(this.renderer, target);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
@@ -119,33 +110,33 @@ export class SceneRenderer {
     window.addEventListener('resize', () => this.resize());
   }
 
-  /** Every song has its own world: sky, board tint, lighting and post come from the level. */
+  /** Every song has its own world: sky, lighting and post come from the level. */
   applyEnvironment(env: EnvironmentDef | undefined): void {
     const background = env?.background ?? '#4b4a58';
     this.scene.background = new THREE.Color(background);
-    this.scene.fog = new THREE.Fog(background, 45, 110);
-    this.keyLight.color.set(env?.keyLight ?? '#fff4e6');
-    this.keyLight.intensity = env?.keyIntensity ?? 2.4;
+    this.scene.fog = new THREE.Fog(background, 50, 120);
+    this.keyLight.color.set(env?.keyLight ?? '#fff0d8');
+    this.keyLight.intensity = (env?.keyIntensity ?? 2.4) * 260;
+    const rake = env?.keyRake ?? 0.35;
+    // Rake: 0 = overhead, 1 = grazing along the wall (longer shadows, stronger texture).
+    this.keyOffset.set(7, 10 + rake * 28, 30 - rake * 14);
     this.hemi.color.set(env?.fill ?? '#dcd8ff');
-    this.hemi.intensity = env?.fillIntensity ?? 0.3;
+    this.hemi.intensity = env?.fillIntensity ?? 0.25;
     this.hemi.groundColor.set(background).multiplyScalar(0.5);
-    this.rimLight.intensity = env?.rimIntensity ?? 0.8;
     this.rimLight.color.set(env?.rim ?? '#bfd4ff');
-    this.marbleLight.color.set(env?.marbleLight ?? '#ffd9a8');
-    this.scene.environmentIntensity = env?.envIntensity ?? 0.35;
+    this.rimLight.intensity = env?.rimIntensity ?? 0.7;
+    this.scene.environmentIntensity = env?.envIntensity ?? 0.3;
     this.renderer.toneMappingExposure = env?.exposure ?? 1.0;
     this.bloom.strength = env?.bloom ?? 0.25;
     this.bloom.threshold = env?.bloomThreshold ?? 0.85;
     (this.vignette.uniforms.strength as { value: number }).value = env?.vignette ?? 0.35;
   }
 
-  /** Keep the shadow frustum and the lights centred on the action, so shadows stay crisp on a long board. */
-  followLight(focus: THREE.Vector3, marble?: THREE.Vector3): void {
+  /** Keep the lights centred on the action so shadows stay crisp on a long board. */
+  followLight(focus: THREE.Vector3): void {
     this.lightTarget.position.copy(focus);
-    // Low, raking key light: long shadows down and to the right, as in the references.
-    this.keyLight.position.set(focus.x - 14, focus.y + 20, focus.z + 15);
-    this.rimLight.position.set(focus.x + 12, focus.y - 6, focus.z + 10);
-    if (marble) this.marbleLight.position.set(marble.x, marble.y, 1.6);
+    this.keyLight.position.set(focus.x + this.keyOffset.x, focus.y + this.keyOffset.y, this.keyOffset.z);
+    this.rimLight.position.set(focus.x - 12, focus.y - 8, focus.z + 10);
   }
 
   resize(): void {

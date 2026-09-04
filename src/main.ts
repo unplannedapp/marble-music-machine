@@ -21,6 +21,7 @@ import { bakeMachine } from './game/SongBake';
 import { saveCustomMachine, newMachineId } from './ui/storage';
 import type { LevelFile } from './levels/LevelFormat';
 import { TargetRings } from './render/TargetRings';
+import { PadLights } from './render/PadLights';
 
 async function main(): Promise<void> {
   await initRapier();
@@ -51,6 +52,8 @@ async function main(): Promise<void> {
   const music = new MusicSystem(sim, audio);
   const effects = new HitEffects(sim.bus);
   view.scene.add(effects.group);
+  const padLights = new PadLights(sim);
+  view.scene.add(padLights.group);
 
   // Song, timing, combo and score.
   let scoring = new ScoreSystem(sim, machine.song);
@@ -72,6 +75,7 @@ async function main(): Promise<void> {
     }
     sim.load(m.level);
     view.applyEnvironment(m.level.environment);
+    padLights.setStrength(m.level.environment?.padLight ?? 0);
     scoring = new ScoreSystem(sim, m.song);
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
@@ -129,6 +133,7 @@ async function main(): Promise<void> {
     view.scene.remove(rings.group);
     sim.load(target.level);
     view.applyEnvironment(target.level.environment);
+    padLights.setStrength(target.level.environment?.padLight ?? 0);
     scoring = new ScoreSystem(sim, target.song);
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
@@ -170,7 +175,8 @@ async function main(): Promise<void> {
         follow.update(marblePos, marbleVel, frameDt);
       }
       follow.currentFocus(focus);
-      view.followLight(freeCamera ? marblePos : focus, marblePos);
+      view.followLight(freeCamera ? marblePos : focus);
+      padLights.update(focus);
       debug.update();
       view.render(frameDt);
 

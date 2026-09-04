@@ -3,7 +3,7 @@ import type { Simulation } from '../sim/Simulation';
 import type { SceneRenderer } from '../render/SceneRenderer';
 import type { FollowCamera } from '../render/FollowCamera';
 import type { InteractiveObject } from '../objects/InteractiveObject';
-import type { ObjectDef, PadDef, BumperDef, RampDef, RailDef } from '../levels/LevelTypes';
+import type { ObjectDef, PadDef, BumperDef, RampDef, RailDef, PipeDef } from '../levels/LevelTypes';
 import type { LevelFile } from '../levels/LevelFormat';
 import { serializeLevel, parseLevel } from '../levels/LevelFormat';
 import { environmentPresets } from '../levels/template';
@@ -59,7 +59,7 @@ export class Editor {
       <div class="ed-bar">
         <div class="ed-palette">
           <button data-add="pad">+ Pad</button><button data-add="bumper">+ Bumper</button>
-          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button>
+          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><button data-add="pipe">+ Pipe</button>
         </div>
         <div class="ed-actions">
           <button id="ed-simulate" class="primary">▶ Simulate</button>
@@ -219,7 +219,7 @@ export class Editor {
     const dx = +(p.x - drag.start.x).toFixed(2);
     const dy = +(p.y - drag.start.y).toFixed(2);
     const def: ObjectDef = JSON.parse(JSON.stringify(drag.def));
-    if (def.type === 'rail') {
+    if (def.type === 'rail' || def.type === 'pipe') {
       def.points = def.points.map(([x, y, z]) => [+(x + dx).toFixed(2), +(y + dy).toFixed(2), z]);
     } else {
       def.position = [+(def.position[0] + dx).toFixed(2), +(def.position[1] + dy).toFixed(2), def.position[2]];
@@ -263,7 +263,7 @@ export class Editor {
       rows.push(`<label>Instrument <select data-k="instrument">${opt(['none', ...INSTRUMENTS], d.instrument ?? defaultInstrumentOf(d.type))}</select></label>`);
       rows.push(`<label>Note <select data-k="note">${opt(NOTES, d.note ?? 'C5')}</select></label>`);
     }
-    if (d.type === 'pad' || d.type === 'bumper' || d.type === 'ramp') {
+    if (d.type === 'pad' || d.type === 'bumper' || d.type === 'ramp' || d.type === 'pipe') {
       rows.push(`<div class="ed-colors">${COLORS.map((c) => `<button data-color="${c}" style="background:${c}" class="${(d as PadDef).color === c ? 'on' : ''}"></button>`).join('')}</div>`);
     }
     rows.push(`<div class="row"><button id="ed-dup">Duplicate</button><button id="ed-del" class="danger">Delete</button></div>`);
@@ -311,6 +311,7 @@ export class Editor {
     else if (type === 'bumper') def = { type, id: this.freshId('bumper'), position: [x, y, 0], radius: 0.6, color: '#e8c44a', instrument: 'kick' } as BumperDef;
     else if (type === 'ramp') def = { type, id: this.freshId('ramp'), position: [x, y, 0.45], rotation: [0, 0, -20], size: [4, 0.4, 0.9], instrument: 'wood' } as RampDef;
     else if (type === 'rail') def = { type, id: this.freshId('rail'), points: [[x - 2, y + 0.5, 0], [x - 0.7, y + 0.2, 0], [x + 0.8, y - 0.3, 0], [x + 2, y - 1, 0]] } as RailDef;
+    else if (type === 'pipe') def = { type, id: this.freshId('pipe'), points: [[x - 1.5, y + 1.2, 0], [x - 0.3, y + 0.2, 0], [x + 1.2, y - 0.8, 0], [x + 1.6, y - 2.4, 0], [x + 0.6, y - 3.6, 0]], color: COLORS[this.nextId % 7], instrument: 'tube', note: 'C4' } as PipeDef;
     else return;
     const obj = this.sim.addObject(def, true);
     this.select(obj);
@@ -321,7 +322,7 @@ export class Editor {
     if (!obj) return;
     const def: ObjectDef = JSON.parse(JSON.stringify(obj.def));
     def.id = this.freshId(def.type);
-    if (def.type === 'rail') def.points = def.points.map(([x, y, z]) => [x + 1, y - 1.5, z]);
+    if (def.type === 'rail' || def.type === 'pipe') def.points = def.points.map(([x, y, z]) => [x + 1, y - 1.5, z]);
     else def.position = [def.position[0] + 1, def.position[1] - 1.5, def.position[2]];
     this.select(this.sim.addObject(def, true));
   }
@@ -370,5 +371,5 @@ export class Editor {
 }
 
 function defaultInstrumentOf(type: string): string {
-  return { pad: 'marimba', bumper: 'pop', rail: 'click', ramp: 'thud', wall: 'none' }[type] ?? 'wood';
+  return { pad: 'marimba', bumper: 'pop', rail: 'click', pipe: 'tube', ramp: 'thud', wall: 'none' }[type] ?? 'wood';
 }

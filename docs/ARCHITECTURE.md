@@ -107,6 +107,7 @@ rail. Audio starts on the first tap, which browsers require.
 | Ramp / Wall | fixed box | none |
 | Bumper | fixed cylinder, high restitution | in-plane impulse kick, cap squash |
 | Pad | dynamic box, translations locked, rotation only about Z, explicit torsion spring + damper applied each step | swings and settles, emissive flash |
+| Pipe | triangle-mesh tube (same mesh the player sees, flared mouths); the marble rolls on the real inner wall | tube note on entry, rolling sound inside |
 
 Pads are deliberately not joint-driven: a revolute joint with a position motor
 fought the locked degrees of freedom and produced energy spikes. A body with
@@ -124,14 +125,16 @@ API the editor will use.
 
 ## Rendering
 
-`SceneRenderer` is built for the reference look: a neutral room as image-based
-lighting so metal and lacquered paint reflect, a low raking key light casting
-long soft shadows (2048 PCF on desktop, 1024 on phones), a cool rim light for
-edge definition, a small warm point light riding with the marble, ACES tone
-mapping, and a post chain of MSAA render target, bloom, vignette and grain
-before the output pass. Pads are clearcoat physical materials with an emissive
-core the environment can raise (neon worlds glow). Every one of these levers is
-in the level's `environment`, so a world is graded as data.
+`SceneRenderer` is built for the reference look. One raking spotlight high
+above the action throws long soft shadows down the wall and falls off with
+distance, so a dark world still reads through the plaster grain it lights
+(`keyRake` sets how grazing it is, `boardGrain` how deep the texture). A
+neutral room provides reflections for metal and lacquer, a cool rim light draws
+edges, and `PadLights` assigns a small pool of coloured point lights to the pads
+nearest the camera so lit pads spill their colour onto the wall (`padLight`).
+The marble gets no light of its own. Then ACES tone mapping and a post chain of
+MSAA render target, bloom (for what is genuinely bright), vignette and grain.
+Every lever is in the level's `environment`, so a world is graded as data.
 
 ## Environment
 

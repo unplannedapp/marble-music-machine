@@ -23,9 +23,9 @@ export function initRapier(): Promise<void> {
  */
 export class Simulation {
   readonly bus = new EventBus();
-  readonly physics: PhysicsWorld;
+  physics: PhysicsWorld;
   readonly scene = new THREE.Group();
-  readonly marble: Marble;
+  marble: Marble;
   readonly objects: InteractiveObject[] = [];
   readonly objectsById = new Map<string, InteractiveObject>();
   level: LevelDef | null = null;
@@ -50,6 +50,10 @@ export class Simulation {
 
   load(level: LevelDef): void {
     this.unload();
+    // Every load starts from an identical physics world, so a machine plays the same
+    // whether it is the first one opened or the fifth: the engine's internal state
+    // (contact caches, handle order) must not leak between machines.
+    this.rebuildWorld();
     this.level = level;
     applyEnvironmentMaterials(level.environment);
     this.buildBoard(level);
@@ -97,6 +101,18 @@ export class Simulation {
     if (obj instanceof Pad) this.scene.add(obj.mount);
     if (this.level && li >= 0) this.level.objects.splice(li, 1, obj.def);
     return obj;
+  }
+
+  /** Fresh Rapier world and marble body; the marble's visual children carry over. */
+  private rebuildWorld(): void {
+    const visuals = [...this.marble.root.children];
+    this.scene.remove(this.marble.root);
+    this.physics.dispose();
+    this.physics = new PhysicsWorld(this.bus);
+    this.marble = new Marble(this.physics);
+    for (const v of visuals) this.marble.root.add(v);
+    this.scene.add(this.marble.root);
+    this.boardBody = null;
   }
 
   unload(): void {
