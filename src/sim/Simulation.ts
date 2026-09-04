@@ -122,6 +122,15 @@ export class Simulation {
     this.scene.add(mesh);
   }
 
+  /** Put the marble at a checkpoint without announcing a reset (objects are restored). */
+  respawn(position: THREE.Vector3, velocity: THREE.Vector3, spin?: THREE.Vector3): void {
+    this.marble.reset(position, velocity, spin);
+    for (const o of this.objects) o.reset();
+    this.physics.clearContacts();
+    this.lastContact = null;
+    this.stalledFor = 0;
+  }
+
   resetMarble(reason: 'fell' | 'manual' | 'stalled' | 'finished' = 'manual'): void {
     if (!this.level) return;
     this.marble.reset(tupleToVector3(this.level.spawn.position), tupleToVector3(this.level.spawn.velocity));

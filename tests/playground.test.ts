@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import { playground } from '../src/levels/playground';
+import { findMachine } from '../src/machines';
+const playground = findMachine('alphabet').level;
 import type { LevelDef } from '../src/levels/LevelTypes';
 
 interface RunResult {

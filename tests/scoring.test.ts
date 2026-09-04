@@ -3,7 +3,8 @@ import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
 import { MusicSystem } from '../src/audio/MusicSystem';
 import { ScoreSystem, pointsFor, rateDelta, type Rating } from '../src/game/Scoring';
-import { playground } from '../src/levels/playground';
+import { findMachine } from '../src/machines';
+const playground = findMachine('alphabet').level;
 import { alphabetSong } from '../src/songs/alphabet';
 import type { NotePlayer } from '../src/audio/types';
 

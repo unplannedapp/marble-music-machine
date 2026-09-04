@@ -16,6 +16,10 @@ export class Hud {
   private readonly marbleScreen = new THREE.Vector3();
   private readonly offs: (() => void)[] = [];
   private shownResults = false;
+  /** Called with the final score when the song completes. */
+  onFinished: ((score: number) => void) | null = null;
+  /** Called when the player asks for the menu from the results card. */
+  onMenu: (() => void) | null = null;
 
   constructor(
     root: HTMLElement,
@@ -67,6 +71,7 @@ export class Hud {
   private showResults(): void {
     this.shownResults = true;
     const s = this.scoring.summary();
+    this.onFinished?.(s.score);
     const rows = (['PERFECT', 'EXACT', 'GOOD', 'EARLY', 'LATE', 'MISS'] as const)
       .map((k) => `<div class="row"><span>${k}</span><span>${s.ratings[k]}</span></div>`)
       .join('');
@@ -76,9 +81,11 @@ export class Hud {
         <div class="big">${s.score.toLocaleString()}</div>
         <div class="sub">max combo ${s.maxCombo}x · ${s.hits}/${s.total} notes</div>
         ${rows}
+        <div class="actions"><button id="hud-menu">Machines</button></div>
         <div class="hint">the marble runs again in a moment</div>
       </div>`;
     this.results.hidden = false;
+    this.results.querySelector('#hud-menu')!.addEventListener('pointerup', () => this.onMenu?.());
   }
 
   /** Per frame: keep the popup origin at the marble's screen position. */

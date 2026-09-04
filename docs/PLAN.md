@@ -31,8 +31,10 @@ Reconciled against the full specification and the five reference videos.
    objects, timing windows (PERFECT/EXACT/GOOD/EARLY/LATE/MISS), combo, score,
    miss detection, target rings, the reference-style HUD and a results card.
    The alphabet level scores 42/42 with 37 PERFECT or EXACT.
-4. **Level system:** JSON levels, checkpoints per song section, multiple songs,
-   level select.
+4. **Level system** (done): JSON level format with validation, machine
+   registry (level + song), baked per-section checkpoints with rollback, a
+   second machine (Mary Had a Little Lamb), menu with best scores, results
+   card with a way back to the menu.
 5. **Level editor:** drag / rotate / delete / duplicate, assign note and
    instrument, simulate button (built on `Simulation.addObject/removeObject`
    and the `LevelDef` format).

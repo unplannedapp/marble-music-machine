@@ -91,4 +91,9 @@ export interface LevelDef {
   /** Where the run ends: once the marble comes to rest inside this circle, the run is complete. */
   finish?: { position: Vec3Tuple; radius: number };
   objects: ObjectDef[];
+  /**
+   * Where a lost marble restarts, one per song section, baked from the
+   * deterministic run (scripts/bake.ts).
+   */
+  checkpoints?: { section: number; position: Vec3Tuple; velocity: Vec3Tuple; spin?: Vec3Tuple }[];
 }

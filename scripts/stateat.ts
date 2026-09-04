@@ -1,7 +1,8 @@
 /** Print the marble state each time it crosses the given Y values (free flight), after optional time. Usage: stateat.ts y1,y2,... */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import { playground } from '../src/levels/playground';
+import { findMachine } from '../src/machines';
+const playground = findMachine(process.env.MACHINE ?? 'alphabet').level;
 await initRapier();
 const ys = (process.argv[2] ?? '-12.5').split(',').map(Number);
 const skip = new Set((process.argv[3] ?? '').split(',').filter(Boolean));

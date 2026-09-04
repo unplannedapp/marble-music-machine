@@ -3,7 +3,8 @@ import { midiToFreq, noteToFreq, noteToMidi, velocityFromImpact } from '../src/a
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
 import { MusicSystem } from '../src/audio/MusicSystem';
-import { playground } from '../src/levels/playground';
+import { findMachine } from '../src/machines';
+const playground = findMachine('alphabet').level;
 import type { NoteEvent, NotePlayer } from '../src/audio/types';
 
 describe('pitch helpers', () => {

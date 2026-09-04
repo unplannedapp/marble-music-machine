@@ -48,8 +48,17 @@
         cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
       }
       #start[hidden] { display: none; }
-      #start .title { font-size: 28px; font-weight: 600; letter-spacing: 0.02em; }
-      #start .sub { opacity: 0.75; }
+      .menu-title { font-size: 28px; font-weight: 600; letter-spacing: 0.02em; }
+      .menu-sub { opacity: 0.75; margin-bottom: 10px; }
+      .menu-list { display: flex; flex-direction: column; gap: 10px; width: min(360px, 88vw); }
+      .menu-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; text-align: left; padding: 14px 16px; border-radius: 14px; border: 1.5px solid rgba(242,240,247,.35); background: rgba(24,22,32,.6); color: #f2f0f7; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      .menu-item:hover, .menu-item:focus-visible { border-color: #ffd84a; outline: none; }
+      .menu-item .name { font-size: 17px; font-weight: 600; grid-column: 1; }
+      .menu-item .meta { font-size: 12px; opacity: 0.7; grid-column: 1; }
+      .menu-item .best { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 13px; color: #ffd84a; font-variant-numeric: tabular-nums; }
+      #hud-results .actions { margin-top: 10px; }
+      #hud-results .actions button { pointer-events: auto; padding: 8px 18px; border-radius: 999px; border: 1.5px solid rgba(242,240,247,.6); background: transparent; color: #f2f0f7; font: 600 14px system-ui, sans-serif; cursor: pointer; }
+      #hud-results { pointer-events: none; }
     </style>
   </head>
   <body>
@@ -59,7 +68,7 @@
     <button id="btn-pause" class="hud-btn" aria-label="Pause">❚❚</button>
     <button id="btn-tune" class="hud-btn" aria-label="Tuning panel">tune</button>
     <div id="hint" hidden>R reset · Space pause · . step · C free camera</div>
-    <div id="start"><div class="title">Marble Music Machine</div><div class="sub">Tap to start · sound on</div></div>
+    <div id="start"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

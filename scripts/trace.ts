@@ -4,7 +4,8 @@
  */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import { playground } from '../src/levels/playground';
+import { findMachine } from '../src/machines';
+const playground = findMachine(process.env.MACHINE ?? 'alphabet').level;
 
 const seconds = Number(process.argv[2] ?? 12);
 const interval = Number(process.argv[3] ?? 0.1);

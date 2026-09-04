@@ -1,0 +1,55 @@
+import { describe, expect, it } from 'vitest';
+import { config } from '../src/core/Config';
+import { Simulation, initRapier } from '../src/sim/Simulation';
+import { MusicSystem } from '../src/audio/MusicSystem';
+import { ScoreSystem } from '../src/game/Scoring';
+import { machines } from '../src/machines';
+import type { NoteEvent } from '../src/audio/types';
+
+const silent = { play() {}, setRolling() {} };
+
+/**
+ * Every registered machine must be a complete, guided, playable performance:
+ * every object in its own order, no wall contact, the song's notes in order,
+ * every target judged as a hit, and a finish in the tray.
+ */
+describe.each(machines.map((m) => [m.id, m] as const))('machine %s', (_id, machine) => {
+  it('performs its song end to end', async () => {
+    await initRapier();
+    const sim = new Simulation();
+    const played: NoteEvent[] = [];
+    const music = new MusicSystem(sim, { play: (n) => played.push(n), setRolling() {} });
+    const scoring = new ScoreSystem(sim, machine.song);
+    sim.load(machine.level);
+    const order: string[] = [];
+    sim.bus.on('marble:contact', (e) => {
+      if (!order.includes(e.object.id)) order.push(e.object.id);
+    });
+    let finished = false;
+    sim.bus.on('marble:reset', (e) => (finished = e.reason === 'finished'));
+    const dt = config.physics.fixedDt;
+    for (let i = 0; i < 120 / dt && !finished; i++) {
+      sim.fixedUpdate(dt);
+      scoring.fixedUpdate();
+    }
+    const s = scoring.lastRun ?? scoring.summary();
+    // eslint-disable-next-line no-console
+    console.log(`${machine.title}: score ${s.score}, ${s.hits}/${s.total}, maxCombo ${s.maxCombo}, misses ${s.ratings.MISS}`);
+    expect(finished).toBe(true);
+    // Guided objects (everything except the walls and the board-wide finale) in level order.
+    const guided = machine.level.objects.map((o) => o.id!).filter((id) => !/^(wall_|funnel_|rail_end|tray_)/.test(id));
+    expect(order.slice(0, guided.length)).toEqual(guided);
+    expect(order.some((id) => id.startsWith('wall_'))).toBe(false);
+    expect(order).toContain('rail_end');
+    // The song, note for note.
+    const targets = new Set(machine.song.events.map((e) => e.object));
+    const notes = played.filter((n) => targets.has(n.object.id)).map((n) => n.note);
+    expect(notes).toEqual(machine.song.events.map((e) => e.note));
+    expect(s.hits).toBe(machine.song.events.length);
+    expect(s.ratings.MISS).toBe(0);
+    expect(s.maxCombo).toBe(machine.song.events.length);
+    music.dispose();
+    scoring.dispose();
+    sim.dispose();
+  }, 90_000);
+});

@@ -114,11 +114,36 @@ exact DOF locks plus a spring torque is both simpler and stable.
 
 ## Levels are data
 
-`LevelDef` (`levels/LevelTypes.ts`) is a JSON-shaped description: board extents,
-spawn, kill height and a list of object definitions. `Simulation.addObject` /
-`removeObject` work on a live machine, which is the API the editor will use.
-Pads already carry `note` / `instrument` fields so authored levels are forward
-compatible with the song system.
+Levels are JSON files (`levels/*.level.json`, format version 1): board
+extents, spawn, kill height, finish zone, the object list, and baked
+checkpoints. `parseLevel` validates a file and fails loudly; `serializeLevel`
+writes it back with vectors on one line. A **machine** (`machines/index.ts`) is
+a level paired with the song it performs; the menu lists machines.
+`Simulation.addObject` / `removeObject` work on a live machine, which is the
+API the editor will use.
+
+## Checkpoints
+
+Because the run is deterministic, a lost marble can be put back exactly where
+it was. `scripts/bake.ts` runs a machine once and records the marble's
+position, velocity and spin a third of a second before the first strike of
+each song section, into the level's `checkpoints`. `GameFlow` listens for a
+fall or stall mid-song and respawns at the checkpoint of the current section,
+while `ScoreSystem.restartSection` rolls the score back to that section's start
+and resets the combo. Restoring spin matters: without it the replay drifted
+enough to miss the fast eighth-note pads.
+
+## Authoring pipeline
+
+```
+fix the board  ->  layout.ts (pads / ramps / rails / bumpers on the real path)
+              ->  finale.ts (funnel, closing rail, tray, finish)
+              ->  bake.ts (checkpoints)  ->  tests
+```
+
+Never hand-edit geometry after layout: even resizing the board shifts
+floating-point contacts enough to diverge a long chain. Change the board,
+re-lay, re-bake.
 
 ## Determinism as a tool
 

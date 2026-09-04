@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { config } from './core/Config';
 import { GameLoop } from './core/GameLoop';
 import { Simulation, initRapier } from './sim/Simulation';
-import { playground } from './levels/playground';
+import { findMachine } from './machines';
 import { SceneRenderer } from './render/SceneRenderer';
 import { FollowCamera } from './render/FollowCamera';
 import { createMarbleMesh } from './render/marbleVisual';
@@ -12,8 +12,10 @@ import { AudioEngine } from './audio/AudioEngine';
 import { MusicSystem } from './audio/MusicSystem';
 import { HitEffects } from './render/HitEffects';
 import { ScoreSystem } from './game/Scoring';
-import { alphabetSong } from './songs/alphabet';
 import { Hud } from './ui/Hud';
+import { Menu, saveBest } from './ui/Menu';
+import { GameFlow } from './game/GameFlow';
+import { machines, type Machine } from './machines';
 import { TargetRings } from './render/TargetRings';
 
 async function main(): Promise<void> {
@@ -28,7 +30,8 @@ async function main(): Promise<void> {
 
   const sim = new Simulation();
   sim.marble.root.add(createMarbleMesh(sim.marble.radius));
-  sim.load(playground);
+  let machine: Machine = findMachine('alphabet');
+  sim.load(machine.level);
 
   const view = new SceneRenderer(container);
   view.scene.add(sim.scene);
@@ -40,10 +43,32 @@ async function main(): Promise<void> {
   view.scene.add(effects.group);
 
   // Song, timing, combo and score.
-  const scoring = new ScoreSystem(sim, alphabetSong);
-  const rings = new TargetRings(sim, scoring);
+  let scoring = new ScoreSystem(sim, machine.song);
+  let flow = new GameFlow(sim, scoring);
+  let rings = new TargetRings(sim, scoring);
   view.scene.add(rings.group);
-  const overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
+  let overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
+  const selectMachine = (m: Machine): void => {
+    machine = m;
+    overlay.dispose();
+    flow.dispose();
+    scoring.dispose();
+    view.scene.remove(rings.group);
+    sim.load(m.level);
+    scoring = new ScoreSystem(sim, m.song);
+    flow = new GameFlow(sim, scoring);
+    rings = new TargetRings(sim, scoring);
+    view.scene.add(rings.group);
+    overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
+    overlay.onFinished = (score) => {
+      saveBest(m.id, score);
+    };
+    overlay.onMenu = () => {
+      loop.paused = true;
+      menu.show();
+    };
+    follow.snapTo(sim.marble.position());
+  };
   let lastNote = '';
   let noteCount = 0;
   sim.bus.on('music:note', (n) => {
@@ -101,14 +126,15 @@ async function main(): Promise<void> {
     music.reset();
   });
 
-  // Hold the machine until the first tap, which also unlocks audio.
+  // The menu holds the machine until a pick, which also unlocks audio.
   loop.paused = true;
-  const begin = async (): Promise<void> => {
-    await audio.unlock();
-    start.hidden = true;
+  const menu = new Menu(start, machines, (m) => {
+    void audio.unlock();
+    selectMachine(m);
+    menu.hide();
     loop.paused = false;
-  };
-  start.addEventListener('pointerdown', () => void begin());
+  });
+  selectMachine(machine);
   pauseBtn.addEventListener('click', () => {
     loop.paused = !loop.paused;
     pauseBtn.textContent = loop.paused ? '▶' : '❚❚';
@@ -120,8 +146,12 @@ async function main(): Promise<void> {
     hud.hidden = !hud.hidden;
   });
   window.addEventListener('keydown', (e) => {
-    if (!start.hidden && (e.key === ' ' || e.key === 'Enter')) void begin();
-  }, { once: false });
+    if (!start.hidden && (e.key === ' ' || e.key === 'Enter')) {
+      void audio.unlock();
+      menu.hide();
+      loop.paused = false;
+    }
+  });
 
   window.addEventListener('keydown', (e) => {
     if (e.target instanceof HTMLInputElement || !start.hidden) return;

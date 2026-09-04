@@ -68,10 +68,10 @@ export class Marble {
     this.preStepVelocity.set(v.x, v.y, v.z);
   }
 
-  reset(position: THREE.Vector3, velocity = new THREE.Vector3()): void {
+  reset(position: THREE.Vector3, velocity = new THREE.Vector3(), spin = new THREE.Vector3()): void {
     this.body.setTranslation({ x: position.x, y: position.y, z: position.z }, true);
     this.body.setLinvel({ x: velocity.x, y: velocity.y, z: velocity.z }, true);
-    this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    this.body.setAngvel({ x: spin.x, y: spin.y, z: spin.z }, true);
     this.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
     this.preStepVelocity.copy(velocity);
     for (const v of this.velocityHistory) v.copy(velocity);

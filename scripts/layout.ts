@@ -3,7 +3,9 @@
  * real, simulated trajectory. Because the simulation is deterministic every new
  * object is validated by replaying the run from the start.
  *
- * Usage: npx vite-node scripts/layout.ts '<steps json>' [prefix] [afterT]
+ * Usage: npx vite-node scripts/layout.ts <level.json> '<steps json>' [prefix] [afterT]
+ *   Placed objects are written into the level file, replacing objects whose id starts
+ *   with the prefix (in the same place in the object list).
  *   steps: [{ k: 'pad'|'bumper', y?: number, drop?: number, dir: -1|1, exit?: number, note?, color? }]
  *     y     absolute Y where the object meets the marble (first step), or
  *     drop  Y below the previous object's meeting point
@@ -19,12 +21,18 @@
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
 import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef } from '../src/levels/LevelTypes';
-import { playground } from '../src/levels/playground';
+import type { LevelFile } from '../src/levels/LevelFormat';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
+
+const levelPath = process.argv[2];
+if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
+const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
 interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string }
-const steps: Step[] = JSON.parse(process.argv[2] ?? '[]');
-const prefix = process.argv[3] ?? 'auto_';
-let afterT = Number(process.argv[4] ?? 0);
+const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
+const prefix = process.argv[4] ?? 'auto_';
+let afterT = Number(process.argv[5] ?? 0);
 const DEG = Math.PI / 180;
 const padHalfThick = 0.14;
 const bumperRadius = Number(process.env.BUMPER_R ?? 0.45);
@@ -84,7 +92,7 @@ function solveNormal(d: [number, number], o: [number, number], e: number, speed:
   return bestA;
 }
 
-const base: LevelDef = JSON.parse(JSON.stringify(playground));
+const base: LevelFile = JSON.parse(JSON.stringify(playground));
 // Keep the level's object order: placed objects go where the replaced ones were.
 // Insertion order affects the solver, so the tool must simulate the same world
 // the level will build.
@@ -188,8 +196,14 @@ for (let k = 0; k < steps.length; k++) {
   console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ${step.k} normal ${angle}deg`);
 }
 
-const final = { ...base, objects: withPlaced(placed) };
+const final: LevelFile = { ...base, objects: withPlaced(placed) };
 const { hits } = simulate(final, -1000, 0);
+if (placed.length === steps.length) {
+  writeFileSync(levelPath, serializeLevel(final));
+  console.log(`\nWrote ${placed.length} objects into ${levelPath}`);
+} else {
+  console.log(`\nNot written: only ${placed.length}/${steps.length} steps placed.`);
+}
 console.log('\nVerification contact sequence:\n  ' + hits.filter((h) => !h.startsWith('wall')).join('\n  '));
 console.log('\nObjects TS:');
 for (const o of placed) {

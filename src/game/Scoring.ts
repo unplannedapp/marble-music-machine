@@ -63,6 +63,8 @@ export class ScoreSystem {
   private anchoredSection = -1;
   private readonly offs: (() => void)[] = [];
   private readonly byObject = new Map<string, number[]>();
+  /** Score state at the start of each section, for checkpoint restarts. */
+  private readonly sectionSnapshots = new Map<number, { score: number; maxCombo: number; ratings: Record<Rating, number>; next: number }>();
 
   constructor(
     private readonly sim: Simulation,
@@ -75,7 +77,31 @@ export class ScoreSystem {
       this.byObject.set(e.object, list);
     });
     this.offs.push(bus.on('music:note', (n) => this.onNote(n)));
-    this.offs.push(bus.on('marble:reset', () => this.reset()));
+    this.offs.push(bus.on('marble:reset', (e) => {
+      // Falls and stalls are handled by GameFlow (checkpoint); anything else is a fresh run.
+      if (e.reason === 'finished' || e.reason === 'manual') this.reset();
+    }));
+  }
+
+  /** Section of the target due next (or the last section once finished). */
+  get currentSection(): number {
+    const e = this.song.events[Math.min(this.next, this.song.events.length - 1)];
+    return e?.section ?? 0;
+  }
+
+  /** Roll back to the start of the current section: combo lost, that section's points removed. */
+  restartSection(): void {
+    const snap = this.sectionSnapshots.get(this.currentSection);
+    if (snap) {
+      this.score = snap.score;
+      this.maxCombo = snap.maxCombo;
+      Object.assign(this.ratings, snap.ratings);
+      this.next = snap.next;
+    }
+    this.combo = 0;
+    this.anchor = NaN;
+    this.anchoredSection = -1;
+    this.bus.emit('score:reset', { simTime: this.sim.simTime });
   }
 
   /** The song events still to come, starting with the one due next. */
@@ -107,6 +133,9 @@ export class ScoreSystem {
     if (section !== this.anchoredSection || !Number.isFinite(this.anchor)) {
       this.anchor = n.simTime - beatSeconds(this.song, due.beat);
       this.anchoredSection = section;
+      if (!this.sectionSnapshots.has(section)) {
+        this.sectionSnapshots.set(section, { score: this.score, maxCombo: this.maxCombo, ratings: { ...this.ratings }, next: this.next });
+      }
     }
     const expected = this.anchor + beatSeconds(this.song, due.beat);
     const delta = n.simTime - expected;
@@ -152,6 +181,7 @@ export class ScoreSystem {
     this.next = 0;
     this.anchor = NaN;
     this.anchoredSection = -1;
+    this.sectionSnapshots.clear();
     for (const k of Object.keys(this.ratings) as Rating[]) this.ratings[k] = 0;
     this.bus.emit('score:reset', { simTime: this.sim.simTime });
   }

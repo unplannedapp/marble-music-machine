@@ -27,6 +27,8 @@ npm run layout '<steps json>' <prefix> <afterT>   # place pads/bumpers on the re
 npm run screenshot   # Playwright screenshots against the dev server
 ```
 
-Level tuning workflow: edit `src/levels/playground.ts`, run `npm run trace`, and
-use `scripts/layout.ts` to place objects where the marble actually goes. Never
-let the marble free-fall more than ~4 units between contacts.
+Level authoring: fix the board first, then `scripts/layout.ts` places objects on
+the real simulated path and writes the level JSON, `scripts/finale.ts` appends
+the ending, `scripts/bake.ts` bakes checkpoints. Never hand-edit geometry after
+layout (re-lay instead), and never let the marble free-fall more than ~4 units
+between contacts. `docs/PLAN.md` has the lessons in detail.

@@ -40,8 +40,14 @@ simulation is deterministic and runs without a screen, the machine can be tuned
 from the command line:
 
 ```bash
-npx vite-node scripts/trace.ts 10 0.1          # marble trajectory + contacts
-npx vite-node scripts/stateat.ts -12,-14       # marble state when crossing given Y
-npm run layout '<steps json>' <prefix> <afterT>  # place pads, bumpers, rails, ramps on the real path
+MACHINE=mary npx vite-node scripts/trace.ts 10 0.1     # marble trajectory + contacts
+MACHINE=mary npx vite-node scripts/stateat.ts -12,-14  # marble state when crossing given Y
+npm run layout src/levels/mary.level.json '<steps json>' <prefix> <afterT>
+                                               # place pads/ramps/rails/bumpers on the real path, written into the level
+npx vite-node scripts/finale.ts src/levels/mary.level.json   # funnel, closing rail, tray, finish
+npx vite-node scripts/bake.ts mary             # bake section checkpoints
 node scripts/screenshot.mjs                    # headless browser screenshots (dev server running)
 ```
+
+Levels live in `src/levels/*.level.json`; a machine pairs a level with a song
+in `src/machines/index.ts`.
