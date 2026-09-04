@@ -20,7 +20,7 @@ export class GameFlow {
     bus: EventBus = sim.bus,
   ) {
     this.off = bus.on('marble:reset', (e) => {
-      if (this.restarting || e.reason === 'finished' || e.reason === 'manual') return;
+      if (this.restarting || e.reason === 'finished' || e.reason === 'manual' || scoring.finished) return;
       const cp = this.checkpointFor(scoring.currentSection);
       if (!cp) return;
       // The generic reset already respawned at the start; move to the checkpoint instead.

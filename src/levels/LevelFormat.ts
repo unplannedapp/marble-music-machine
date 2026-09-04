@@ -63,6 +63,10 @@ export function parseLevel(input: unknown): LevelFile {
     const f = l.finish as Record<string, unknown>;
     if (!isVec3(f.position) || typeof f.radius !== 'number') fail('finish', 'needs position and radius');
   }
+  if (l.environment !== undefined) {
+    const e = l.environment as Record<string, unknown>;
+    if (typeof e.board !== 'string' || typeof e.background !== 'string') fail('environment', 'needs board and background colours');
+  }
   if (!Array.isArray(l.objects)) fail('objects', 'must be an array');
   const ids = new Set<string>();
   l.objects.forEach((o, i) => {

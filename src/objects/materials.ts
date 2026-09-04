@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 
 /** Shared visual materials so the machine reads as one object family. */
+/** Apply a level's environment to the shared materials (renderer applies lights and sky). */
+export function applyEnvironmentMaterials(env: { board: string; metal?: string; wood?: string } | undefined): void {
+  visuals.board.color.set(env?.board ?? '#5f5d70');
+  visuals.metal.color.set(env?.metal ?? '#b8bcc6');
+  visuals.wood.color.set(env?.wood ?? '#9a4a2e');
+}
+
 export const visuals = {
   metal: new THREE.MeshStandardMaterial({ color: 0xb8bcc6, metalness: 0.9, roughness: 0.32 }),
   darkMetal: new THREE.MeshStandardMaterial({ color: 0x3a3c44, metalness: 0.85, roughness: 0.4 }),

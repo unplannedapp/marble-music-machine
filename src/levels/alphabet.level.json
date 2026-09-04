@@ -1,6 +1,16 @@
 {
   "format": 1,
   "name": "Alphabet Machine",
+  "environment": {
+    "board": "#5f5d70",
+    "background": "#4b4a58",
+    "keyLight": "#fff4e6",
+    "keyIntensity": 2.6,
+    "fill": "#dcd8ff",
+    "metal": "#b8bcc6",
+    "wood": "#9a4a2e",
+    "ring": "#f5c542"
+  },
   "board": {
     "width": 16,
     "top": 8,

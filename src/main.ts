@@ -16,6 +16,10 @@ import { Hud } from './ui/Hud';
 import { Menu, saveBest } from './ui/Menu';
 import { GameFlow } from './game/GameFlow';
 import { machines, type Machine } from './machines';
+import { Editor } from './editor/Editor';
+import { bakeMachine } from './game/SongBake';
+import { saveCustomMachine, newMachineId } from './ui/storage';
+import type { LevelFile } from './levels/LevelFormat';
 import { TargetRings } from './render/TargetRings';
 
 async function main(): Promise<void> {
@@ -25,6 +29,7 @@ async function main(): Promise<void> {
   const hud = document.getElementById('hud')!;
   const start = document.getElementById('start')!;
   const gameHud = document.getElementById('game-hud')!;
+  const editorRoot = document.getElementById('editor')!;
   const pauseBtn = document.getElementById('btn-pause')!;
   const tuneBtn = document.getElementById('btn-tune')!;
 
@@ -35,6 +40,11 @@ async function main(): Promise<void> {
 
   const view = new SceneRenderer(container);
   view.scene.add(sim.scene);
+  const follow = new FollowCamera(view.camera);
+  const orbit = new OrbitControls(view.camera, view.renderer.domElement);
+  orbit.enabled = false;
+  orbit.enableDamping = true;
+  let freeCamera = false;
 
   // Sound: browsers only allow audio after a gesture, so the machine waits for a tap.
   const audio = new AudioEngine();
@@ -54,10 +64,18 @@ async function main(): Promise<void> {
     flow.dispose();
     scoring.dispose();
     view.scene.remove(rings.group);
+    if (m.custom) {
+      // The level is the sequencer: a player-built machine's song is what it actually plays.
+      const baked = bakeMachine(m.level);
+      m.song = baked.song;
+      m.level.checkpoints = baked.checkpoints;
+    }
     sim.load(m.level);
+    view.applyEnvironment(m.level.environment);
     scoring = new ScoreSystem(sim, m.song);
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
+    rings.setColor(m.level.environment?.ring ?? '#f5c542');
     view.scene.add(rings.group);
     overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
     overlay.onFinished = (score) => {
@@ -67,7 +85,52 @@ async function main(): Promise<void> {
       loop.paused = true;
       menu.show();
     };
+    overlay.onEdit = () => openEditor(m);
     follow.snapTo(sim.marble.position());
+  };
+
+  // ---- editor -------------------------------------------------------------------
+  const editor = new Editor(sim, view, follow, editorRoot, {
+    onSimulate: () => {
+      editor.disable();
+      gameHud.hidden = false;
+      selectMachine(machine);
+      loop.paused = false;
+    },
+    onSave: (level: LevelFile) => {
+      machine.title = level.name;
+      saveCustomMachine({ id: machine.id, title: level.name, level, updatedAt: Date.now() });
+      menu.render();
+    },
+    onExit: () => {
+      editor.disable();
+      loop.paused = true;
+      menu.show();
+    },
+  });
+  /** Editing a built-in machine edits a copy, so the originals stay intact. */
+  const openEditor = (m: Machine): void => {
+    let target = m;
+    if (!m.custom) {
+      const level: LevelFile = JSON.parse(JSON.stringify(m.level));
+      level.name = `${m.title} (my version)`;
+      target = { id: newMachineId(), title: level.name, level, song: { ...m.song }, custom: true };
+    }
+    machine = target;
+    menu.hide();
+    loop.paused = true;
+    overlay.dispose();
+    flow.dispose();
+    scoring.dispose();
+    view.scene.remove(rings.group);
+    sim.load(target.level);
+    view.applyEnvironment(target.level.environment);
+    scoring = new ScoreSystem(sim, target.song);
+    flow = new GameFlow(sim, scoring);
+    rings = new TargetRings(sim, scoring);
+    overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
+    gameHud.hidden = true;
+    editor.enable();
   };
   let lastNote = '';
   let noteCount = 0;
@@ -75,11 +138,6 @@ async function main(): Promise<void> {
     noteCount++;
     lastNote = `${n.instrument}${n.note ? ' ' + n.note : ''}  vel ${n.velocity.toFixed(2)}`;
   });
-  const follow = new FollowCamera(view.camera);
-  const orbit = new OrbitControls(view.camera, view.renderer.domElement);
-  orbit.enabled = false;
-  orbit.enableDamping = true;
-  let freeCamera = false;
 
   const marblePos = new THREE.Vector3();
   const marbleVel = new THREE.Vector3();
@@ -128,12 +186,21 @@ async function main(): Promise<void> {
 
   // The menu holds the machine until a pick, which also unlocks audio.
   loop.paused = true;
-  const menu = new Menu(start, machines, (m) => {
-    void audio.unlock();
-    selectMachine(m);
-    menu.hide();
-    loop.paused = false;
-  });
+  const menu = new Menu(
+    start,
+    machines,
+    (m) => {
+      void audio.unlock();
+      gameHud.hidden = false;
+      selectMachine(m);
+      menu.hide();
+      loop.paused = false;
+    },
+    (m) => {
+      void audio.unlock();
+      openEditor(m);
+    },
+  );
   selectMachine(machine);
   pauseBtn.addEventListener('click', () => {
     loop.paused = !loop.paused;
@@ -167,6 +234,11 @@ async function main(): Promise<void> {
       case '.':
         loop.stepOnce();
         break;
+      case 'e':
+      case 'E':
+        if (editor.enabled) editor.disable();
+        else openEditor(machine);
+        break;
       case 'c':
       case 'C':
         freeCamera = !freeCamera;
@@ -180,7 +252,7 @@ async function main(): Promise<void> {
   loop.start();
 
   // Expose for console tinkering and automated checks.
-  (window as unknown as { mmm: unknown }).mmm = { sim, loop, config, audio, notes: () => noteCount };
+  (window as unknown as { mmm: unknown }).mmm = { sim, loop, config, audio, view, editor, notes: () => noteCount };
 }
 
 main().catch((err) => {

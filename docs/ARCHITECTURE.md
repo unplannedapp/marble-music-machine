@@ -122,6 +122,32 @@ a level paired with the song it performs; the menu lists machines.
 `Simulation.addObject` / `removeObject` work on a live machine, which is the
 API the editor will use.
 
+## Environment
+
+Every song has its own world in the references, so the look is level data:
+`environment` carries the board and background colours, key and fill light,
+metal and wood tints, the marble tint and the target-ring colour.
+`Simulation.load` applies the material tints and `SceneRenderer.applyEnvironment`
+the sky and lights, so switching machines switches worlds. The editor offers
+presets (Daylight, Neon, Workshop, Slate).
+
+## Editor
+
+`editor/Editor.ts` works on the live simulation: tap to select (raycast against
+object roots), drag to move, pan on empty space, pinch or scroll to zoom. Every
+change goes through `Simulation.replaceObject`, which rebuilds the object from
+its definition in place, so the physics always matches the picture. The
+inspector edits angle, tilt, length, size, instrument, note and colour;
+the palette adds pads, bumpers, ramps and rails at the view centre; machines
+can be saved locally, exported as JSON to the clipboard and pasted back.
+
+Player-built machines have no hand-written song: `game/SongBake.ts` runs the
+level headlessly, takes the pads the marble strikes in order, quantises their
+times to eighth notes at the tempo, splits sections at gaps of two beats or
+more, and records checkpoints. The level is the sequencer. A test shows the
+bake recovers the authored rhythm of both built-in machines from the physics
+alone.
+
 ## Checkpoints
 
 Because the run is deterministic, a lost marble can be put back exactly where

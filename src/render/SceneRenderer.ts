@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { config } from '../core/Config';
+import type { EnvironmentDef } from '../levels/LevelTypes';
 
 /**
  * Three.js setup tuned for the reference look: a plain matte backboard, one
@@ -10,7 +11,18 @@ export class SceneRenderer {
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
   readonly keyLight: THREE.DirectionalLight;
+  private readonly hemi: THREE.HemisphereLight;
   private readonly lightTarget = new THREE.Object3D();
+
+  /** Every song has its own world: sky, board tint and lighting come from the level. */
+  applyEnvironment(env: EnvironmentDef | undefined): void {
+    const background = env?.background ?? '#4b4a58';
+    this.scene.background = new THREE.Color(background);
+    this.scene.fog = new THREE.Fog(background, 40, 90);
+    this.keyLight.color.set(env?.keyLight ?? '#fff4e6');
+    this.keyLight.intensity = env?.keyIntensity ?? 2.6;
+    this.hemi.color.set(env?.fill ?? '#dcd8ff');
+  }
 
   constructor(container: HTMLElement) {
     // Phones: cap the pixel ratio and shadow resolution so the frame budget holds.
@@ -28,8 +40,8 @@ export class SceneRenderer {
 
     this.camera = new THREE.PerspectiveCamera(config.camera.fov, 1, 0.1, 200);
 
-    const hemi = new THREE.HemisphereLight(0xdcd8ff, 0x2a2630, 0.9);
-    this.scene.add(hemi);
+    this.hemi = new THREE.HemisphereLight(0xdcd8ff, 0x2a2630, 0.9);
+    this.scene.add(this.hemi);
 
     this.keyLight = new THREE.DirectionalLight(0xfff4e6, 2.6);
     this.keyLight.castShadow = true;

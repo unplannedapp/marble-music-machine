@@ -7,7 +7,7 @@ import { Marble } from '../marble/Marble';
 import { createObject, InteractiveObject } from '../objects';
 import { Pad } from '../objects/Pad';
 import type { LevelDef, ObjectDef } from '../levels/LevelTypes';
-import { geometries, visuals } from '../objects/materials';
+import { applyEnvironmentMaterials, geometries, visuals } from '../objects/materials';
 import { tupleToVector3 } from '../core/math';
 
 let rapierReady: Promise<void> | null = null;
@@ -51,19 +51,22 @@ export class Simulation {
   load(level: LevelDef): void {
     this.unload();
     this.level = level;
+    applyEnvironmentMaterials(level.environment);
     this.buildBoard(level);
     for (const def of level.objects) this.addObject(def);
     this.resetMarble('manual');
   }
 
   /** Add one object to the live machine (used by the loader now, the editor later). */
-  addObject(def: ObjectDef): InteractiveObject {
+  addObject(def: ObjectDef, track = false): InteractiveObject {
     const ctx = { physics: this.physics, boardZ: 0, marbleRadius: this.marble.radius };
     const obj = createObject(def, ctx);
     this.objects.push(obj);
     this.objectsById.set(obj.id, obj);
     this.scene.add(obj.root);
     if (obj instanceof Pad) this.scene.add(obj.mount);
+    // Editor additions become part of the level definition; loading does not double-add.
+    if (track && this.level) this.level.objects.push(obj.def);
     return obj;
   }
 
@@ -74,7 +77,26 @@ export class Simulation {
     this.objectsById.delete(id);
     const i = this.objects.indexOf(obj);
     if (i >= 0) this.objects.splice(i, 1);
+    if (this.level) this.level.objects = this.level.objects.filter((d) => d !== obj.def);
     return true;
+  }
+
+  /** Rebuild one object from a new definition, keeping its place in the level's object order. */
+  replaceObject(id: string, def: ObjectDef): InteractiveObject {
+    const old = this.objectsById.get(id);
+    if (!old) throw new Error(`No object "${id}"`);
+    const i = this.objects.indexOf(old);
+    const li = this.level ? this.level.objects.indexOf(old.def) : -1;
+    old.dispose();
+    this.objectsById.delete(id);
+    const ctx = { physics: this.physics, boardZ: 0, marbleRadius: this.marble.radius };
+    const obj = createObject({ ...def, id }, ctx);
+    this.objects.splice(i, 1, obj);
+    this.objectsById.set(obj.id, obj);
+    this.scene.add(obj.root);
+    if (obj instanceof Pad) this.scene.add(obj.mount);
+    if (this.level && li >= 0) this.level.objects.splice(li, 1, obj.def);
+    return obj;
   }
 
   unload(): void {
@@ -113,9 +135,7 @@ export class Simulation {
     this.physics.world.createCollider(glass, body);
     this.boardBody = body;
 
-    const mat = level.board.color ? visuals.colored(level.board.color) : visuals.board;
-    mat.roughness = 0.95;
-    const mesh = new THREE.Mesh(geometries.unitBox, mat);
+    const mesh = new THREE.Mesh(geometries.unitBox, visuals.board);
     mesh.scale.set(width + 40, height + 40, thickness);
     mesh.position.set(0, cy, -thickness / 2);
     mesh.receiveShadow = true;

@@ -1,6 +1,17 @@
 {
   "format": 1,
   "name": "Little Lamb Machine",
+  "environment": {
+    "board": "#1c1b26",
+    "background": "#0f0e16",
+    "keyLight": "#cfd6ff",
+    "keyIntensity": 2.2,
+    "fill": "#6e5bd6",
+    "metal": "#8f95a8",
+    "wood": "#5a3a6b",
+    "marble": "#ffffff",
+    "ring": "#7fe0ff"
+  },
   "board": {
     "width": 16,
     "top": 8,
@@ -11,6 +22,10 @@
     "velocity": [1.2, 0, 0]
   },
   "killY": -94,
+  "finish": {
+    "position": [-6, -78.29, 0],
+    "radius": 1.3
+  },
   "objects": [
     {
       "type": "wall",
@@ -360,10 +375,6 @@
       "instrument": "thud"
     }
   ],
-  "finish": {
-    "position": [-6, -78.29, 0],
-    "radius": 1.3
-  },
   "checkpoints": [
     {
       "section": 0,

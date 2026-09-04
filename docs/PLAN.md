@@ -35,9 +35,11 @@ Reconciled against the full specification and the five reference videos.
    registry (level + song), baked per-section checkpoints with rollback, a
    second machine (Mary Had a Little Lamb), menu with best scores, results
    card with a way back to the menu.
-5. **Level editor:** drag / rotate / delete / duplicate, assign note and
-   instrument, simulate button (built on `Simulation.addObject/removeObject`
-   and the `LevelDef` format).
+5. **Level editor** (done): select, drag, pan, zoom, inspector (angle, tilt,
+   length, size, instrument, note, colour), add and duplicate and delete,
+   environment presets, save to the device, JSON copy and paste, simulate.
+   Built-in machines are edited as copies. Custom machines get their song by
+   baking the level's own run.
 6. **Advanced physics:** object-object chain reactions (contact routing between
    non-marble bodies), spinners, funnels, seesaws, launchers, branching paths.
 7. **Content / social:** MIDI import, generated machines, sharing.

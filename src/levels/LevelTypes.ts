@@ -67,8 +67,33 @@ export interface PadDef extends BaseObjectDef {
 
 export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef;
 
+/**
+ * The look of a machine: every song has its own world in the references, so the
+ * environment travels with the level rather than living in the renderer.
+ */
+export interface EnvironmentDef {
+  /** Backboard colour. */
+  board: string;
+  /** Sky / clear colour behind the board. */
+  background: string;
+  /** Key light colour and strength. */
+  keyLight?: string;
+  keyIntensity?: number;
+  /** Fill light (sky) colour. */
+  fill?: string;
+  /** Rail and post metal colour. */
+  metal?: string;
+  /** Default colour of untinted wooden pieces (ramps, walls). */
+  wood?: string;
+  /** Marble tint. */
+  marble?: string;
+  /** Target ring colour. */
+  ring?: string;
+}
+
 export interface LevelDef {
   name: string;
+  environment?: EnvironmentDef;
   board: {
     /** Extents of the backboard in board coordinates. */
     width: number;

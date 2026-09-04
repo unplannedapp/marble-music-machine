@@ -27,10 +27,12 @@ on the right exposes every tuning value live, including volume and reverb.
 
 ## Status
 
-Phases 1 to 3 are in place: real marble physics, every contact playing a
+Phases 1 to 5 are in place: machines carry their own environment, a menu
+picks them, a level editor builds new ones (their song is baked from the
+marble's own run), and real marble physics, every contact playing a
 synthesised velocity-sensitive note from the level data, and a song system that
-judges each strike against the timeline with combo and score. The playground
-level performs the alphabet song. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+judges each strike against the timeline with combo and score. Built-in machines
+perform the alphabet song and Mary Had a Little Lamb. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 for the system design and [docs/PLAN.md](docs/PLAN.md) for the development sequence.
 
 ## Level authoring tools

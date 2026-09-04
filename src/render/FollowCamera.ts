@@ -13,6 +13,11 @@ export class FollowCamera {
   private initialised = false;
   private readonly target = new THREE.Vector3();
 
+  /** When set, the camera looks here instead of following the marble (editor). */
+  manualFocus: THREE.Vector3 | null = null;
+  /** Extra distance while in manual mode (editor zoom). */
+  manualDistance = 0;
+
   constructor(private readonly camera: THREE.PerspectiveCamera) {}
 
   snapTo(position: THREE.Vector3): void {
@@ -24,6 +29,12 @@ export class FollowCamera {
 
   update(marblePos: THREE.Vector3, marbleVel: THREE.Vector3, dt: number): void {
     const c = config.camera;
+    if (this.manualFocus) {
+      this.focus.x = smoothDamp(this.focus.x, this.manualFocus.x, this.vel.x, 0.12, dt);
+      this.focus.y = smoothDamp(this.focus.y, this.manualFocus.y, this.vel.y, 0.12, dt);
+      this.apply();
+      return;
+    }
     this.target.copy(marblePos).addScaledVector(marbleVel, c.lookAheadTime);
     this.target.x = marblePos.x * c.xFollow + Math.min(Math.max(marbleVel.x * c.lookAheadTime, -2), 2) * c.xFollow;
     this.target.z = 0;
@@ -45,7 +56,7 @@ export class FollowCamera {
   private distance(): number {
     const c = config.camera;
     const halfW = Math.tan((this.camera.fov * DEG2RAD) / 2) * this.camera.aspect;
-    return Math.max(c.distance, c.minVisibleWidth / 2 / halfW);
+    return Math.max(c.distance, c.minVisibleWidth / 2 / halfW) + (this.manualFocus ? this.manualDistance : 0);
   }
 
   private apply(): void {

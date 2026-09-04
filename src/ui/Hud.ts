@@ -20,6 +20,8 @@ export class Hud {
   onFinished: ((score: number) => void) | null = null;
   /** Called when the player asks for the menu from the results card. */
   onMenu: (() => void) | null = null;
+  /** Called when the player wants to edit this machine; null hides the button. */
+  onEdit: (() => void) | null = null;
 
   constructor(
     root: HTMLElement,
@@ -81,11 +83,12 @@ export class Hud {
         <div class="big">${s.score.toLocaleString()}</div>
         <div class="sub">max combo ${s.maxCombo}x · ${s.hits}/${s.total} notes</div>
         ${rows}
-        <div class="actions"><button id="hud-menu">Machines</button></div>
+        <div class="actions"><button id="hud-menu">Machines</button>${this.onEdit ? '<button id="hud-edit">Edit</button>' : ''}</div>
         <div class="hint">the marble runs again in a moment</div>
       </div>`;
     this.results.hidden = false;
     this.results.querySelector('#hud-menu')!.addEventListener('pointerup', () => this.onMenu?.());
+    this.results.querySelector('#hud-edit')?.addEventListener('pointerup', () => this.onEdit?.());
   }
 
   /** Per frame: keep the popup origin at the marble's screen position. */

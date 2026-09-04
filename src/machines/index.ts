@@ -11,6 +11,8 @@ export interface Machine {
   title: string;
   level: LevelFile;
   song: SongDef;
+  /** Player-built: its song is baked from the level when it is played. */
+  custom?: boolean;
 }
 
 export const machines: Machine[] = [

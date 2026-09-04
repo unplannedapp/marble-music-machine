@@ -26,6 +26,10 @@ export class TargetRings {
     }
   }
 
+  setColor(color: string): void {
+    for (const r of this.rings) (r.material as THREE.MeshBasicMaterial).color.set(color);
+  }
+
   update(dt: number): void {
     this.time += dt;
     const pending = this.scoring.pending;
