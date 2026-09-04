@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { InteractiveObject } from '../objects/InteractiveObject';
+import type { NoteEvent } from '../audio/types';
 
 /**
  * The single seam between physics and everything that reacts to it.
@@ -41,6 +42,8 @@ export interface EventMap {
   'marble:contact': MarbleContactEvent;
   'marble:separate': MarbleSeparateEvent;
   'marble:reset': MarbleResetEvent;
+  /** A contact that produced a note (phase 2). Visuals and scoring listen here. */
+  'music:note': NoteEvent;
 }
 
 type Handler<T> = (event: T) => void;

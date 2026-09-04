@@ -34,7 +34,8 @@ marble/      Marble: the dynamic sphere (CCD, materials, pre-step velocity histo
 objects/     InteractiveObject base + registry; Rail, Ramp/Wall, Bumper, Pad
 levels/      LevelTypes (data format) + authored levels
 sim/         Simulation: headless-capable machine (world + marble + objects)
-render/      SceneRenderer, FollowCamera, marble visual
+audio/       AudioEngine (Web Audio), instruments, MusicSystem (contact -> note)
+render/      SceneRenderer, FollowCamera, marble visual, HitEffects
 debug/       lil-gui tuning panel, collider overlay
 ```
 
@@ -58,9 +59,28 @@ bus hears one `marble:contact` when the marble first touches the rail and one
 normal, point and simulation time.
 
 `Simulation` routes `marble:contact` to `object.onMarbleContact`, which is where
-each object implements its **physical + visual response**. Phase 2 adds an
-instrument component subscribing to the same event for the **musical response**;
-phase 3 adds timing/score/combo subscribers. None of them touch Rapier.
+each object implements its **physical + visual response**. `MusicSystem`
+subscribes to the same event for the **musical response** and emits
+`music:note`, which `HitEffects` (and later timing/score/combo) listen to. None
+of them touch Rapier.
+
+## Audio
+
+`MusicSystem` decides *what* sounds: the object's `instrument` and `note` from
+the level (each type has a default; `'none'` silences), a velocity from the
+impact speed (`velocityFromImpact`), and a short re-trigger guard so a marble
+settling on a pad is one strike, not a flurry. It talks to a `NotePlayer`
+interface; tests plug in a recorder and assert the melody the machine plays.
+
+`AudioEngine` decides *how* it sounds. Every instrument is synthesised in
+layers (impact transient, pitched body, natural decay) with velocity shaping
+loudness, brightness and decay, and a repeatable pseudo-random variation so no
+two strikes are identical. Notes are scheduled on the audio clock at the
+contact's simulation time plus a small lead, using a smoothed sim-to-audio
+offset, so rhythm is as steady as the physics rather than the frame loop. A
+compressor and a synthetic-room convolver sit on the master bus, and a looping
+filtered-noise "rolling" voice follows the marble's speed while it rides a
+rail. Audio starts on the first tap, which browsers require.
 
 ## Objects
 

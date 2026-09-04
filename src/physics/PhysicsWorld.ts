@@ -209,6 +209,11 @@ export class PhysicsWorld {
     }
   }
 
+  /** Whether the marble is currently touching this object. */
+  isTouching(object: InteractiveObject): boolean {
+    return (this.activeContacts.get(object) ?? 0) > 0;
+  }
+
   /** Forget all live contacts (after teleporting the marble). */
   clearContacts(): void {
     this.activeContacts.clear();

@@ -8,6 +8,10 @@ import type { Vec3Tuple } from '../core/math';
 export interface BaseObjectDef {
   id?: string;
   type: string;
+  /** Instrument this object plays when struck. Each type has a default; 'none' silences it. */
+  instrument?: string;
+  /** Note name such as "C4" for pitched instruments. */
+  note?: string;
 }
 
 export interface RailDef extends BaseObjectDef {
@@ -59,9 +63,6 @@ export interface PadDef extends BaseObjectDef {
   color?: string;
   stiffness?: number;
   damping?: number;
-  /** Musical note this pad plays (phase 2). Kept in the format now so levels are forward compatible. */
-  note?: string;
-  instrument?: string;
 }
 
 export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef;

@@ -21,12 +21,15 @@ npm test           # headless physics regression (vitest)
 npm run typecheck
 ```
 
-Controls: `R` reset marble, `Space` pause, `.` single physics step, `C` free orbit
-camera. The panel on the right exposes every tuning value live.
+Tap or press Space to start (that also unlocks sound). Controls: `R` reset
+marble, `Space` pause, `.` single physics step, `C` free orbit camera. The panel
+on the right exposes every tuning value live, including volume and reverb.
 
 ## Status
 
-Phase 1 (physics prototype) is in place. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+Phase 1 (physics prototype) and Phase 2 (music interaction) are in place: every
+contact plays a synthesised, velocity-sensitive note from the object's
+`instrument` and `note` in the level data. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 for the system design and [docs/PLAN.md](docs/PLAN.md) for the development sequence.
 
 ## Level authoring tools

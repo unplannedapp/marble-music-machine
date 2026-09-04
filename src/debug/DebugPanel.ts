@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { config } from '../core/Config';
 import type { Simulation } from '../sim/Simulation';
 import type { GameLoop } from '../core/GameLoop';
+import type { AudioEngine } from '../audio/AudioEngine';
 
 /** Live tuning panel plus a Rapier collider overlay. */
 export class DebugPanel {
@@ -13,6 +14,7 @@ export class DebugPanel {
     private readonly sim: Simulation,
     loop: GameLoop,
     scene: THREE.Scene,
+    audio?: AudioEngine,
   ) {
     this.gui = new GUI({ title: 'Marble Machine' });
     const gui = this.gui;
@@ -43,6 +45,15 @@ export class DebugPanel {
     cam.add(config.camera, 'smoothTime', 0.02, 1.5, 0.01);
     cam.add(config.camera, 'xFollow', 0, 1, 0.05);
     cam.close();
+
+    const snd = gui.addFolder('Audio');
+    const applyAudio = () => audio?.applyConfig();
+    snd.add(config.audio, 'volume', 0, 1, 0.01).onChange(applyAudio);
+    snd.add(config.audio, 'muted').onChange(applyAudio);
+    snd.add(config.audio, 'reverb', 0, 0.8, 0.01).onChange(applyAudio);
+    snd.add(config.audio, 'rolling', 0, 1, 0.01).name('rolling sound');
+    snd.add(config.audio, 'leadSeconds', 0.01, 0.2, 0.005).name('note lead (s)');
+    snd.close();
 
     gui.add(config.debug, 'showColliders').name('show colliders');
     gui.add({ reset: () => sim.resetMarble('manual') }, 'reset').name('Reset marble (R)');

@@ -8,12 +8,16 @@ import { SceneRenderer } from './render/SceneRenderer';
 import { FollowCamera } from './render/FollowCamera';
 import { createMarbleMesh } from './render/marbleVisual';
 import { DebugPanel } from './debug/DebugPanel';
+import { AudioEngine } from './audio/AudioEngine';
+import { MusicSystem } from './audio/MusicSystem';
+import { HitEffects } from './render/HitEffects';
 
 async function main(): Promise<void> {
   await initRapier();
 
   const container = document.getElementById('app')!;
   const hud = document.getElementById('hud')!;
+  const start = document.getElementById('start')!;
 
   const sim = new Simulation();
   sim.marble.root.add(createMarbleMesh(sim.marble.radius));
@@ -21,6 +25,18 @@ async function main(): Promise<void> {
 
   const view = new SceneRenderer(container);
   view.scene.add(sim.scene);
+
+  // Sound: browsers only allow audio after a gesture, so the machine waits for a tap.
+  const audio = new AudioEngine();
+  const music = new MusicSystem(sim, audio);
+  const effects = new HitEffects(sim.bus);
+  view.scene.add(effects.group);
+  let lastNote = '';
+  let noteCount = 0;
+  sim.bus.on('music:note', (n) => {
+    noteCount++;
+    lastNote = `${n.instrument}${n.note ? ' ' + n.note : ''}  vel ${n.velocity.toFixed(2)}`;
+  });
   const follow = new FollowCamera(view.camera);
   const orbit = new OrbitControls(view.camera, view.renderer.domElement);
   orbit.enabled = false;
@@ -36,6 +52,9 @@ async function main(): Promise<void> {
     fixedUpdate: (dt) => sim.fixedUpdate(dt),
     render: (alpha, frameDt) => {
       sim.renderUpdate(alpha, frameDt);
+      audio.syncClock(sim.simTime);
+      music.update();
+      effects.update(frameDt);
       sim.marble.root.getWorldPosition(marblePos);
       sim.marble.velocity(marbleVel);
       if (freeCamera) {
@@ -53,17 +72,31 @@ async function main(): Promise<void> {
       hud.textContent =
         `t ${sim.simTime.toFixed(2)}s   ${fps.toFixed(0)} fps${loop.paused ? '   PAUSED' : ''}\n` +
         `speed ${sim.marble.speed().toFixed(2)}   contacts ${sim.physics.contactCount}\n` +
-        (lc ? `last hit ${lc.object.id}  impact ${lc.impactSpeed.toFixed(2)}  @ ${lc.simTime.toFixed(2)}s` : 'last hit -');
+        (lc ? `last hit ${lc.object.id}  impact ${lc.impactSpeed.toFixed(2)}  @ ${lc.simTime.toFixed(2)}s` : 'last hit -') +
+        (lastNote ? `\nnote ${lastNote}` : '');
     },
   });
-  const debug = new DebugPanel(sim, loop, view.scene);
+  const debug = new DebugPanel(sim, loop, view.scene, audio);
 
   sim.bus.on('marble:reset', () => {
     follow.snapTo(sim.marble.position());
+    music.reset();
   });
 
+  // Hold the machine until the first tap, which also unlocks audio.
+  loop.paused = true;
+  const begin = async (): Promise<void> => {
+    await audio.unlock();
+    start.hidden = true;
+    loop.paused = false;
+  };
+  start.addEventListener('pointerdown', () => void begin());
   window.addEventListener('keydown', (e) => {
-    if (e.target instanceof HTMLInputElement) return;
+    if (!start.hidden && (e.key === ' ' || e.key === 'Enter')) void begin();
+  }, { once: false });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target instanceof HTMLInputElement || !start.hidden) return;
     switch (e.key) {
       case 'r':
       case 'R':
@@ -89,7 +122,7 @@ async function main(): Promise<void> {
   loop.start();
 
   // Expose for console tinkering and automated checks.
-  (window as unknown as { mmm: unknown }).mmm = { sim, loop, config };
+  (window as unknown as { mmm: unknown }).mmm = { sim, loop, config, audio, notes: () => noteCount };
 }
 
 main().catch((err) => {

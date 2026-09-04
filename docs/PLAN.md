@@ -21,10 +21,11 @@ Reconciled against the full specification and the five reference videos.
 1. **Physics prototype** (this branch): board, marble, rails, ramps, walls,
    bumpers, hinged pads, follow camera, debug panel, headless tests and
    authoring scripts.
-2. **Music interaction:** Web Audio engine with a look-ahead scheduler; instrument
-   component per object (bell, wood, metal, drum, cymbal, tube); impact speed ->
-   velocity; layered synth voices (transient + body + decay) with per-hit
-   variation; visual reactions synced to the same event.
+2. **Music interaction** (done): Web Audio engine scheduling on the audio
+   clock; instrument + note per object from the level data (marimba, bell,
+   wood, metal, kick, snare, hihat, cymbal, tube, pop, click, thud); impact
+   speed -> velocity; layered synth voices with per-hit variation; rolling
+   sound on rails; hit rings synced to the same event; tap-to-start unlock.
 3. **Song system:** BPM/key/track data, note events bound to objects, timing
    windows (PERFECT/EXACT/GOOD/EARLY/LATE/MISS), combo, score. Hit timing comes
    from `MarbleContactEvent.simTime`.

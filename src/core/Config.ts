@@ -74,6 +74,18 @@ export const config = {
     xFollow: 0.85,
     fov: 42,
   },
+  audio: {
+    volume: 0.8,
+    muted: false,
+    /** Reverb send level. */
+    reverb: 0.22,
+    /** Notes are scheduled this far ahead of the simulation clock, for jitter-free timing. */
+    leadSeconds: 0.06,
+    /** Impact speed that counts as a full-velocity strike. */
+    referenceImpact: 11,
+    /** Level of the continuous rolling sound on rails. */
+    rolling: 0.5,
+  },
   debug: {
     showColliders: false,
   },
