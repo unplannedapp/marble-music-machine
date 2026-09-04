@@ -1,6 +1,7 @@
 import type * as THREE from 'three';
 import type { InteractiveObject } from '../objects/InteractiveObject';
 import type { NoteEvent } from '../audio/types';
+import type { RatingEvent } from '../game/Scoring';
 
 /**
  * The single seam between physics and everything that reacts to it.
@@ -44,6 +45,9 @@ export interface EventMap {
   'marble:reset': MarbleResetEvent;
   /** A contact that produced a note (phase 2). Visuals and scoring listen here. */
   'music:note': NoteEvent;
+  /** A song target was struck (or skipped) and judged (phase 3). */
+  'score:rating': RatingEvent;
+  'score:reset': { simTime: number };
 }
 
 type Handler<T> = (event: T) => void;

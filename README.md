@@ -27,9 +27,10 @@ on the right exposes every tuning value live, including volume and reverb.
 
 ## Status
 
-Phase 1 (physics prototype) and Phase 2 (music interaction) are in place: every
-contact plays a synthesised, velocity-sensitive note from the object's
-`instrument` and `note` in the level data. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+Phases 1 to 3 are in place: real marble physics, every contact playing a
+synthesised velocity-sensitive note from the level data, and a song system that
+judges each strike against the timeline with combo and score. The playground
+level performs the alphabet song. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 for the system design and [docs/PLAN.md](docs/PLAN.md) for the development sequence.
 
 ## Level authoring tools

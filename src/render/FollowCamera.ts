@@ -41,10 +41,17 @@ export class FollowCamera {
     return target.copy(this.focus);
   }
 
+  /** Configured distance, pushed back on narrow screens so the zigzag never leaves the frame. */
+  private distance(): number {
+    const c = config.camera;
+    const halfW = Math.tan((this.camera.fov * DEG2RAD) / 2) * this.camera.aspect;
+    return Math.max(c.distance, c.minVisibleWidth / 2 / halfW);
+  }
+
   private apply(): void {
     const c = config.camera;
     const pitch = c.pitchDeg * DEG2RAD;
-    const d = c.distance;
+    const d = this.distance();
     this.camera.position.set(this.focus.x, this.focus.y + Math.sin(pitch) * d, Math.cos(pitch) * d);
     this.camera.lookAt(this.focus.x, this.focus.y - 1.0, 0);
   }

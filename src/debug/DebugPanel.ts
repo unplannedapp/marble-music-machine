@@ -18,6 +18,10 @@ export class DebugPanel {
   ) {
     this.gui = new GUI({ title: 'Marble Machine' });
     const gui = this.gui;
+    // Tuning is a developer tool: closed by default, hidden on touch devices until the
+    // debug toggle in the HUD opens it.
+    gui.close();
+    gui.hide();
     const apply = () => sim.applyConfig();
 
     const phys = gui.addFolder('Physics');
@@ -65,6 +69,10 @@ export class DebugPanel {
     this.colliderLines.renderOrder = 999;
     this.colliderLines.frustumCulled = false;
     scene.add(this.colliderLines);
+  }
+
+  toggle(): void {
+    this.gui.show(this.gui._hidden);
   }
 
   update(): void {

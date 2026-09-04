@@ -73,6 +73,8 @@ export const config = {
     /** How much the camera follows the marble sideways (0 = locked to board center). */
     xFollow: 0.85,
     fov: 42,
+    /** Board width that must stay visible; on a narrow portrait screen the camera pulls back to keep it. */
+    minVisibleWidth: 7.5,
   },
   audio: {
     volume: 0.8,
@@ -85,6 +87,18 @@ export const config = {
     referenceImpact: 11,
     /** Level of the continuous rolling sound on rails. */
     rolling: 0.5,
+  },
+  scoring: {
+    /** Timing windows in seconds (absolute delta from the song's expected time). */
+    windows: { perfect: 0.04, exact: 0.08, good: 0.15, earlyLate: 0.35 },
+    base: 100,
+    timingBonus: { PERFECT: 100, EXACT: 80, GOOD: 50, EARLY: 20, LATE: 20, MISS: 0 } as Record<string, number>,
+    /** Extra points at full velocity. */
+    velocityBonus: 50,
+    /** Each combo step adds this fraction to the multiplier (combo 10 = x2). */
+    comboStep: 0.1,
+    /** A target is missed once the marble is this far below it. */
+    missDistance: 2.5,
   },
   debug: {
     showColliders: false,

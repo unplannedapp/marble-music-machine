@@ -35,7 +35,10 @@ objects/     InteractiveObject base + registry; Rail, Ramp/Wall, Bumper, Pad
 levels/      LevelTypes (data format) + authored levels
 sim/         Simulation: headless-capable machine (world + marble + objects)
 audio/       AudioEngine (Web Audio), instruments, MusicSystem (contact -> note)
-render/      SceneRenderer, FollowCamera, marble visual, HitEffects
+songs/       SongDef (beats bound to object ids) and authored songs
+game/        ScoreSystem: timing windows, combo, score, misses
+ui/          Hud: combo, score, rating and lyric popups, results card
+render/      SceneRenderer, FollowCamera, marble visual, HitEffects, TargetRings
 debug/       lil-gui tuning panel, collider overlay
 ```
 
@@ -63,6 +66,20 @@ each object implements its **physical + visual response**. `MusicSystem`
 subscribes to the same event for the **musical response** and emits
 `music:note`, which `HitEffects` (and later timing/score/combo) listen to. None
 of them touch Rapier.
+
+## Song, timing and score
+
+A `SongDef` is a list of events in beats, each bound to the id of the object
+that plays it, with an optional lyric and section. `ScoreSystem` listens to
+`music:note`: when the next due target is struck it compares the strike's
+simulation time with the expected time and rates it PERFECT / EXACT / GOOD /
+EARLY / LATE / MISS by the windows in `Config.scoring`. The song clock is
+anchored on the first strike of each section, so each phrase is judged on its
+own rhythm and a slow phrase break cannot poison the rest. A target the marble
+falls past without striking, or that is skipped because a later target was
+struck, is a MISS and breaks the combo. Points are base + timing bonus +
+velocity bonus, scaled by the combo. Everything is emitted as `score:rating`;
+`Hud` and `TargetRings` render it and never touch the physics.
 
 ## Audio
 

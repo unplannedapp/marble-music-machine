@@ -50,6 +50,16 @@ export abstract class InteractiveObject<D extends ObjectDef = ObjectDef> {
     return collider;
   }
 
+  /** World position of the object's main body (works headlessly, unlike the render root). */
+  position(target = new THREE.Vector3()): THREE.Vector3 {
+    const body = this.bodies[0];
+    if (body) {
+      const t = body.translation();
+      return target.set(t.x, t.y, t.z);
+    }
+    return target.copy(this.root.position);
+  }
+
   /** Called when the marble first touches this object. */
   onMarbleContact(event: MarbleContactEvent): void {
     this.hits++;

@@ -18,17 +18,19 @@ Reconciled against the full specification and the five reference videos.
 
 ## Phases
 
-1. **Physics prototype** (this branch): board, marble, rails, ramps, walls,
+1. **Physics prototype** (done): board, marble, rails, ramps, walls,
    bumpers, hinged pads, follow camera, debug panel, headless tests and
-   authoring scripts.
+   authoring scripts. Mobile pass: portrait framing, touch start, capped
+   pixel ratio and shadows on phones, tuning panel behind a button.
 2. **Music interaction** (done): Web Audio engine scheduling on the audio
    clock; instrument + note per object from the level data (marimba, bell,
    wood, metal, kick, snare, hihat, cymbal, tube, pop, click, thud); impact
    speed -> velocity; layered synth voices with per-hit variation; rolling
    sound on rails; hit rings synced to the same event; tap-to-start unlock.
-3. **Song system:** BPM/key/track data, note events bound to objects, timing
-   windows (PERFECT/EXACT/GOOD/EARLY/LATE/MISS), combo, score. Hit timing comes
-   from `MarbleContactEvent.simTime`.
+3. **Song system** (done): BPM/key/section data, note events bound to
+   objects, timing windows (PERFECT/EXACT/GOOD/EARLY/LATE/MISS), combo, score,
+   miss detection, target rings, the reference-style HUD and a results card.
+   The alphabet level scores 42/42 with 37 PERFECT or EXACT.
 4. **Level system:** JSON levels, checkpoints per song section, multiple songs,
    level select.
 5. **Level editor:** drag / rotate / delete / duplicate, assign note and

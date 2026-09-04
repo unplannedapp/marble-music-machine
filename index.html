@@ -13,6 +13,30 @@
         position: fixed; left: 16px; top: 12px; color: #f2f0f7; font: 500 13px/1.5 system-ui, sans-serif;
         pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,.6); white-space: pre;
       }
+      #game-hud { position: fixed; inset: 0; pointer-events: none; font-family: system-ui, -apple-system, sans-serif; color: #f2f0f7; }
+      .hud-stat { position: absolute; top: calc(14px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 2px; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+      .hud-stat .label { font-size: 12px; letter-spacing: 0.12em; opacity: 0.75; }
+      .hud-stat .value { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+      .hud-combo { left: calc(18px + env(safe-area-inset-left)); }
+      .hud-combo.lost .value { color: #ff6b6b; }
+      .hud-score { right: calc(18px + env(safe-area-inset-right)); align-items: flex-end; }
+      .hud-pop { position: absolute; transform: translate(-50%, -120%); font-weight: 800; font-size: 22px; letter-spacing: 0.04em; white-space: nowrap; animation: hud-pop 0.9s ease-out forwards; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
+      .hud-pop.lyric { transform: translate(-50%, 40%); font-size: 30px; color: #fff; animation-name: hud-lyric; }
+      .rating-perfect { color: #ffd84a; } .rating-exact { color: #ffb347; } .rating-good { color: #7fe0ff; }
+      .rating-early, .rating-late { color: #c9c4ff; } .rating-miss { color: #ff6b6b; }
+      @keyframes hud-pop { 0% { opacity: 0; transform: translate(-50%, -100%) scale(0.7); } 15% { opacity: 1; transform: translate(-50%, -130%) scale(1.15); } 100% { opacity: 0; transform: translate(-50%, -220%) scale(1); } }
+      @keyframes hud-lyric { 0% { opacity: 0; transform: translate(-50%, 60%) scale(0.8); } 15% { opacity: 1; transform: translate(-50%, 40%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, 90%) scale(1); } }
+      #hud-results { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      #hud-results[hidden] { display: none; }
+      #hud-results .card { background: rgba(24, 22, 32, 0.85); border-radius: 18px; padding: 22px 28px; min-width: 240px; text-align: center; backdrop-filter: blur(8px); }
+      #hud-results .title { font-size: 14px; letter-spacing: 0.1em; opacity: 0.8; }
+      #hud-results .big { font-size: 44px; font-weight: 800; margin: 6px 0; font-variant-numeric: tabular-nums; }
+      #hud-results .sub { opacity: 0.8; margin-bottom: 12px; }
+      #hud-results .row { display: flex; justify-content: space-between; gap: 24px; font-size: 14px; padding: 2px 0; font-variant-numeric: tabular-nums; }
+      #hud-results .hint { margin-top: 12px; font-size: 12px; opacity: 0.6; }
+      .hud-btn { position: fixed; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(242,240,247,.7); background: rgba(24,22,32,.45); color: #f2f0f7; font: 600 16px system-ui, sans-serif; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; z-index: 5; }
+      #btn-pause { right: calc(18px + env(safe-area-inset-right)); top: calc(78px + env(safe-area-inset-top)); }
+      #btn-tune { right: calc(18px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); font-size: 12px; opacity: 0.6; }
       #hint {
         position: fixed; left: 16px; bottom: 12px; color: rgba(242,240,247,.65); font: 12px/1.5 system-ui, sans-serif;
         pointer-events: none;
@@ -31,7 +55,10 @@
   <body>
     <div id="app"></div>
     <div id="hud"></div>
-    <div id="hint">R reset · Space pause · . step · C free camera</div>
+    <div id="game-hud"></div>
+    <button id="btn-pause" class="hud-btn" aria-label="Pause">❚❚</button>
+    <button id="btn-tune" class="hud-btn" aria-label="Tuning panel">tune</button>
+    <div id="hint" hidden>R reset · Space pause · . step · C free camera</div>
     <div id="start"><div class="title">Marble Music Machine</div><div class="sub">Tap to start · sound on</div></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
