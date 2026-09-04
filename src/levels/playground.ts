@@ -85,7 +85,8 @@ export const playground: LevelDef = {
       type: 'rail',
       id: 'rail_gather',
       points: [
-        [-7.3, -35.5, 0],
+        [-7.5, -34.0, 0],
+        [-6.6, -35.2, 0],
         [-5.5, -36.0, 0],
         [-3.5, -36.5, 0],
         [-1.5, -37.1, 0],
