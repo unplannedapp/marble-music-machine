@@ -22,6 +22,7 @@ async function main(): Promise<void> {
   const view = new SceneRenderer(container);
   view.scene.add(sim.scene);
   const follow = new FollowCamera(view.camera);
+  follow.setFitWidth(playground.board.width + 2);
   const orbit = new OrbitControls(view.camera, view.renderer.domElement);
   orbit.enabled = false;
   orbit.enableDamping = true;

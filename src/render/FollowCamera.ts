@@ -13,7 +13,28 @@ export class FollowCamera {
   private initialised = false;
   private readonly target = new THREE.Vector3();
 
+  /** Width of the board (plus margin) that must always fit on screen. */
+  private fitWidth = 0;
+
   constructor(private readonly camera: THREE.PerspectiveCamera) {}
+
+  /** Keep at least this much board width visible, whatever the screen's aspect ratio. */
+  setFitWidth(width: number): void {
+    this.fitWidth = width;
+  }
+
+  /**
+   * Camera distance: the configured one, pushed back as far as needed so the
+   * board's full width fits. On a portrait phone that is what dominates.
+   */
+  private distance(): number {
+    const c = config.camera;
+    if (this.fitWidth <= 0) return c.distance;
+    const vFov = this.camera.fov * DEG2RAD;
+    const halfH = Math.tan(vFov / 2);
+    const halfW = halfH * this.camera.aspect;
+    return Math.max(c.distance, this.fitWidth / 2 / halfW);
+  }
 
   snapTo(position: THREE.Vector3): void {
     this.focus.copy(position);
@@ -44,7 +65,8 @@ export class FollowCamera {
   private apply(): void {
     const c = config.camera;
     const pitch = c.pitchDeg * DEG2RAD;
-    this.camera.position.set(this.focus.x, this.focus.y + Math.sin(pitch) * c.distance, Math.cos(pitch) * c.distance);
+    const d = this.distance();
+    this.camera.position.set(this.focus.x, this.focus.y + Math.sin(pitch) * d, Math.cos(pitch) * d);
     this.camera.lookAt(this.focus.x, this.focus.y - 1.0, 0);
   }
 }
