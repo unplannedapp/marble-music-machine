@@ -86,6 +86,11 @@ export class PhysicsWorld {
     if (i >= 0) this.bindings.splice(i, 1);
   }
 
+  /** Drop every binding of a body about to be removed from the world. */
+  unbindBody(body: RAPIER.RigidBody): void {
+    for (let i = this.bindings.length - 1; i >= 0; i--) if (this.bindings[i].body.handle === body.handle) this.bindings.splice(i, 1);
+  }
+
   static applyMaterial(desc: RAPIER.ColliderDesc, m: MaterialProps): RAPIER.ColliderDesc {
     // Rapier applies the higher-priority rule of the pair (Max beats Average), so a
     // 'max' object imposes its bounce while an 'average' one blends with the marble.

@@ -81,6 +81,7 @@ export class Simulation {
     for (const o of this.objects) o.dispose();
     this.objects.length = 0;
     this.objectsById.clear();
+    this.physics.clearContacts();
     if (this.boardMesh) {
       this.boardMesh.removeFromParent();
       this.boardMesh = null;

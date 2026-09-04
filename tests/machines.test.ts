@@ -13,6 +13,31 @@ const silent = { play() {}, setRolling() {} };
  * every object in its own order, no wall contact, the song's notes in order,
  * every target judged as a hit, and a finish in the tray.
  */
+describe('switching machines', () => {
+  it('unloads one machine and plays another on the same simulation', async () => {
+    await initRapier();
+    const sim = new Simulation();
+    const music = new MusicSystem(sim, silent);
+    const scoringA = new ScoreSystem(sim, machines[0].song);
+    sim.load(machines[0].level);
+    const dt = config.physics.fixedDt;
+    for (let i = 0; i < 4 / dt; i++) sim.fixedUpdate(dt);
+    scoringA.dispose();
+    const scoring = new ScoreSystem(sim, machines[1].song);
+    sim.load(machines[1].level);
+    let finished = false;
+    sim.bus.on('marble:reset', (e) => (finished = e.reason === 'finished'));
+    for (let i = 0; i < 120 / dt && !finished; i++) {
+      sim.fixedUpdate(dt);
+      scoring.fixedUpdate();
+    }
+    expect(finished).toBe(true);
+    expect((scoring.lastRun ?? scoring.summary()).ratings.MISS).toBe(0);
+    music.dispose();
+    sim.dispose();
+  }, 60_000);
+});
+
 describe.each(machines.map((m) => [m.id, m] as const))('machine %s', (_id, machine) => {
   it('performs its song end to end', async () => {
     await initRapier();

@@ -19,8 +19,11 @@ page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.goto(base, { waitUntil: 'load' });
 await page.waitForFunction(() => !!window.mmm, null, { timeout: 30000 });
-// Tap the start overlay: unlocks audio and starts the machine.
-await page.click('#start');
+// Pick a machine from the menu (SHOT_PICK index): unlocks audio and starts it.
+if (process.env.SHOT_MENU) await page.screenshot({ path: `${out}/menu.png` });
+const items = await page.$$('.menu-item');
+if (items.length) await items[Math.min(Number(process.env.SHOT_PICK ?? 0), items.length - 1)].click();
+else await page.click('#start');
 await page.waitForFunction(() => window.mmm.sim.simTime > 0.5, null, { timeout: 30000 });
 console.log('audio state after tap:', await page.evaluate(() => window.mmm.audio.ctx.state));
 for (const t of (process.env.SHOT_TIMES ?? '1.5,4.5,6.5,9').split(',').map(Number)) {

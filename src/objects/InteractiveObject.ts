@@ -84,7 +84,10 @@ export abstract class InteractiveObject<D extends ObjectDef = ObjectDef> {
       this.ctx.physics.unregisterCollider(c);
       world.removeCollider(c, false);
     }
-    for (const b of this.bodies) world.removeRigidBody(b);
+    for (const b of this.bodies) {
+      this.ctx.physics.unbindBody(b);
+      world.removeRigidBody(b);
+    }
     this.colliders.length = 0;
     this.bodies.length = 0;
     this.root.removeFromParent();
