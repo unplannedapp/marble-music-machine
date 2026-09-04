@@ -23,7 +23,7 @@ const prefix = process.argv[3] ?? 'auto_';
 let afterT = Number(process.argv[4] ?? 0);
 const DEG = Math.PI / 180;
 const padHalfThick = 0.14;
-const bumperRadius = 0.45;
+const bumperRadius = Number(process.env.BUMPER_R ?? 0.45);
 
 await initRapier();
 
@@ -113,6 +113,7 @@ for (let k = 0; k < steps.length; k++) {
     const bumper: BumperDef = {
       type: 'bumper', id,
       position: [+(state.x - n[0] * off).toFixed(2), +(state.y - n[1] * off).toFixed(2), 0],
+      radius: bumperRadius,
       color: step.color ?? '#e8c44a',
     };
     def = bumper;
@@ -129,5 +130,5 @@ console.log('\nVerification contact sequence:\n  ' + hits.filter((h) => !h.start
 console.log('\nObjects TS:');
 for (const o of placed) {
   if (o.type === 'pad') console.log(`    { type: 'pad', id: '${o.id}', position: [${o.position.join(', ')}], angle: ${o.angle}, color: '${o.color}', note: '${o.note}' },`);
-  else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], color: '${o.color}' },`);
+  else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, color: '${o.color}' },`);
 }

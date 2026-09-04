@@ -15,6 +15,8 @@
 export interface MaterialProps {
   friction: number;
   restitution: number;
+  /** 'max' lets a lively object impose its bounce on the marble; 'average' blends with the marble's. */
+  bounceRule?: 'max' | 'average';
 }
 
 export const config = {
@@ -36,16 +38,16 @@ export const config = {
     angularDamping: 0.15,
   },
   materials: {
-    board: { friction: 0.12, restitution: 0.05 } as MaterialProps,
-    rail: { friction: 0.3, restitution: 0.2 } as MaterialProps,
-    pad: { friction: 0.25, restitution: 0.55 } as MaterialProps,
-    bumper: { friction: 0.15, restitution: 0.8 } as MaterialProps,
-    ramp: { friction: 0.35, restitution: 0.25 } as MaterialProps,
-    wall: { friction: 0.3, restitution: 0.4 } as MaterialProps,
+    board: { friction: 0.12, restitution: 0.05, bounceRule: 'average' } as MaterialProps,
+    rail: { friction: 0.3, restitution: 0.1, bounceRule: 'average' } as MaterialProps,
+    pad: { friction: 0.25, restitution: 0.55, bounceRule: 'max' } as MaterialProps,
+    bumper: { friction: 0.15, restitution: 0.6, bounceRule: 'max' } as MaterialProps,
+    ramp: { friction: 0.35, restitution: 0.25, bounceRule: 'average' } as MaterialProps,
+    wall: { friction: 0.3, restitution: 0.4, bounceRule: 'average' } as MaterialProps,
   },
   bumper: {
     /** Extra outward speed (units/s) added on impact, pinball pop-bumper style. */
-    kick: 2.5,
+    kick: 1.5,
   },
   pad: {
     density: 20.0,
@@ -55,12 +57,12 @@ export const config = {
     angularDamping: 0.5,
   },
   camera: {
-    distance: 24,
+    distance: 14,
     pitchDeg: 16,
     lookAheadTime: 0.3,
     smoothTime: 0.28,
     /** How much the camera follows the marble sideways (0 = locked to board center). */
-    xFollow: 0.55,
+    xFollow: 0.85,
     fov: 42,
   },
   debug: {

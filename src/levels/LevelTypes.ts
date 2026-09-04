@@ -17,6 +17,8 @@ export interface RailDef extends BaseObjectDef {
   /** Distance between the two rods. Default 1.4 * marble radius. */
   gauge?: number;
   rodRadius?: number;
+  /** How far the rod pair swings forward, raising the front rod into a lip. Default 20. */
+  lipDeg?: number;
 }
 
 export interface RampDef extends BaseObjectDef {

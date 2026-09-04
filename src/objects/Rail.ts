@@ -5,6 +5,7 @@ import { PhysicsWorld } from '../physics/PhysicsWorld';
 import { InteractiveObject, registerObjectType, type BuildContext } from './InteractiveObject';
 import type { ObjectDef, RailDef } from '../levels/LevelTypes';
 import { geometries, visuals } from './materials';
+import { DEG2RAD } from '../core/math';
 
 const _yAxis = new THREE.Vector3(0, 1, 0);
 
@@ -12,9 +13,10 @@ const _yAxis = new THREE.Vector3(0, 1, 0);
  * Wire rail: two parallel metal rods on posts, as in the reference machines.
  *
  * The level author gives the path of the marble's centre in board coordinates.
- * The rods are placed symmetrically either side of the gravity direction so the
- * ball rides in a true V-groove, held clear of the backboard, and rolls without
- * rubbing. Physics is a chain of capsule colliders per rod; nothing about the
+ * The rods are placed either side of the gravity direction so the ball rides in
+ * a V-groove, held clear of the backboard, and rolls without rubbing. The pair
+ * is rotated toward the camera by `lipDeg` so the front rod forms a lip: a ball
+ * that bounces in the groove is cradled instead of hopping out over the front. Physics is a chain of capsule colliders per rod; nothing about the
  * marble's motion is scripted.
  *
  * A path z of 0 means "default rail height" (marble held a little off the board).
@@ -34,6 +36,7 @@ export class Rail extends InteractiveObject<RailDef> {
     const up = new THREE.Vector3(-g.x, -g.y, -g.z);
     if (up.lengthSq() < 1e-8) up.set(0, 1, 0);
     up.normalize();
+    const lip = (def.lipDeg ?? 20) * DEG2RAD;
     // Both rods touch the ball: distance from ball centre to rod axis = r + rodRadius.
     const drop = Math.sqrt(Math.max(0, (r + rodRadius) ** 2 - (gauge / 2) ** 2));
     const defaultZ = ctx.boardZ + Rail.defaultHeight(r);
@@ -62,6 +65,12 @@ export class Rail extends InteractiveObject<RailDef> {
       if (support.lengthSq() < 1e-6) support.set(0, 0, 1);
       support.normalize();
       side.crossVectors(tangent, support).normalize();
+      if (side.z < 0) side.negate();
+      // Tilt the support direction away from the camera: the rod pair swings
+      // forward, so the front rod rides higher than the rear one and forms a lip.
+      support.multiplyScalar(Math.cos(lip)).addScaledVector(side, -Math.sin(lip)).normalize();
+      side.crossVectors(tangent, support).normalize();
+      if (side.z < 0) side.negate();
       const base = centres[i].clone().addScaledVector(support, -drop);
       rodA.push(base.clone().addScaledVector(side, gauge / 2));
       rodB.push(base.clone().addScaledVector(side, -gauge / 2));

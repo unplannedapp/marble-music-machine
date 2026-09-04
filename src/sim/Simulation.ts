@@ -107,7 +107,7 @@ export class Simulation {
     const glassZ = level.board.glass ?? 1.5;
     const glass = PhysicsWorld.applyMaterial(
       RAPIER.ColliderDesc.cuboid(width / 2 + 4, height / 2 + 4, 0.1).setTranslation(0, 0, glassZ + thickness / 2 + 0.1),
-      { friction: 0.1, restitution: 0.05 },
+      { friction: 0.1, restitution: 0.05, bounceRule: 'average' },
     );
     this.physics.world.createCollider(glass, body);
     this.boardBody = body;

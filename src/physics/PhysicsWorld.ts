@@ -87,10 +87,13 @@ export class PhysicsWorld {
   }
 
   static applyMaterial(desc: RAPIER.ColliderDesc, m: MaterialProps): RAPIER.ColliderDesc {
+    // Rapier applies the higher-priority rule of the pair (Max beats Average), so a
+    // 'max' object imposes its bounce while an 'average' one blends with the marble.
+    const rule = m.bounceRule === 'max' ? RAPIER.CoefficientCombineRule.Max : RAPIER.CoefficientCombineRule.Average;
     return desc
       .setFriction(m.friction)
       .setRestitution(m.restitution)
-      .setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Max)
+      .setRestitutionCombineRule(rule)
       .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average);
   }
 

@@ -40,7 +40,7 @@ export class Marble {
       .setDensity(m.density)
       .setFriction(m.friction)
       .setRestitution(m.restitution)
-      .setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Max)
+      .setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Average)
       .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
     this.collider = physics.world.createCollider(colDesc, this.body);
     this.root.name = 'marble';

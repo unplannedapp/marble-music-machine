@@ -55,7 +55,8 @@ describe('playground level', () => {
     expect(r.order).toContain('rail_catch');
     for (let i = 1; i <= 6; i++) expect(r.order).toContain(`padB_${i}`);
     expect(r.order.indexOf('padB_1')).toBeGreaterThan(r.order.indexOf('rail_catch'));
-    expect(r.order.some((id) => id.startsWith('bump_'))).toBe(true);
+    expect(r.order).toContain('rail_mid');
+    for (let i = 1; i <= 4; i++) expect(r.order).toContain(`bump_${i}`);
     expect(r.order.indexOf('bump_1')).toBeGreaterThan(r.order.indexOf('padB_6'));
     expect(r.order).toContain('rail_end');
     expect(r.resets[r.resets.length - 1]).toMatch(/^fell/);
@@ -77,7 +78,7 @@ describe('playground level', () => {
       // eslint-disable-next-line no-console
       console.log(`dv=${dv}: ${r.order.join(' -> ')}`);
       expect(r.order).toContain('pad_7');
-      expect(r.order.some((id) => id.startsWith('bump_'))).toBe(true);
+      for (let i = 1; i <= 4; i++) expect(r.order).toContain(`bump_${i}`);
       expect(r.order).toContain('padB_6');
       expect(r.order).toContain('rail_end');
     }

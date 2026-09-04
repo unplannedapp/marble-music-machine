@@ -6,12 +6,12 @@ import type { LevelDef } from './LevelTypes';
  */
 export const playground: LevelDef = {
   name: 'Playground',
-  board: { width: 16, top: 8, bottom: -56 },
+  board: { width: 16, top: 8, bottom: -58 },
   spawn: { position: [-5.0, 5.05, 0.55], velocity: [1.2, 0, 0] },
-  killY: -53,
+  killY: -55,
   objects: [
-    { type: 'wall', id: 'wall_left', position: [-8.2, -24, 0.6], size: [0.4, 64, 1.2] },
-    { type: 'wall', id: 'wall_right', position: [8.2, -24, 0.6], size: [0.4, 64, 1.2] },
+    { type: 'wall', id: 'wall_left', position: [-8.2, -25, 0.6], size: [0.4, 66, 1.2] },
+    { type: 'wall', id: 'wall_right', position: [8.2, -25, 0.6], size: [0.4, 66, 1.2] },
 
     // Opening rail: gentle S-curve that releases the marble mid-air.
     {
@@ -60,28 +60,42 @@ export const playground: LevelDef = {
     { type: 'pad', id: 'padB_5', position: [-5.99, -24.86, 0], angle: -41.5, color: '#5cb85c', note: 'G4' },
     { type: 'pad', id: 'padB_6', position: [-3.31, -26.69, 0], angle: 41.5, color: '#e86fb0', note: 'E4' },
 
-    // Bumper finale (first two placed by scripts/layout.ts; the rest is deliberately
-    // unpredictable, so it comes last and the funnel below gathers whatever happens).
-    { type: 'bumper', id: 'bump_1', position: [-6.65, -29.25, 0], color: '#e8c44a' },
-    { type: 'bumper', id: 'bump_2', position: [-0.59, -31.33, 0], color: '#e8c44a' },
-    { type: 'bumper', id: 'bump_3', position: [-6.4, -33.6, 0], color: '#e8c44a' },
-    { type: 'bumper', id: 'bump_4', position: [1.6, -35.4, 0], color: '#e8c44a' },
+    // Gathering rail: takes the marble off the last pad wherever it lands and
+    // releases it from one fixed point, so the bumper run below starts the same way every time.
+    {
+      type: 'rail',
+      id: 'rail_mid',
+      points: [
+        [-7.6, -28.0, 0],
+        [-6.2, -28.4, 0],
+        [-4.5, -28.9, 0],
+        [-2.8, -29.6, 0],
+        [-1.4, -30.5, 0],
+        [-0.6, -31.7, 0],
+      ],
+    },
+
+    // Bumper run, placed by scripts/layout.ts from the gathering rail's release point.
+    { type: 'bumper', id: 'bump_1', position: [1.77, -33.27, 0], radius: 0.7, color: '#e8c44a' },
+    { type: 'bumper', id: 'bump_2', position: [-1.74, -34.23, 0], radius: 0.7, color: '#e8c44a' },
+    { type: 'bumper', id: 'bump_3', position: [1.73, -35.38, 0], radius: 0.7, color: '#e8c44a' },
+    { type: 'bumper', id: 'bump_4', position: [-1.85, -36.48, 0], radius: 0.7, color: '#e8c44a' },
 
     // Funnel: two ramps meeting at a centre gap, so the marble leaves at a known place.
-    { type: 'ramp', id: 'funnel_left', position: [-4.35, -39.5, 0.45], rotation: [0, 0, -22.3], size: [7.9, 0.4, 0.9] },
-    { type: 'ramp', id: 'funnel_right', position: [4.35, -39.5, 0.45], rotation: [0, 0, 22.3], size: [7.9, 0.4, 0.9] },
+    { type: 'ramp', id: 'funnel_left', position: [-4.35, -42.0, 0.45], rotation: [0, 0, -22.3], size: [7.9, 0.4, 0.9] },
+    { type: 'ramp', id: 'funnel_right', position: [4.35, -42.0, 0.45], rotation: [0, 0, 22.3], size: [7.9, 0.4, 0.9] },
 
     // Closing rail under the funnel gap: carries the marble out of the machine.
     {
       type: 'rail',
       id: 'rail_end',
       points: [
-        [-1.6, -42.2, 0],
-        [0.0, -42.6, 0],
-        [1.8, -43.2, 0],
-        [3.4, -44.1, 0],
-        [4.6, -45.4, 0],
-        [5.2, -47.0, 0],
+        [-1.6, -44.7, 0],
+        [0.0, -45.1, 0],
+        [1.8, -45.7, 0],
+        [3.4, -46.6, 0],
+        [4.6, -47.9, 0],
+        [5.2, -49.5, 0],
       ],
     },
   ],
