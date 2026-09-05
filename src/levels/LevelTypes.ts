@@ -74,7 +74,21 @@ export interface PipeDef extends BaseObjectDef {
   color?: string;
 }
 
-export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef;
+export interface SpinnerDef extends BaseObjectDef {
+  type: 'spinner';
+  position: Vec3Tuple;
+  /** Blade length from the axle. Default 1.1. */
+  radius?: number;
+  /** Number of blades. Default 4. */
+  blades?: number;
+  /** Turns per minute; positive is counter-clockwise as the player sees it. Default 40. */
+  rpm?: number;
+  /** Blade angle at time zero, degrees. The wheel is a pure function of sim time. */
+  phase?: number;
+  color?: string;
+}
+
+export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef | SpinnerDef;
 
 /**
  * The look of a machine: every song has its own world in the references, so the
@@ -159,5 +173,5 @@ export interface LevelDef {
    * Where a lost marble restarts, one per song section, baked from the
    * deterministic run (scripts/bake.ts).
    */
-  checkpoints?: { section: number; position: Vec3Tuple; velocity: Vec3Tuple; spin?: Vec3Tuple }[];
+  checkpoints?: { section: number; position: Vec3Tuple; velocity: Vec3Tuple; spin?: Vec3Tuple; time?: number }[];
 }

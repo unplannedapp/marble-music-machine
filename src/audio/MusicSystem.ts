@@ -21,6 +21,7 @@ export const defaultInstrument: Record<string, InstrumentName> = {
   pipe: 'tube',
   ramp: 'thud',
   wall: 'thud',
+  spinner: 'wood',
 };
 
 /** Contacts within this window on the same object are one strike, not a flurry. */
@@ -28,14 +29,17 @@ const RETRIGGER_SECONDS = 0.06;
 
 export class MusicSystem {
   private lastNoteTime = new Map<InteractiveObject, number>();
-  private readonly off: () => void;
+  private readonly offs: (() => void)[] = [];
 
   constructor(
     private readonly sim: Simulation,
     private readonly player: NotePlayer,
     bus: EventBus = sim.bus,
   ) {
-    this.off = bus.on('marble:contact', (e) => this.onContact(e, bus));
+    this.offs.push(bus.on('marble:contact', (e) => this.onContact(e, bus)));
+    // A marble put back (new run or checkpoint) replays strikes at the same clock times: forget the old ones.
+    this.offs.push(bus.on('marble:reset', () => this.reset()));
+    this.offs.push(bus.on('marble:respawn', () => this.reset()));
   }
 
   private onContact(e: MarbleContactEvent, bus: EventBus): void {
@@ -74,6 +78,6 @@ export class MusicSystem {
   }
 
   dispose(): void {
-    this.off();
+    for (const off of this.offs) off();
   }
 }

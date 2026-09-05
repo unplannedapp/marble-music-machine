@@ -177,23 +177,28 @@ export class Simulation {
   }
 
   /** Put the marble at a checkpoint without announcing a reset (objects are restored). */
-  respawn(position: THREE.Vector3, velocity: THREE.Vector3, spin?: THREE.Vector3): void {
+  respawn(position: THREE.Vector3, velocity: THREE.Vector3, spin?: THREE.Vector3, time?: number): void {
+    // Moving mechanisms are functions of the clock, so a checkpoint restores the clock too.
+    if (time !== undefined) this.physics.simTime = time;
     this.marble.reset(position, velocity, spin);
     for (const o of this.objects) o.reset();
     this.physics.clearContacts();
     this.lastContact = null;
     this.stalledFor = 0;
+    this.bus.emit('marble:respawn', { simTime: this.simTime });
   }
 
   resetMarble(reason: 'fell' | 'manual' | 'stalled' | 'finished' = 'manual'): void {
     if (!this.level) return;
+    const at = this.simTime;
+    this.physics.simTime = 0; // every run is the same run: mechanisms restart with the marble
     this.marble.reset(tupleToVector3(this.level.spawn.position), tupleToVector3(this.level.spawn.velocity));
     for (const o of this.objects) o.reset();
     this.physics.contactCount = 0;
     this.physics.clearContacts();
     this.lastContact = null;
     this.stalledFor = 0;
-    this.bus.emit('marble:reset', { simTime: this.simTime, reason });
+    this.bus.emit('marble:reset', { simTime: at, reason });
   }
 
   fixedUpdate(dt: number): void {

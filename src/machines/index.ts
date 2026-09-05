@@ -1,8 +1,10 @@
 import { parseLevel, type LevelFile } from '../levels/LevelFormat';
 import alphabetLevel from '../levels/alphabet.level.json';
 import maryLevel from '../levels/mary.level.json';
+import joyLevel from '../levels/joy.level.json';
 import { alphabetSong } from '../songs/alphabet';
 import { marySong } from '../songs/mary';
+import { joySong } from '../songs/joy';
 import type { SongDef } from '../songs/types';
 
 /** A machine is a level and the song it performs: what the player picks from the menu. */
@@ -18,6 +20,7 @@ export interface Machine {
 export const machines: Machine[] = [
   { id: 'alphabet', title: 'The Alphabet Song', level: parseLevel(alphabetLevel), song: alphabetSong },
   { id: 'mary', title: 'Mary Had a Little Lamb', level: parseLevel(maryLevel), song: marySong },
+  { id: 'joy', title: 'Ode to Joy', level: parseLevel(joyLevel), song: joySong },
 ];
 
 /** Source path of a machine's level file (for authoring scripts that write it back). */

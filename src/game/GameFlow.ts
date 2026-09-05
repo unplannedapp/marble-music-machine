@@ -26,7 +26,7 @@ export class GameFlow {
       // The generic reset already respawned at the start; move to the checkpoint instead.
       this.restarting = true;
       scoring.restartSection();
-      sim.respawn(new THREE.Vector3(...cp.position), new THREE.Vector3(...cp.velocity), cp.spin ? new THREE.Vector3(...cp.spin) : undefined);
+      sim.respawn(new THREE.Vector3(...cp.position), new THREE.Vector3(...cp.velocity), cp.spin ? new THREE.Vector3(...cp.spin) : undefined, cp.time);
       this.restarting = false;
     });
   }

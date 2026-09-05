@@ -39,7 +39,13 @@ export interface MarbleResetEvent {
   reason: 'fell' | 'manual' | 'stalled' | 'finished';
 }
 
+/** The marble was put back at a checkpoint (objects restored, clock rewound); not a new run. */
+export interface MarbleRespawnEvent {
+  simTime: number;
+}
+
 export interface EventMap {
+  'marble:respawn': MarbleRespawnEvent;
   'marble:contact': MarbleContactEvent;
   'marble:separate': MarbleSeparateEvent;
   'marble:reset': MarbleResetEvent;

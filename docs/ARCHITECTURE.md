@@ -108,6 +108,7 @@ rail. Audio starts on the first tap, which browsers require.
 | Bumper | fixed cylinder, high restitution | in-plane impulse kick, cap squash |
 | Pad | dynamic box, translations locked, rotation only about Z, explicit torsion spring + damper applied each step | swings and settles, emissive flash |
 | Pipe | triangle-mesh tube (same mesh the player sees, flared mouths); the marble rolls on the real inner wall | tube note on entry, rolling sound inside |
+| Spinner | kinematic hub + blade cuboids; angle = phase + rpm x sim time, handed to the physics as the next kinematic pose each step | the blade's own velocity flings the marble; wood note, blade flash |
 
 Pads are deliberately not joint-driven: a revolute joint with a position motor
 fought the locked degrees of freedom and produced energy spikes. A body with

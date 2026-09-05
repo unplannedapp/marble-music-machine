@@ -1,0 +1,332 @@
+{
+  "format": 1,
+  "name": "Joy Machine",
+  "environment": {
+    "board": "#c9bba3",
+    "background": "#8f836f",
+    "keyLight": "#fff0d0",
+    "keyIntensity": 2.4,
+    "keyRake": 0.35,
+    "fill": "#efe2cc",
+    "fillIntensity": 0.4,
+    "rim": "#ffe9c4",
+    "rimIntensity": 0.5,
+    "metal": "#5f636e",
+    "wood": "#7a4a2a",
+    "ring": "#e0533d",
+    "envIntensity": 0.45,
+    "exposure": 0.95,
+    "vignette": 0.45,
+    "padGlow": 0,
+    "padLight": 0,
+    "boardGrain": 0.35,
+    "shaft": 0.55,
+    "shaftColor": "#fff0cf",
+    "shaftAngle": 22
+  },
+  "board": {
+    "width": 16,
+    "top": 8,
+    "bottom": -90
+  },
+  "spawn": {
+    "position": [-5, 5.05, 0.55],
+    "velocity": [1.2, 0, 0]
+  },
+  "killY": -88,
+  "objects": [
+    {
+      "type": "wall",
+      "id": "wall_left",
+      "position": [-8.2, -41, 0.6],
+      "size": [0.4, 102, 1.2],
+      "instrument": "none"
+    },
+    {
+      "type": "wall",
+      "id": "wall_right",
+      "position": [8.2, -41, 0.6],
+      "size": [0.4, 102, 1.2],
+      "instrument": "none"
+    },
+    {
+      "type": "rail",
+      "id": "rail_start",
+      "points": [
+        [-5.4, 5, 0],
+        [-3.5, 4.75, 0],
+        [-1.5, 4.2, 0],
+        [0.6, 3.9, 0],
+        [2.2, 3.4, 0]
+      ]
+    },
+    {
+      "type": "pad",
+      "id": "joy_1",
+      "position": [5.46, -2.15, 0],
+      "angle": 38.5,
+      "color": "#d9534f",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_2",
+      "position": [1.16, -3.99, 0],
+      "angle": -45,
+      "color": "#f0ad4e",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_3",
+      "position": [4.12, -5.81, 0],
+      "angle": 42,
+      "color": "#5bc0de",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_4",
+      "position": [1.26, -7.64, 0],
+      "angle": -42.5,
+      "color": "#8e6bd6",
+      "note": "G5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_5",
+      "position": [3.97, -9.45, 0],
+      "angle": 41.5,
+      "color": "#5cb85c",
+      "note": "G5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_6",
+      "position": [1.29, -11.26, 0],
+      "angle": -41.5,
+      "color": "#e86fb0",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_7",
+      "position": [3.96, -13.07, 0],
+      "angle": 41.5,
+      "color": "#f7f7f7",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_8",
+      "position": [1.29, -14.87, 0],
+      "angle": -41.5,
+      "color": "#2f9e8f",
+      "note": "D5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_9",
+      "position": [3.96, -16.68, 0],
+      "angle": 41.5,
+      "color": "#d9534f",
+      "note": "C5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_10",
+      "position": [1.28, -18.56, 0],
+      "angle": -41,
+      "color": "#f0ad4e",
+      "note": "C5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_11",
+      "position": [3.98, -20.4, 0],
+      "angle": 41.5,
+      "color": "#5bc0de",
+      "note": "D5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_12",
+      "position": [1.28, -22.22, 0],
+      "angle": -41.5,
+      "color": "#8e6bd6",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_13",
+      "position": [4.25, -24.89, 0],
+      "angle": 39.5,
+      "color": "#5cb85c",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_14",
+      "position": [1.37, -26.01, 0],
+      "angle": -47,
+      "color": "#e86fb0",
+      "note": "D5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_15",
+      "position": [3.77, -27.92, 0],
+      "angle": 39.5,
+      "color": "#f7f7f7",
+      "note": "D5"
+    },
+    {
+      "type": "spinner",
+      "id": "joy_16",
+      "position": [0.68, -30.74, 0],
+      "radius": 1.1,
+      "blades": 4,
+      "rpm": 40,
+      "phase": 63,
+      "color": "#e0533d",
+      "instrument": "wood",
+      "note": "C4"
+    },
+    {
+      "type": "pad",
+      "id": "joy_17",
+      "position": [-1.48, -35.42, 0],
+      "angle": -34,
+      "color": "#2f9e8f",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_18",
+      "position": [3.62, -37.17, 0],
+      "angle": 50,
+      "color": "#d9534f",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_19",
+      "position": [0.36, -39.02, 0],
+      "angle": -42.5,
+      "color": "#f0ad4e",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_20",
+      "position": [3.25, -40.89, 0],
+      "angle": 42.5,
+      "color": "#5bc0de",
+      "note": "G5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_21",
+      "position": [0.53, -42.72, 0],
+      "angle": -41.5,
+      "color": "#8e6bd6",
+      "note": "G5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_22",
+      "position": [3.22, -44.54, 0],
+      "angle": 41.5,
+      "color": "#5cb85c",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_23",
+      "position": [0.54, -46.41, 0],
+      "angle": -41,
+      "color": "#e86fb0",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_24",
+      "position": [3.26, -48.27, 0],
+      "angle": 41.5,
+      "color": "#f7f7f7",
+      "note": "D5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_25",
+      "position": [0.54, -50.08, 0],
+      "angle": -41.5,
+      "color": "#2f9e8f",
+      "note": "C5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_26",
+      "position": [3.23, -51.94, 0],
+      "angle": 41,
+      "color": "#d9534f",
+      "note": "C5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_27",
+      "position": [0.52, -53.79, 0],
+      "angle": -41.5,
+      "color": "#f0ad4e",
+      "note": "D5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_28",
+      "position": [3.23, -55.61, 0],
+      "angle": 41.5,
+      "color": "#5bc0de",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_29",
+      "position": [0.26, -58.27, 0],
+      "angle": -39.5,
+      "color": "#8e6bd6",
+      "note": "D5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_30",
+      "position": [3.11, -59.38, 0],
+      "angle": 46.5,
+      "color": "#5cb85c",
+      "note": "C5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_31",
+      "position": [0.75, -61.25, 0],
+      "angle": -39.5,
+      "color": "#e86fb0",
+      "note": "C5"
+    }
+  ],
+  "checkpoints": [
+    {
+      "section": 0,
+      "position": [3.745, 1.946, 0.298],
+      "velocity": [4.394, -7.821, -0.062],
+      "spin": [15.712, 14.127, -14.93],
+      "time": 2.8
+    },
+    {
+      "section": 1,
+      "position": [-0.441, -30.943, 0.298],
+      "velocity": [-2.353, -8.901, -0.062],
+      "spin": [17.93, -7.611, -2.155],
+      "time": 11.925
+    }
+  ]
+}

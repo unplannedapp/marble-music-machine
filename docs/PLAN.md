@@ -40,10 +40,14 @@ Reconciled against the full specification and the five reference videos.
    environment presets, save to the device, JSON copy and paste, simulate.
    Built-in machines are edited as copies. Custom machines get their song by
    baking the level's own run.
-6. **Advanced physics:** pipes are done (curved trimesh tubes the marble
-   travels through, a `pipe` layout step, editor palette). Still to do:
-   object-object chain reactions (contact routing between non-marble bodies),
-   spinners, seesaws, launchers, branching paths.
+6. **Advanced physics** (in progress): pipes (curved trimesh tubes the marble
+   travels through, funnel mouths, a `pipe` layout step) and spinners (a
+   motor-driven paddle wheel on a kinematic body whose angle is a pure
+   function of sim time; the sim clock restarts with every run and is
+   restored by checkpoints, so mechanisms repeat exactly; a `spinner` layout
+   step searches phase and direction on the real path; the Ode to Joy machine
+   uses one as its phrase break). Still to do: seesaws, launchers, funnels,
+   object-object chain reactions, branching paths.
 7. **Content / social:** MIDI import, generated machines, sharing.
 
 ## Level authoring lessons (from the alphabet-song level)

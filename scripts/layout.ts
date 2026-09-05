@@ -20,7 +20,7 @@
  */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef } from '../src/levels/LevelTypes';
+import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef, SpinnerDef } from '../src/levels/LevelTypes';
 import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
@@ -30,7 +30,7 @@ const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -65,6 +65,36 @@ function simulate(level: LevelDef, yTarget: number, after: number): { state: Sta
   }
   sim.dispose();
   return { state: out, hits };
+}
+
+/** Run until the marble has met `id`, then a little longer: where did the mechanism send it? */
+function flight(level: LevelDef, id: string, after: number, settle = 0.9): { x: number; y: number; vx: number; vy: number; t: number; top: number; bad: boolean } | null {
+  const sim = new Simulation();
+  sim.load(level);
+  let hitAt = -1;
+  let bad = false;
+  sim.bus.on('marble:contact', (e) => {
+    if (e.object.id === id && hitAt < 0 && e.simTime > after) hitAt = e.simTime;
+    if (hitAt >= 0 && e.object.id.startsWith('wall_')) bad = true;
+  });
+  sim.bus.on('marble:reset', () => (bad = true));
+  const dt = config.physics.fixedDt;
+  let top = -Infinity;
+  let out: ReturnType<typeof flight> = null;
+  for (let t = 0; t < 30; t += dt) {
+    sim.fixedUpdate(dt);
+    if (bad) break;
+    const p = sim.marble.body.translation();
+    const v = sim.marble.body.linvel();
+    if (hitAt >= 0) top = Math.max(top, p.y);
+    if (hitAt >= 0 && t >= hitAt + settle) {
+      out = { x: p.x, y: p.y, vx: v.x, vy: v.y, t, top, bad };
+      break;
+    }
+  }
+  sim.dispose();
+  if (out) out.bad = bad;
+  return out;
 }
 
 const base: LevelFile = JSON.parse(JSON.stringify(playground));
@@ -120,6 +150,38 @@ for (let k = 0; k < steps.length; k++) {
     lastY = y0 - 1.7;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> rail toward ${dx > 0 ? 'right' : 'left'}, ends at y ${lastY.toFixed(2)}`);
+    continue;
+  }
+  if (step.k === 'spinner') {
+    // Wheel just below the marble, off toward the centre; then search the phase and
+    // direction that fling it highest while sending it toward the centre, on the
+    // real path (the wheel is a function of the clock, so this is repeatable).
+    const dx = state.x > 0 ? -1 : 1;
+    const radius = step.radius ?? 1.1;
+    const blades = step.blades ?? 4;
+    const rpm = Math.abs(step.rpm ?? 40);
+    const cx = +(state.x + dx * 0.55).toFixed(2);
+    const cy = +(state.y - radius * 0.85).toFixed(2);
+    let best: { def: SpinnerDef; f: NonNullable<ReturnType<typeof flight>>; score: number } | null = null;
+    for (const sign of [1, -1]) {
+      for (let phase = 0; phase < 360 / blades; phase += 3) {
+        const cand: SpinnerDef = { type: 'spinner', id, position: [cx, cy, 0], radius, blades, rpm: sign * rpm, phase, color: step.color ?? '#e0533d', instrument: 'wood', note: step.note ?? 'C4' };
+        const f = flight({ ...base, objects: withPlaced([...placed, cand]) }, id, state.t - 0.2);
+        if (!f || f.bad || f.vy >= 0 || Math.abs(f.x) > base.board.width / 2 - 2.5) continue;
+        const toward = Math.sign(f.x - cx) === dx || Math.abs(f.x) < 1.5 ? 1 : 0;
+        const score = (f.top - cy) + toward * 2 - Math.abs(f.x) * 0.15;
+        if (!best || score > best.score) best = { def: cand, f, score };
+      }
+    }
+    if (!best) {
+      console.log(`${id}: no spinner phase sends the marble on cleanly at (${cx}, ${cy})`);
+      break;
+    }
+    def = best.def;
+    placed.push(def);
+    lastY = best.f.y;
+    afterT = best.f.t - 0.05;
+    console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> spinner at (${cx}, ${cy}) rpm ${best.def.rpm} phase ${best.def.phase}, lob to y ${best.f.top.toFixed(2)}, lands toward (${best.f.x.toFixed(2)}, ${best.f.y.toFixed(2)}) v=(${best.f.vx.toFixed(2)}, ${best.f.vy.toFixed(2)})`);
     continue;
   }
   if (step.k === 'pipe') {
@@ -205,6 +267,7 @@ for (const o of placed) {
   if (o.type === 'pad') console.log(`    { type: 'pad', id: '${o.id}', position: [${o.position.join(', ')}], angle: ${o.angle}, color: '${o.color}', note: '${o.note}' },`);
   else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, color: '${o.color}' },`);
   else if (o.type === 'rail') console.log(`    { type: 'rail', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}] },`);
+  else if (o.type === 'spinner') console.log(`    { type: 'spinner', id: '${o.id}', position: [${o.position.join(', ')}], rpm: ${o.rpm}, phase: ${o.phase} },`);
   else if (o.type === 'pipe') console.log(`    { type: 'pipe', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}], color: '${o.color}' },`);
   else if (o.type === 'ramp') console.log(`    { type: 'ramp', id: '${o.id}', position: [${o.position.join(', ')}], rotation: [${o.rotation!.join(', ')}], size: [${o.size.join(', ')}] },`);
 }

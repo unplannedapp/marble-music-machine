@@ -22,7 +22,7 @@ sim.load(machine.level);
 
 interface Sample { t: number; p: [number, number, number]; v: [number, number, number]; w: [number, number, number] }
 const history: Sample[] = [];
-const checkpoints: { section: number; position: [number, number, number]; velocity: [number, number, number]; spin: [number, number, number] }[] = [];
+const checkpoints: { section: number; position: [number, number, number]; velocity: [number, number, number]; spin: [number, number, number]; time: number }[] = [];
 const seen = new Set<number>();
 sim.bus.on('score:rating', (r) => {
   const section = r.event.section ?? 0;
@@ -31,7 +31,7 @@ sim.bus.on('score:rating', (r) => {
   const at = r.simTime - LEAD;
   const s = history.reduce((best, h) => (Math.abs(h.t - at) < Math.abs(best.t - at) ? h : best), history[0]);
   const r3 = (a: number[]): [number, number, number] => a.map((n) => +n.toFixed(3)) as [number, number, number];
-  checkpoints.push({ section, position: r3(s.p), velocity: r3(s.v), spin: r3(s.w) });
+  checkpoints.push({ section, position: r3(s.p), velocity: r3(s.v), spin: r3(s.w), time: +s.t.toFixed(4) });
 });
 const dt = config.physics.fixedDt;
 let finished = false;

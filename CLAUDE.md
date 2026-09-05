@@ -8,7 +8,8 @@ Physics-based marble music game: TypeScript, Vite, Three.js, Rapier. Read
 
 - The marble's motion is never scripted. Mechanisms are colliders and forces; an
   object that needs controlled motion (a lift, a spinner) drives a kinematic body,
-  never the marble.
+  never the marble. Moving mechanisms are pure functions of sim time: the clock
+  restarts with each run and checkpoints restore it, so every run is the same run.
 - Every interactive object has a physical response and (from phase 2) a musical
   response to the same `marble:contact` event. Audio, score and UI subscribe to
   the `EventBus`; they never import Rapier.

@@ -29,7 +29,7 @@ function fail(path: string, msg: string): never {
   throw new Error(`Level ${path}: ${msg}`);
 }
 
-const OBJECT_TYPES = new Set(['rail', 'ramp', 'wall', 'bumper', 'pad', 'pipe']);
+const OBJECT_TYPES = new Set(['rail', 'ramp', 'wall', 'bumper', 'pad', 'pipe', 'spinner']);
 
 function checkObject(o: unknown, i: number): ObjectDef {
   const path = `objects[${i}]`;
@@ -79,6 +79,7 @@ export function parseLevel(input: unknown): LevelFile {
     l.checkpoints.forEach((c: Record<string, unknown>, i: number) => {
       if (typeof c.section !== 'number' || !isVec3(c.position) || !isVec3(c.velocity)) fail(`checkpoints[${i}]`, 'needs section, position, velocity');
       if (c.spin !== undefined && !isVec3(c.spin)) fail(`checkpoints[${i}]`, 'spin must be [x, y, z]');
+      if (c.time !== undefined && typeof c.time !== 'number') fail(`checkpoints[${i}]`, 'time must be a number');
     });
   }
   return input as LevelFile;
