@@ -16,8 +16,6 @@
     "ring": "#ffd84a",
     "envIntensity": 0.18,
     "exposure": 1,
-    "bloom": 0.22,
-    "bloomThreshold": 0.9,
     "vignette": 0.5,
     "padGlow": 0.55,
     "padLight": 4,

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -42,8 +41,10 @@ const VignetteShader = {
  * spotlight high above the action models the objects and throws long soft
  * shadows down the wall. A neutral room provides reflections for
  * metal and lacquer, a cool rim light draws edges, and lit pads spill colour
- * (see PadLights). The marble gets no light of its own. Post: MSAA target,
- * bloom for what is actually bright, vignette and grain.
+ * (see PadLights). The marble gets no light of its own. No bloom: what is
+ * bright is bright. Desktop gets an MSAA target plus vignette and grain in a
+ * single post pass; phones render straight to the canvas (hardware AA, CSS
+ * vignette) because every extra full-screen pass costs frame time there.
  */
 export class SceneRenderer {
   readonly renderer: THREE.WebGLRenderer;
@@ -53,10 +54,10 @@ export class SceneRenderer {
   readonly rimLight: THREE.DirectionalLight;
   private readonly hemi: THREE.HemisphereLight;
   private readonly lightTarget = new THREE.Object3D();
-  private readonly composer: EffectComposer;
-  private readonly bloom: UnrealBloomPass;
-  private readonly vignette: ShaderPass;
-  private readonly mobile: boolean;
+  private readonly composer: EffectComposer | null;
+  private readonly vignette: ShaderPass | null;
+  private readonly cssVignette: HTMLDivElement | null;
+  readonly mobile: boolean;
   private readonly shafts: LightShafts;
   private board: LevelDef['board'] = { width: 16, top: 8, bottom: -80 };
   private keyOffset = new THREE.Vector3(8, 24, 30);
@@ -64,10 +65,10 @@ export class SceneRenderer {
 
   constructor(container: HTMLElement) {
     this.mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1;
-    this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({ antialias: this.mobile, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.mobile ? 1.5 : 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = this.mobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
     container.appendChild(this.renderer.domElement);
@@ -103,14 +104,21 @@ export class SceneRenderer {
     this.shafts = new LightShafts(this.mobile);
     this.scene.add(this.shafts.group);
 
-    const target = new THREE.WebGLRenderTarget(1, 1, { samples: this.mobile ? 2 : 4, type: THREE.HalfFloatType });
-    this.composer = new EffectComposer(this.renderer, target);
-    this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.25, 0.6, 0.85);
-    this.composer.addPass(this.bloom);
-    this.vignette = new ShaderPass(VignetteShader);
-    this.composer.addPass(this.vignette);
-    this.composer.addPass(new OutputPass());
+    if (this.mobile) {
+      this.composer = null;
+      this.vignette = null;
+      this.cssVignette = document.createElement('div');
+      this.cssVignette.className = 'vignette';
+      container.appendChild(this.cssVignette);
+    } else {
+      const target = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
+      this.composer = new EffectComposer(this.renderer, target);
+      this.composer.addPass(new RenderPass(this.scene, this.camera));
+      this.vignette = new ShaderPass(VignetteShader);
+      this.composer.addPass(this.vignette);
+      this.composer.addPass(new OutputPass());
+      this.cssVignette = null;
+    }
 
     this.applyEnvironment(undefined);
     this.resize();
@@ -136,9 +144,9 @@ export class SceneRenderer {
     this.rimLight.intensity = env?.rimIntensity ?? 0.7;
     this.scene.environmentIntensity = env?.envIntensity ?? 0.3;
     this.renderer.toneMappingExposure = env?.exposure ?? 1.0;
-    this.bloom.strength = env?.bloom ?? 0.25;
-    this.bloom.threshold = env?.bloomThreshold ?? 0.85;
-    (this.vignette.uniforms.strength as { value: number }).value = env?.vignette ?? 0.35;
+    const vignette = env?.vignette ?? 0.35;
+    if (this.vignette) (this.vignette.uniforms.strength as { value: number }).value = vignette;
+    if (this.cssVignette) this.cssVignette.style.opacity = String(vignette);
     this.shafts.build(env, this.board);
   }
 
@@ -153,8 +161,7 @@ export class SceneRenderer {
     const w = window.innerWidth;
     const h = window.innerHeight;
     this.renderer.setSize(w, h, true);
-    this.composer.setSize(w, h);
-    this.bloom.setSize(w / 2, h / 2);
+    this.composer?.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.fov = config.camera.fov;
     this.camera.updateProjectionMatrix();
@@ -163,7 +170,11 @@ export class SceneRenderer {
   render(frameDt = 0.016): void {
     this.time += frameDt;
     this.shafts.update(frameDt);
-    (this.vignette.uniforms.time as { value: number }).value = this.time % 1000;
-    this.composer.render();
+    if (this.composer && this.vignette) {
+      (this.vignette.uniforms.time as { value: number }).value = this.time % 1000;
+      this.composer.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 }

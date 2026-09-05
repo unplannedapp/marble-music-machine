@@ -13,7 +13,7 @@ const browser = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium',
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'],
 });
-const page = await browser.newPage({ viewport: { width: Number(process.env.SHOT_W ?? 900), height: Number(process.env.SHOT_H ?? 1400) }, deviceScaleFactor: Number(process.env.SHOT_DPR ?? 1) });
+const page = await browser.newPage({ ...(process.env.SHOT_MOBILE ? { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1', hasTouch: true, isMobile: true } : {}), viewport: { width: Number(process.env.SHOT_W ?? 900), height: Number(process.env.SHOT_H ?? 1400) }, deviceScaleFactor: Number(process.env.SHOT_DPR ?? 1) });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });

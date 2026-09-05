@@ -108,9 +108,6 @@ export interface EnvironmentDef {
   /** Strength of the reflected room (image-based lighting). */
   envIntensity?: number;
   exposure?: number;
-  /** Bloom strength and the brightness above which things glow. */
-  bloom?: number;
-  bloomThreshold?: number;
   /** Edge darkening, 0 to 1. */
   vignette?: number;
   /** Pad paint glow (emissive scale) so neon worlds light up. */

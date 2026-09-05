@@ -58,7 +58,7 @@ const DustShader = {
       vec4 mv = modelViewMatrix * vec4(p, 1.0);
       gl_PointSize = size * (240.0 / -mv.z);
       gl_Position = projectionMatrix * mv;
-      vA = glow * strength * (0.55 + 0.45 * sin(time * 1.3 + seed * 30.0));
+      vA = glow * strength * (0.6 + 0.4 * sin(time * 0.5 + seed * 30.0));
     }`,
   fragmentShader: /* glsl */ `
     uniform vec3 color;

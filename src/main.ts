@@ -52,7 +52,7 @@ async function main(): Promise<void> {
   const music = new MusicSystem(sim, audio);
   const effects = new HitEffects(sim.bus);
   view.scene.add(effects.group);
-  const padLights = new PadLights(sim);
+  const padLights = new PadLights(sim, view.mobile ? 3 : 6);
   view.scene.add(padLights.group);
 
   // Song, timing, combo and score.

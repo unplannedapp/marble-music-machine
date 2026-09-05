@@ -13,7 +13,7 @@
         position: fixed; left: 16px; top: 12px; color: #f2f0f7; font: 500 13px/1.5 system-ui, sans-serif;
         pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,.6); white-space: pre;
       }
-      #game-hud { position: fixed; inset: 0; pointer-events: none; font-family: system-ui, -apple-system, sans-serif; color: #f2f0f7; }
+      #game-hud { position: fixed; inset: 0; z-index: 2; pointer-events: none; font-family: system-ui, -apple-system, sans-serif; color: #f2f0f7; }
       .hud-stat { position: absolute; top: calc(14px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 2px; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
       .hud-stat .label { font-size: 12px; letter-spacing: 0.12em; opacity: 0.75; }
       .hud-stat .value { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
@@ -37,7 +37,7 @@
       .hud-btn { position: fixed; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(242,240,247,.7); background: rgba(24,22,32,.45); color: #f2f0f7; font: 600 16px system-ui, sans-serif; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-tap-highlight-color: transparent; z-index: 5; }
       #btn-pause { right: calc(18px + env(safe-area-inset-right)); top: calc(78px + env(safe-area-inset-top)); }
       #btn-tune { right: calc(18px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); font-size: 12px; opacity: 0.6; }
-      #editor { position: fixed; inset: 0; pointer-events: none; font-family: system-ui, -apple-system, sans-serif; color: #f2f0f7; }
+      #editor { position: fixed; inset: 0; z-index: 2; pointer-events: none; font-family: system-ui, -apple-system, sans-serif; color: #f2f0f7; }
       #editor[hidden] { display: none; }
       #editor button, #editor select, #editor input, #editor textarea { pointer-events: auto; font: inherit; }
       .ed-bar { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); display: flex; justify-content: space-between; gap: 8px; padding: 10px; flex-wrap: wrap; }
@@ -90,7 +90,9 @@
       #hud-results .actions { margin-top: 10px; }
       #hud-results .actions button { pointer-events: auto; padding: 8px 18px; border-radius: 999px; border: 1.5px solid rgba(242,240,247,.6); background: transparent; color: #f2f0f7; font: 600 14px system-ui, sans-serif; cursor: pointer; }
       #hud-results { pointer-events: none; }
-    </style>
+    .vignette { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,0.75) 100%); }
+</style>
   </head>
   <body>
     <div id="app"></div>
