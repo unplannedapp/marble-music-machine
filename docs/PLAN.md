@@ -41,12 +41,13 @@ Reconciled against the full specification and the five reference videos.
    Built-in machines are edited as copies. Custom machines get their song by
    baking the level's own run.
 6. **Advanced physics** (in progress): pipes (curved trimesh tubes the marble
-   travels through, funnel mouths, a `pipe` layout step) and spinners (a
+   travels through, funnel mouths, a `pipe` layout step); spinners (a
    motor-driven paddle wheel on a kinematic body whose angle is a pure
    function of sim time; the sim clock restarts with every run and is
-   restored by checkpoints, so mechanisms repeat exactly; a `spinner` layout
-   step searches phase and direction on the real path; the Ode to Joy machine
-   uses one as its phrase break). Still to do: seesaws, launchers, funnels,
+   restored by checkpoints, so mechanisms repeat exactly); and the loop-the-
+   loop track (`groove: 'curve'` rails, see the lesson below; a `loop` layout
+   step searches lead-in angle and length on the real path). Ode to Joy still
+   uses the spinner as its phrase break until the loop can be fed reliably. Still to do: seesaws, launchers, funnels,
    object-object chain reactions, branching paths.
 7. **Content / social:** MIDI import, generated machines, sharing.
 
@@ -65,6 +66,22 @@ Reconciled against the full specification and the five reference videos.
   by the phrase ramp. Tiny drops (0.55) trap the marble between pads.
 - Round bumpers are chaotic by nature; use one at a time and follow it with a
   board-wide funnel.
+- A loop-the-loop cannot be made of the V-groove rail. A ball on two rods
+  rolls on a tiny effective radius, so under loop loads nearly all its energy
+  goes into spin (measured: spin/speed ratio 2.25 on a wide groove, and the
+  marble stalls a quarter of the way up even with zero friction). A ball must
+  roll on one surface with its full radius, and a triangle-mesh floor catches
+  a fast sliding ball on its edges, so the curved track is one thick floor rod
+  the marble rolls on, with two thin slippery guard rods at its equator (they
+  touch at the pole of the rolling axis, a point that always slides) and the
+  board as the rear guard until the path lifts. The lift toward the camera
+  for the crossing happens over the top of the loop, where the marble is
+  slowest, and must clear the lifted pass's guard rods (rise 0.9). Fed rolling
+  along its lead-in at 10 to 12 u/s the loop completes (tests/loop.test.ts).
+  Open problem: a marble arriving from a pad bounce, steep and unspun, bounces
+  down the lead-in and loses too much to make the top; the `loop` layout step
+  therefore rejects every placement in Ode to Joy so far. A dedicated feeder
+  (a V-groove rail handing over shallow and rolling) is the next thing to try.
 - Pipes must sit exactly on the path. A marble that meets a pipe mouth a unit
   off-axis hits the thin mesh rim and is pushed through the wall (it "phases"
   into the pipe). `scripts/pipealign.ts` slides each pipe onto the marble's real

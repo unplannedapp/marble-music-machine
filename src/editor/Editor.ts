@@ -7,11 +7,12 @@ import type { ObjectDef, PadDef, BumperDef, RampDef, RailDef, PipeDef, SpinnerDe
 import type { LevelFile } from '../levels/LevelFormat';
 import { serializeLevel, parseLevel } from '../levels/LevelFormat';
 import { environmentPresets } from '../levels/template';
+import { loopRail } from '../levels/shapes';
 import type { InstrumentName } from '../audio/types';
 
 const INSTRUMENTS: InstrumentName[] = ['marimba', 'bell', 'wood', 'metal', 'tube', 'kick', 'snare', 'hihat', 'cymbal', 'pop', 'thud', 'click'];
 const NOTES = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5', 'C6'];
-const COLORS = ['#d9534f', '#f0ad4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f', '#3a3c44'];
+const COLORS = ['#d9534f', '#d99a4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f', '#3a3c44'];
 
 export interface EditorCallbacks {
   onSimulate: () => void;
@@ -59,7 +60,7 @@ export class Editor {
       <div class="ed-bar">
         <div class="ed-palette">
           <button data-add="pad">+ Pad</button><button data-add="bumper">+ Bumper</button>
-          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><button data-add="pipe">+ Pipe</button><button data-add="spinner">+ Spinner</button>
+          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><button data-add="pipe">+ Pipe</button><button data-add="loop">+ Loop</button><button data-add="spinner">+ Spinner</button>
         </div>
         <div class="ed-actions">
           <button id="ed-simulate" class="primary">▶ Simulate</button>
@@ -317,10 +318,15 @@ export class Editor {
     const y = +f.y.toFixed(2);
     let def: ObjectDef;
     if (type === 'pad') def = { type, id: this.freshId('pad'), position: [x, y, 0], angle: 40, color: COLORS[this.nextId % 7], instrument: 'marimba', note: 'C5' } as PadDef;
-    else if (type === 'bumper') def = { type, id: this.freshId('bumper'), position: [x, y, 0], radius: 0.6, color: '#e8c44a', instrument: 'kick' } as BumperDef;
+    else if (type === 'bumper') def = { type, id: this.freshId('bumper'), position: [x, y, 0], radius: 0.6, color: '#c9a24a', instrument: 'kick' } as BumperDef;
     else if (type === 'spinner') def = { type, id: this.freshId('spinner'), position: [x, y, 0], radius: 1.1, blades: 4, rpm: 40, color: COLORS[this.nextId % 7], instrument: 'wood', note: 'C4' } as SpinnerDef;
     else if (type === 'ramp') def = { type, id: this.freshId('ramp'), position: [x, y, 0.45], rotation: [0, 0, -20], size: [4, 0.4, 0.9], instrument: 'wood' } as RampDef;
     else if (type === 'rail') def = { type, id: this.freshId('rail'), points: [[x - 2, y + 0.5, 0], [x - 0.7, y + 0.2, 0], [x + 0.8, y - 0.3, 0], [x + 2, y - 1, 0]] } as RailDef;
+    else if ((type as string) === 'loop') {
+      def = loopRail(this.freshId('loop'), [x - 3, y + 1.5], 1);
+      // A loop crosses over itself toward the camera: give it room in front of the board.
+      if (this.sim.level) this.sim.level.board.glass = Math.max(this.sim.level.board.glass ?? 1.5, 2.2);
+    }
     else if (type === 'pipe') def = { type, id: this.freshId('pipe'), points: [[x - 1.5, y + 1.2, 0], [x - 0.3, y + 0.2, 0], [x + 1.2, y - 0.8, 0], [x + 1.6, y - 2.4, 0], [x + 0.6, y - 3.6, 0]], color: COLORS[this.nextId % 7], instrument: 'tube', note: 'C4' } as PipeDef;
     else return;
     const obj = this.sim.addObject(def, true);

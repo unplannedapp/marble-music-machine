@@ -79,7 +79,7 @@ async function main(): Promise<void> {
     scoring = new ScoreSystem(sim, m.song);
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
-    rings.setColor(m.level.environment?.ring ?? '#f5c542');
+    rings.setColor(m.level.environment?.ring ?? '#f0e6c8');
     view.scene.add(rings.group);
     overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
     overlay.onFinished = (score) => {

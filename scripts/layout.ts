@@ -25,12 +25,13 @@ import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
 import { DEG, solveNormal } from './lib/aim';
+import { loopRail, loopExit, loopTop, loopSpan } from '../src/levels/shapes';
 
 const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -68,33 +69,43 @@ function simulate(level: LevelDef, yTarget: number, after: number): { state: Sta
 }
 
 /** Run until the marble has met `id`, then a little longer: where did the mechanism send it? */
-function flight(level: LevelDef, id: string, after: number, settle = 0.9): { x: number; y: number; vx: number; vy: number; t: number; top: number; bad: boolean } | null {
+function flight(level: LevelDef, id: string, after: number, settle = 0.9): { x: number; y: number; vx: number; vy: number; t: number; top: number; climb: number; bad: boolean } | null {
   const sim = new Simulation();
   sim.load(level);
   let hitAt = -1;
   let bad = false;
+  let done = false;
   sim.bus.on('marble:contact', (e) => {
     if (e.object.id === id && hitAt < 0 && e.simTime > after) hitAt = e.simTime;
     if (hitAt >= 0 && e.object.id.startsWith('wall_')) bad = true;
   });
-  sim.bus.on('marble:reset', () => (bad = true));
+  // Falling out of the machine after the mechanism is a success that ended early
+  // (the finish line sits under the lowest object); losing the marble is not.
+  sim.bus.on('marble:reset', (e) => {
+    if (e.reason === 'finished' && hitAt >= 0) done = true;
+    else bad = true;
+  });
   const dt = config.physics.fixedDt;
   let top = -Infinity;
-  let out: ReturnType<typeof flight> = null;
+  let lowest = Infinity;
+  let climb = -Infinity; // highest point reached after having been at least 1.2 below it (a loop's rise)
+  let last: ReturnType<typeof flight> = null;
   for (let t = 0; t < 30; t += dt) {
     sim.fixedUpdate(dt);
-    if (bad) break;
+    if (bad || done) break;
     const p = sim.marble.body.translation();
     const v = sim.marble.body.linvel();
-    if (hitAt >= 0) top = Math.max(top, p.y);
-    if (hitAt >= 0 && t >= hitAt + settle) {
-      out = { x: p.x, y: p.y, vx: v.x, vy: v.y, t, top, bad };
-      break;
+    if (hitAt >= 0) {
+      top = Math.max(top, p.y);
+      lowest = Math.min(lowest, p.y);
+      if (p.y > lowest + 1.2) climb = Math.max(climb, p.y);
+      last = { x: p.x, y: p.y, vx: v.x, vy: v.y, t, top, climb, bad: false };
+      if (t >= hitAt + settle) break;
     }
   }
   sim.dispose();
-  if (out) out.bad = bad;
-  return out;
+  if (bad || !last) return null;
+  return last;
 }
 
 const base: LevelFile = JSON.parse(JSON.stringify(playground));
@@ -110,7 +121,7 @@ const withPlaced = (placedSoFar: ObjectDef[]): ObjectDef[] => [
   ...base.objects.slice(insertAt),
 ];
 const placed: ObjectDef[] = [];
-const colors = ['#d9534f', '#f0ad4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f'];
+const colors = ['#d9534f', '#d99a4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f'];
 const notes = ['C4', 'E4', 'G4', 'C5', 'A4', 'F4', 'D4', 'B4'];
 let lastY = 0;
 for (let k = 0; k < steps.length; k++) {
@@ -150,6 +161,47 @@ for (let k = 0; k < steps.length; k++) {
     lastY = y0 - 1.7;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> rail toward ${dx > 0 ? 'right' : 'left'}, ends at y ${lastY.toFixed(2)}`);
+    continue;
+  }
+  if (step.k === 'loop') {
+    // Loop-the-loop of track: the lead-in starts where the marble is, aimed along
+    // its fall, and the whole figure must complete on the real path. Search the
+    // lead-in angle and length; keep the placement that leaves fastest.
+    const dx: 1 | -1 = state.x > 0 ? -1 : 1;
+    const x0 = +state.x.toFixed(2);
+    const y0 = +state.y.toFixed(2);
+    // A steep, fast arrival bounces down the track; feed a loop from a rail (a
+    // 'rail' step just before), which hands the marble over shallow and rolling.
+    let best: { def: RailDef; f: NonNullable<ReturnType<typeof flight>>; score: number; o: { angle: number; lead: number; radius?: number } } | null = null;
+    for (const angle of [40, 45, 50, 55]) {
+      for (const lead of [4, 5, 6]) {
+        const o = { angle, lead, radius: step.radius };
+        if (Math.abs(x0 + dx * loopSpan(o)) > base.board.width / 2 - 1.2) continue;
+        const cand = loopRail(id, [x0, y0], dx, o);
+        const level2 = { ...base, board: { ...base.board, glass: Math.max(base.board.glass ?? 1.5, 2.2) }, objects: withPlaced([...placed, cand]) };
+        const top = loopTop([x0, y0], o);
+        const exit = loopExit([x0, y0], dx, o);
+        const f = flight(level2, id, state.t - 0.2, 3.0);
+        if (process.env.LOOP_DEBUG) console.log(`    loop try angle ${angle.toFixed(0)} lead ${lead}: ${f ? `climb ${f.climb.toFixed(2)} (need ${(top - 0.35).toFixed(2)}) end (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) t=${f.t.toFixed(2)} exit x ${exit.x.toFixed(2)}` : 'lost'}`);
+        if (!f || f.bad) continue;
+        // Completed only if it climbed back over the top after the bottom and came out past the lead-out.
+        if (f.climb < top - 0.35) continue;
+        if (Math.sign(f.x - exit.x) !== dx && Math.abs(f.x - exit.x) > 0.5) continue;
+        const score = -f.t;
+        if (!best || score > best.score) best = { def: cand, f, score, o };
+      }
+    }
+    if (!best) {
+      console.log(`${id}: no loop completes from (${x0}, ${y0}) at ${Math.hypot(state.vx, state.vy).toFixed(1)} u/s; give it a longer drop first`);
+      break;
+    }
+    base.board.glass = Math.max(base.board.glass ?? 1.5, 2.2);
+    def = best.def;
+    placed.push(def);
+    const exit = loopExit([x0, y0], dx, best.o);
+    lastY = exit.y;
+    afterT = state.t + 0.1;
+    console.log(`${id}: marble at (${x0}, ${y0}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> loop lead-in ${best.o.angle.toFixed(0)}deg x ${best.o.lead}, exit near (${exit.x.toFixed(2)}, ${exit.y.toFixed(2)})`);
     continue;
   }
   if (step.k === 'spinner') {
@@ -243,7 +295,7 @@ for (let k = 0; k < steps.length; k++) {
       type: 'bumper', id,
       position: [+(state.x - n[0] * off).toFixed(2), +(state.y - n[1] * off).toFixed(2), 0],
       radius: bumperRadius,
-      color: step.color ?? '#e8c44a',
+      color: step.color ?? '#c9a24a',
     };
     def = bumper;
   }
@@ -260,6 +312,10 @@ if (placed.length === steps.length) {
   console.log(`\nWrote ${placed.length} objects into ${levelPath}`);
 } else {
   console.log(`\nNot written: only ${placed.length}/${steps.length} steps placed.`);
+  if (process.env.LAYOUT_WRITE_PARTIAL) {
+    writeFileSync(process.env.LAYOUT_WRITE_PARTIAL, serializeLevel(final));
+    console.log(`partial level written to ${process.env.LAYOUT_WRITE_PARTIAL}`);
+  }
 }
 console.log('\nVerification contact sequence:\n  ' + hits.filter((h) => !h.startsWith('wall')).join('\n  '));
 console.log('\nObjects TS:');
@@ -267,6 +323,7 @@ for (const o of placed) {
   if (o.type === 'pad') console.log(`    { type: 'pad', id: '${o.id}', position: [${o.position.join(', ')}], angle: ${o.angle}, color: '${o.color}', note: '${o.note}' },`);
   else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, color: '${o.color}' },`);
   else if (o.type === 'rail') console.log(`    { type: 'rail', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}] },`);
+  else if (o.type === 'rail' && o.groove === 'curve') console.log(`    loop track '${o.id}' (${o.points.length} points)`);
   else if (o.type === 'spinner') console.log(`    { type: 'spinner', id: '${o.id}', position: [${o.position.join(', ')}], rpm: ${o.rpm}, phase: ${o.phase} },`);
   else if (o.type === 'pipe') console.log(`    { type: 'pipe', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}], color: '${o.color}' },`);
   else if (o.type === 'ramp') console.log(`    { type: 'ramp', id: '${o.id}', position: [${o.position.join(', ')}], rotation: [${o.rotation!.join(', ')}], size: [${o.size.join(', ')}] },`);

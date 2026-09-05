@@ -18,7 +18,7 @@ export class TargetRings {
   ) {
     const geometry = new THREE.RingGeometry(1.05, 1.22, 48);
     for (let i = 0; i < count; i++) {
-      const mat = new THREE.MeshBasicMaterial({ color: 0xf5c542, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide });
+      const mat = new THREE.MeshBasicMaterial({ color: 0xf0e6c8, transparent: true, opacity: 0.7, depthWrite: false, side: THREE.DoubleSide });
       const mesh = new THREE.Mesh(geometry, mat);
       mesh.visible = false;
       this.group.add(mesh);

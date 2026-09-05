@@ -45,7 +45,7 @@ export class Bumper extends InteractiveObject<BumperDef> {
     base.receiveShadow = true;
     this.root.add(base);
 
-    this.cap = new THREE.Mesh(geometries.unitCylinder, visuals.colored(def.color ?? '#e8c44a'));
+    this.cap = new THREE.Mesh(geometries.unitCylinder, visuals.colored(def.color ?? '#c9a24a'));
     this.cap.scale.set(radius * 0.8, 0.08, radius * 0.8);
     this.cap.quaternion.copy(q);
     this.cap.position.set(pos.x, pos.y, ctx.boardZ + height + 0.04);

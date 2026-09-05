@@ -23,6 +23,15 @@ export interface RailDef extends BaseObjectDef {
   rodRadius?: number;
   /** How far the rod pair swings forward, raising the front rod into a lip. Default 20. */
   lipDeg?: number;
+  /**
+   * Which way the groove faces. 'gravity' (default): the rods sit under the
+   * marble. 'curve': the rods sit on the outside of every bend, so the marble is
+   * held by its own momentum through a loop-the-loop; straight stretches fall
+   * back to gravity.
+   */
+  groove?: 'gravity' | 'curve';
+  /** Ribbon track facet length (curve groove only). Default 0.08. */
+  sampleSpacing?: number;
 }
 
 export interface RampDef extends BaseObjectDef {
