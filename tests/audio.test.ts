@@ -58,7 +58,6 @@ describe('the machine performs the level', () => {
       expect(n.velocity).toBeGreaterThan(0.3);
       expect(n.velocity).toBeLessThanOrEqual(1);
     }
-    expect(player.notes.some((n) => n.instrument === 'kick')).toBe(true);
     // Walls are silent by design.
     expect(player.notes.some((n) => n.object.type === 'wall')).toBe(false);
 

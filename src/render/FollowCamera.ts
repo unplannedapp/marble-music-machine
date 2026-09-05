@@ -17,6 +17,8 @@ export class FollowCamera {
   manualFocus: THREE.Vector3 | null = null;
   /** Extra distance while in manual mode (editor zoom). */
   manualDistance = 0;
+  /** The camera never follows below this: at the end the marble falls out of the frame. */
+  floorY: number | null = null;
 
   constructor(private readonly camera: THREE.PerspectiveCamera) {}
 
@@ -38,6 +40,7 @@ export class FollowCamera {
     this.target.copy(marblePos).addScaledVector(marbleVel, c.lookAheadTime);
     this.target.x = marblePos.x * c.xFollow + Math.min(Math.max(marbleVel.x * c.lookAheadTime, -2), 2) * c.xFollow;
     this.target.z = 0;
+    if (this.floorY !== null && this.target.y < this.floorY) this.target.y = this.floorY;
     if (!this.initialised) {
       this.snapTo(this.target);
       return;

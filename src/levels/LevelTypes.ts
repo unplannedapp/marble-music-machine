@@ -148,8 +148,12 @@ export interface LevelDef {
   };
   /** Marble is reset when its Y drops below this (a safety net; a good level never needs it). */
   killY: number;
-  /** Where the run ends: once the marble comes to rest inside this circle, the run is complete. */
-  finish?: { position: Vec3Tuple; radius: number };
+  /**
+   * Where the machine ends. The camera holds here and the marble falls out of
+   * the frame into the dark; the run is complete once it is well below. Defaults
+   * to a little under the lowest object.
+   */
+  finishY?: number;
   objects: ObjectDef[];
   /**
    * Where a lost marble restarts, one per song section, baked from the

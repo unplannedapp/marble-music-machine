@@ -172,6 +172,7 @@ async function main(): Promise<void> {
       if (freeCamera) {
         orbit.update();
       } else {
+        follow.floorY = sim.finishY;
         follow.update(marblePos, marbleVel, frameDt);
       }
       follow.currentFocus(focus);

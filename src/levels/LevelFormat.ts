@@ -59,10 +59,8 @@ export function parseLevel(input: unknown): LevelFile {
   if (!spawn || !isVec3(spawn.position)) fail('spawn', 'needs a [x, y, z] position');
   if (spawn.velocity !== undefined && !isVec3(spawn.velocity)) fail('spawn', 'velocity must be [x, y, z]');
   if (typeof l.killY !== 'number') fail('killY', 'required');
-  if (l.finish !== undefined) {
-    const f = l.finish as Record<string, unknown>;
-    if (!isVec3(f.position) || typeof f.radius !== 'number') fail('finish', 'needs position and radius');
-  }
+  if (l.finishY !== undefined && typeof l.finishY !== 'number') fail('finishY', 'must be a number');
+  delete l.finish; // pre-abyss levels had a finish tray; the marble now just leaves the machine
   if (l.environment !== undefined) {
     const e = l.environment as Record<string, unknown>;
     if (typeof e.board !== 'string' || typeof e.background !== 'string') fail('environment', 'needs board and background colours');

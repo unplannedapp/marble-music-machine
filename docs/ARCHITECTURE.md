@@ -116,7 +116,7 @@ exact DOF locks plus a spring torque is both simpler and stable.
 ## Levels are data
 
 Levels are JSON files (`levels/*.level.json`, format version 1): board
-extents, spawn, kill height, finish zone, the object list, and baked
+extents, spawn, kill height, finish line (the marble drops out of the machine past it), the object list, and baked
 checkpoints. `parseLevel` validates a file and fails loudly; `serializeLevel`
 writes it back with vectors on one line. A **machine** (`machines/index.ts`) is
 a level paired with the song it performs; the menu lists machines.
@@ -177,7 +177,6 @@ enough to miss the fast eighth-note pads.
 
 ```
 fix the board  ->  layout.ts (pads / ramps / rails / bumpers on the real path)
-              ->  finale.ts (funnel, closing rail, tray, finish)
               ->  bake.ts (checkpoints)  ->  tests
 ```
 

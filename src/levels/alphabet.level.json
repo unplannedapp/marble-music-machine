@@ -5,7 +5,7 @@
     "board": "#5b5970",
     "background": "#2e2d38",
     "keyLight": "#fff0d8",
-    "keyIntensity": 2.0,
+    "keyIntensity": 2,
     "keyRake": 0.3,
     "fill": "#c9c3ff",
     "fillIntensity": 0.3,
@@ -27,99 +27,44 @@
   "board": {
     "width": 16,
     "top": 8,
-    "bottom": -140
+    "bottom": -112.98
   },
   "spawn": {
-    "position": [
-      -5,
-      5.05,
-      0.55
-    ],
-    "velocity": [
-      1.2,
-      0,
-      0
-    ]
+    "position": [-5, 5.05, 0.55],
+    "velocity": [1.2, 0, 0]
   },
-  "killY": -134,
-  "finish": {
-    "position": [
-      -6,
-      -120.04,
-      0
-    ],
-    "radius": 1.3
-  },
+  "killY": -112.98,
+  "finishY": -100.98,
   "objects": [
     {
       "type": "wall",
       "id": "wall_left",
-      "position": [
-        -8.2,
-        -66,
-        0.6
-      ],
-      "size": [
-        0.4,
-        152,
-        1.2
-      ],
+      "position": [-8.2, -52.49, 0.6],
+      "size": [0.4, 124.98, 1.2],
       "instrument": "none"
     },
     {
       "type": "wall",
       "id": "wall_right",
-      "position": [
-        8.2,
-        -66,
-        0.6
-      ],
-      "size": [
-        0.4,
-        152,
-        1.2
-      ],
+      "position": [8.2, -52.49, 0.6],
+      "size": [0.4, 124.98, 1.2],
       "instrument": "none"
     },
     {
       "type": "rail",
       "id": "rail_start",
       "points": [
-        [
-          -5.4,
-          5,
-          0
-        ],
-        [
-          -3.5,
-          4.75,
-          0
-        ],
-        [
-          -1.5,
-          4.2,
-          0
-        ],
-        [
-          0.6,
-          3.9,
-          0
-        ],
-        [
-          2.2,
-          3.4,
-          0
-        ]
+        [-5.4, 5, 0],
+        [-3.5, 4.75, 0],
+        [-1.5, 4.2, 0],
+        [0.6, 3.9, 0],
+        [2.2, 3.4, 0]
       ]
     },
     {
       "type": "pad",
       "id": "abc_1",
-      "position": [
-        3.66,
-        2.31,
-        0
-      ],
+      "position": [3.66, 2.31, 0],
       "angle": 50,
       "instrument": "marimba",
       "color": "#d9534f",
@@ -128,11 +73,7 @@
     {
       "type": "pad",
       "id": "abc_2",
-      "position": [
-        1.69,
-        0.44,
-        0
-      ],
+      "position": [1.69, 0.44, 0],
       "angle": -36.5,
       "instrument": "marimba",
       "color": "#f0ad4e",
@@ -141,11 +82,7 @@
     {
       "type": "pad",
       "id": "abc_3",
-      "position": [
-        4.36,
-        -1.39,
-        0
-      ],
+      "position": [4.36, -1.39, 0],
       "angle": 42,
       "instrument": "marimba",
       "color": "#5bc0de",
@@ -154,11 +91,7 @@
     {
       "type": "pad",
       "id": "abc_4",
-      "position": [
-        1.71,
-        -3.21,
-        0
-      ],
+      "position": [1.71, -3.21, 0],
       "angle": -41,
       "instrument": "marimba",
       "color": "#8e6bd6",
@@ -167,11 +100,7 @@
     {
       "type": "pad",
       "id": "abc_5",
-      "position": [
-        4.4,
-        -5.02,
-        0
-      ],
+      "position": [4.4, -5.02, 0],
       "angle": 41.5,
       "instrument": "marimba",
       "color": "#5cb85c",
@@ -180,11 +109,7 @@
     {
       "type": "pad",
       "id": "abc_6",
-      "position": [
-        1.72,
-        -6.88,
-        0
-      ],
+      "position": [1.72, -6.88, 0],
       "angle": -41,
       "instrument": "marimba",
       "color": "#e86fb0",
@@ -193,11 +118,7 @@
     {
       "type": "pad",
       "id": "abc_7",
-      "position": [
-        4.42,
-        -8.73,
-        0
-      ],
+      "position": [4.42, -8.73, 0],
       "angle": 41.5,
       "instrument": "marimba",
       "color": "#f7f7f7",
@@ -206,30 +127,14 @@
     {
       "type": "ramp",
       "id": "abc_8",
-      "position": [
-        1.11,
-        -11.52,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        25
-      ],
-      "size": [
-        3.6,
-        0.4,
-        0.9
-      ]
+      "position": [1.11, -11.52, 0.45],
+      "rotation": [0, 0, 25],
+      "size": [3.6, 0.4, 0.9]
     },
     {
       "type": "pad",
       "id": "abc_9",
-      "position": [
-        -3.27,
-        -14.22,
-        0
-      ],
+      "position": [-3.27, -14.22, 0],
       "angle": -49.5,
       "instrument": "marimba",
       "color": "#d9534f",
@@ -238,11 +143,7 @@
     {
       "type": "pad",
       "id": "abc_10",
-      "position": [
-        -0.1,
-        -16.09,
-        0
-      ],
+      "position": [-0.1, -16.09, 0],
       "angle": 41,
       "instrument": "marimba",
       "color": "#f0ad4e",
@@ -251,11 +152,7 @@
     {
       "type": "pad",
       "id": "abc_11",
-      "position": [
-        -3.03,
-        -17.91,
-        0
-      ],
+      "position": [-3.03, -17.91, 0],
       "angle": -43,
       "instrument": "marimba",
       "color": "#5bc0de",
@@ -264,11 +161,7 @@
     {
       "type": "pad",
       "id": "abc_12",
-      "position": [
-        -0.33,
-        -19.72,
-        0
-      ],
+      "position": [-0.33, -19.72, 0],
       "angle": 41,
       "instrument": "marimba",
       "color": "#8e6bd6",
@@ -277,11 +170,7 @@
     {
       "type": "pad",
       "id": "abc_13",
-      "position": [
-        -2.81,
-        -20.75,
-        0
-      ],
+      "position": [-2.81, -20.75, 0],
       "angle": -60,
       "instrument": "marimba",
       "color": "#5cb85c",
@@ -290,11 +179,7 @@
     {
       "type": "pad",
       "id": "abc_14",
-      "position": [
-        -0.83,
-        -21.85,
-        0
-      ],
+      "position": [-0.83, -21.85, 0],
       "angle": 61,
       "instrument": "marimba",
       "color": "#e86fb0",
@@ -303,11 +188,7 @@
     {
       "type": "pad",
       "id": "abc_15",
-      "position": [
-        -2.78,
-        -22.99,
-        0
-      ],
+      "position": [-2.78, -22.99, 0],
       "angle": -60,
       "instrument": "marimba",
       "color": "#f7f7f7",
@@ -316,11 +197,7 @@
     {
       "type": "pad",
       "id": "abc_16",
-      "position": [
-        -0.82,
-        -24.14,
-        0
-      ],
+      "position": [-0.82, -24.14, 0],
       "angle": 60,
       "instrument": "marimba",
       "color": "#d9534f",
@@ -329,11 +206,7 @@
     {
       "type": "pad",
       "id": "abc_17",
-      "position": [
-        -2.99,
-        -26.05,
-        0
-      ],
+      "position": [-2.99, -26.05, 0],
       "angle": -41.5,
       "instrument": "marimba",
       "color": "#f0ad4e",
@@ -342,30 +215,14 @@
     {
       "type": "ramp",
       "id": "abc_18",
-      "position": [
-        0.19,
-        -28.85,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        -25
-      ],
-      "size": [
-        3.6,
-        0.4,
-        0.9
-      ]
+      "position": [0.19, -28.85, 0.45],
+      "rotation": [0, 0, -25],
+      "size": [3.6, 0.4, 0.9]
     },
     {
       "type": "pad",
       "id": "abc_19",
-      "position": [
-        4.56,
-        -31.54,
-        0
-      ],
+      "position": [4.56, -31.54, 0],
       "angle": 49.5,
       "instrument": "marimba",
       "color": "#5bc0de",
@@ -374,11 +231,7 @@
     {
       "type": "pad",
       "id": "abc_20",
-      "position": [
-        1.39,
-        -33.43,
-        0
-      ],
+      "position": [1.39, -33.43, 0],
       "angle": -41,
       "instrument": "marimba",
       "color": "#8e6bd6",
@@ -387,11 +240,7 @@
     {
       "type": "pad",
       "id": "abc_21",
-      "position": [
-        4.34,
-        -35.26,
-        0
-      ],
+      "position": [4.34, -35.26, 0],
       "angle": 43,
       "instrument": "marimba",
       "color": "#5cb85c",
@@ -400,30 +249,14 @@
     {
       "type": "ramp",
       "id": "abc_22",
-      "position": [
-        1.01,
-        -38.04,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        25
-      ],
-      "size": [
-        3.6,
-        0.4,
-        0.9
-      ]
+      "position": [1.01, -38.04, 0.45],
+      "rotation": [0, 0, 25],
+      "size": [3.6, 0.4, 0.9]
     },
     {
       "type": "pad",
       "id": "abc_23",
-      "position": [
-        -3.39,
-        -40.75,
-        0
-      ],
+      "position": [-3.39, -40.75, 0],
       "angle": -49.5,
       "instrument": "marimba",
       "color": "#e86fb0",
@@ -432,11 +265,7 @@
     {
       "type": "pad",
       "id": "abc_24",
-      "position": [
-        -0.22,
-        -42.63,
-        0
-      ],
+      "position": [-0.22, -42.63, 0],
       "angle": 41,
       "instrument": "marimba",
       "color": "#f7f7f7",
@@ -445,11 +274,7 @@
     {
       "type": "pad",
       "id": "abc_25",
-      "position": [
-        -3.16,
-        -44.45,
-        0
-      ],
+      "position": [-3.16, -44.45, 0],
       "angle": -43,
       "instrument": "marimba",
       "color": "#d9534f",
@@ -458,30 +283,14 @@
     {
       "type": "ramp",
       "id": "abc_26",
-      "position": [
-        0.15,
-        -47.23,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        -25
-      ],
-      "size": [
-        3.6,
-        0.4,
-        0.9
-      ]
+      "position": [0.15, -47.23, 0.45],
+      "rotation": [0, 0, -25],
+      "size": [3.6, 0.4, 0.9]
     },
     {
       "type": "pad",
       "id": "abc_27",
-      "position": [
-        4.55,
-        -49.93,
-        0
-      ],
+      "position": [4.55, -49.93, 0],
       "angle": 49.5,
       "instrument": "marimba",
       "color": "#f0ad4e",
@@ -490,11 +299,7 @@
     {
       "type": "pad",
       "id": "abc_28",
-      "position": [
-        1.38,
-        -51.81,
-        0
-      ],
+      "position": [1.38, -51.81, 0],
       "angle": -41,
       "instrument": "marimba",
       "color": "#5bc0de",
@@ -503,11 +308,7 @@
     {
       "type": "pad",
       "id": "abc_29",
-      "position": [
-        4.33,
-        -53.64,
-        0
-      ],
+      "position": [4.33, -53.64, 0],
       "angle": 43,
       "instrument": "marimba",
       "color": "#8e6bd6",
@@ -516,30 +317,14 @@
     {
       "type": "ramp",
       "id": "abc_30",
-      "position": [
-        1.01,
-        -56.42,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        25
-      ],
-      "size": [
-        3.6,
-        0.4,
-        0.9
-      ]
+      "position": [1.01, -56.42, 0.45],
+      "rotation": [0, 0, 25],
+      "size": [3.6, 0.4, 0.9]
     },
     {
       "type": "pad",
       "id": "abc_31",
-      "position": [
-        -3.39,
-        -59.13,
-        0
-      ],
+      "position": [-3.39, -59.13, 0],
       "angle": -49.5,
       "instrument": "marimba",
       "color": "#5cb85c",
@@ -548,11 +333,7 @@
     {
       "type": "pad",
       "id": "abc_32",
-      "position": [
-        -0.21,
-        -61.01,
-        0
-      ],
+      "position": [-0.21, -61.01, 0],
       "angle": 41,
       "instrument": "marimba",
       "color": "#e86fb0",
@@ -561,11 +342,7 @@
     {
       "type": "pad",
       "id": "abc_33",
-      "position": [
-        -3.16,
-        -62.84,
-        0
-      ],
+      "position": [-3.16, -62.84, 0],
       "angle": -43,
       "instrument": "marimba",
       "color": "#f7f7f7",
@@ -574,30 +351,14 @@
     {
       "type": "ramp",
       "id": "abc_34",
-      "position": [
-        0.16,
-        -65.63,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        -25
-      ],
-      "size": [
-        3.6,
-        0.4,
-        0.9
-      ]
+      "position": [0.16, -65.63, 0.45],
+      "rotation": [0, 0, -25],
+      "size": [3.6, 0.4, 0.9]
     },
     {
       "type": "pad",
       "id": "abc_35",
-      "position": [
-        4.53,
-        -68.33,
-        0
-      ],
+      "position": [4.53, -68.33, 0],
       "angle": 49,
       "instrument": "marimba",
       "color": "#d9534f",
@@ -606,11 +367,7 @@
     {
       "type": "pad",
       "id": "abc_36",
-      "position": [
-        1.38,
-        -70.24,
-        0
-      ],
+      "position": [1.38, -70.24, 0],
       "angle": -40.5,
       "instrument": "marimba",
       "color": "#f0ad4e",
@@ -619,11 +376,7 @@
     {
       "type": "pad",
       "id": "abc_37",
-      "position": [
-        4.34,
-        -72.05,
-        0
-      ],
+      "position": [4.34, -72.05, 0],
       "angle": 43.5,
       "instrument": "marimba",
       "color": "#5bc0de",
@@ -632,11 +385,7 @@
     {
       "type": "pad",
       "id": "abc_38",
-      "position": [
-        1.58,
-        -73.9,
-        0
-      ],
+      "position": [1.58, -73.9, 0],
       "angle": -41.5,
       "instrument": "marimba",
       "color": "#8e6bd6",
@@ -645,11 +394,7 @@
     {
       "type": "pad",
       "id": "abc_39",
-      "position": [
-        4.29,
-        -75.71,
-        0
-      ],
+      "position": [4.29, -75.71, 0],
       "angle": 41.5,
       "instrument": "marimba",
       "color": "#5cb85c",
@@ -658,11 +403,7 @@
     {
       "type": "pad",
       "id": "abc_40",
-      "position": [
-        1.63,
-        -77.55,
-        0
-      ],
+      "position": [1.63, -77.55, 0],
       "angle": -41,
       "instrument": "marimba",
       "color": "#e86fb0",
@@ -671,11 +412,7 @@
     {
       "type": "pad",
       "id": "abc_41",
-      "position": [
-        4.32,
-        -79.41,
-        0
-      ],
+      "position": [4.32, -79.41, 0],
       "angle": 41,
       "instrument": "marimba",
       "color": "#f7f7f7",
@@ -684,30 +421,14 @@
     {
       "type": "ramp",
       "id": "abc_42",
-      "position": [
-        1.02,
-        -82.22,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        25
-      ],
-      "size": [
-        3.6,
-        0.4,
-        0.9
-      ]
+      "position": [1.02, -82.22, 0.45],
+      "rotation": [0, 0, 25],
+      "size": [3.6, 0.4, 0.9]
     },
     {
       "type": "pad",
       "id": "abc_43",
-      "position": [
-        -3.35,
-        -84.92,
-        0
-      ],
+      "position": [-3.35, -84.92, 0],
       "angle": -49.5,
       "instrument": "marimba",
       "color": "#d9534f",
@@ -716,11 +437,7 @@
     {
       "type": "pad",
       "id": "abc_44",
-      "position": [
-        -0.18,
-        -86.79,
-        0
-      ],
+      "position": [-0.18, -86.79, 0],
       "angle": 41,
       "instrument": "marimba",
       "color": "#f0ad4e",
@@ -729,11 +446,7 @@
     {
       "type": "pad",
       "id": "abc_45",
-      "position": [
-        -3.13,
-        -88.62,
-        0
-      ],
+      "position": [-3.13, -88.62, 0],
       "angle": -43,
       "instrument": "marimba",
       "color": "#5bc0de",
@@ -742,11 +455,7 @@
     {
       "type": "pad",
       "id": "abc_46",
-      "position": [
-        -0.41,
-        -90.43,
-        0
-      ],
+      "position": [-0.41, -90.43, 0],
       "angle": 41.5,
       "instrument": "marimba",
       "color": "#8e6bd6",
@@ -755,11 +464,7 @@
     {
       "type": "pad",
       "id": "abc_47",
-      "position": [
-        -3.11,
-        -92.27,
-        0
-      ],
+      "position": [-3.11, -92.27, 0],
       "angle": -41.5,
       "instrument": "marimba",
       "color": "#5cb85c",
@@ -768,11 +473,7 @@
     {
       "type": "pad",
       "id": "abc_48",
-      "position": [
-        -0.42,
-        -94.13,
-        0
-      ],
+      "position": [-0.42, -94.13, 0],
       "angle": 41,
       "instrument": "marimba",
       "color": "#e86fb0",
@@ -781,296 +482,49 @@
     {
       "type": "pad",
       "id": "abc_49",
-      "position": [
-        -3.13,
-        -95.98,
-        0
-      ],
+      "position": [-3.13, -95.98, 0],
       "angle": -41.5,
       "instrument": "marimba",
       "color": "#f7f7f7",
       "note": "C5"
-    },
-    {
-      "type": "rail",
-      "id": "fin_1",
-      "points": [
-        [
-          -1.4,
-          -97.53,
-          0
-        ],
-        [
-          -0.9,
-          -98.08,
-          0
-        ],
-        [
-          0.2,
-          -98.53,
-          0
-        ],
-        [
-          1.4,
-          -99.13,
-          0
-        ],
-        [
-          2.2,
-          -100.03,
-          0
-        ]
-      ]
-    },
-    {
-      "type": "bumper",
-      "id": "fin_2",
-      "position": [
-        4.66,
-        -102.19,
-        0
-      ],
-      "radius": 0.7,
-      "instrument": "kick",
-      "color": "#e8c44a"
-    },
-    {
-      "type": "ramp",
-      "id": "funnel_left",
-      "position": [
-        -4.35,
-        -110.44,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        -22.3
-      ],
-      "size": [
-        7.9,
-        0.4,
-        0.9
-      ],
-      "instrument": "snare"
-    },
-    {
-      "type": "ramp",
-      "id": "funnel_right",
-      "position": [
-        4.35,
-        -110.44,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        22.3
-      ],
-      "size": [
-        7.9,
-        0.4,
-        0.9
-      ],
-      "instrument": "snare"
-    },
-    {
-      "type": "rail",
-      "id": "rail_end",
-      "points": [
-        [
-          4.6,
-          -111.44,
-          0
-        ],
-        [
-          3,
-          -112.44,
-          0
-        ],
-        [
-          1.6,
-          -113.14,
-          0
-        ],
-        [
-          0,
-          -113.54,
-          0
-        ],
-        [
-          -1.8,
-          -114.14,
-          0
-        ],
-        [
-          -3.4,
-          -115.04,
-          0
-        ],
-        [
-          -4.6,
-          -116.34,
-          0
-        ],
-        [
-          -5.2,
-          -117.94,
-          0
-        ]
-      ]
-    },
-    {
-      "type": "ramp",
-      "id": "tray_right",
-      "position": [
-        -4.9,
-        -119.84,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        30
-      ],
-      "size": [
-        2.6,
-        0.4,
-        0.9
-      ],
-      "color": "#3a3c44",
-      "instrument": "cymbal"
-    },
-    {
-      "type": "ramp",
-      "id": "tray_left",
-      "position": [
-        -7.1,
-        -119.84,
-        0.45
-      ],
-      "rotation": [
-        0,
-        0,
-        -30
-      ],
-      "size": [
-        2.6,
-        0.4,
-        0.9
-      ],
-      "color": "#3a3c44",
-      "instrument": "thud"
     }
   ],
   "checkpoints": [
     {
       "section": 0,
-      "position": [
-        1.77,
-        3.694,
-        0.3
-      ],
-      "velocity": [
-        4.831,
-        -1.081,
-        -0.046
-      ],
-      "spin": [
-        1.048,
-        8.97,
-        -15.704
-      ]
+      "position": [1.77, 3.694, 0.3],
+      "velocity": [4.831, -1.081, -0.046],
+      "spin": [1.048, 8.97, -15.704]
     },
     {
       "section": 1,
-      "position": [
-        -0.7,
-        -11.815,
-        0.298
-      ],
-      "velocity": [
-        -6.592,
-        -3.171,
-        -0.062
-      ],
-      "spin": [
-        10.335,
-        -21.957,
-        24.299
-      ]
+      "position": [-0.7, -11.815, 0.298],
+      "velocity": [-6.592, -3.171, -0.062],
+      "spin": [10.335, -21.957, 24.299]
     },
     {
       "section": 2,
-      "position": [
-        2.002,
-        -29.146,
-        0.298
-      ],
-      "velocity": [
-        6.553,
-        -3.153,
-        -0.062
-      ],
-      "spin": [
-        10.275,
-        21.826,
-        -24.153
-      ]
+      "position": [2.002, -29.146, 0.298],
+      "velocity": [6.553, -3.153, -0.062],
+      "spin": [10.275, 21.826, -24.153]
     },
     {
       "section": 3,
-      "position": [
-        1.988,
-        -47.538,
-        0.298
-      ],
-      "velocity": [
-        6.563,
-        -3.158,
-        -0.062
-      ],
-      "spin": [
-        10.286,
-        21.861,
-        -24.192
-      ]
+      "position": [1.988, -47.538, 0.298],
+      "velocity": [6.563, -3.158, -0.062],
+      "spin": [10.286, 21.861, -24.192]
     },
     {
       "section": 4,
-      "position": [
-        1.988,
-        -65.933,
-        0.298
-      ],
-      "velocity": [
-        6.54,
-        -3.115,
-        -0.064
-      ],
-      "spin": [
-        10.261,
-        21.742,
-        -24.093
-      ]
+      "position": [1.988, -65.933, 0.298],
+      "velocity": [6.54, -3.115, -0.064],
+      "spin": [10.261, 21.742, -24.093]
     },
     {
       "section": 5,
-      "position": [
-        -0.79,
-        -82.515,
-        0.298
-      ],
-      "velocity": [
-        -6.59,
-        -3.142,
-        -0.064
-      ],
-      "spin": [
-        10.336,
-        -21.915,
-        24.283
-      ]
+      "position": [-0.79, -82.515, 0.298],
+      "velocity": [-6.59, -3.142, -0.064],
+      "spin": [10.336, -21.915, 24.283]
     }
   ]
 }

@@ -46,7 +46,6 @@ MACHINE=mary npx vite-node scripts/trace.ts 10 0.1     # marble trajectory + con
 MACHINE=mary npx vite-node scripts/stateat.ts -12,-14  # marble state when crossing given Y
 npm run layout src/levels/mary.level.json '<steps json>' <prefix> <afterT>
                                                # place pads/ramps/rails/bumpers on the real path, written into the level
-npx vite-node scripts/finale.ts src/levels/mary.level.json   # funnel, closing rail, tray, finish
 npx vite-node scripts/bake.ts mary             # bake section checkpoints
 node scripts/screenshot.mjs                    # headless browser screenshots (dev server running)
 ```

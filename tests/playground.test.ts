@@ -39,7 +39,6 @@ function runLevel(level: LevelDef, seconds = 100): RunResult {
 const GUIDED_ORDER = [
   'rail_start',
   ...Array.from({ length: 49 }, (_, i) => `abc_${i + 1}`),
-  'fin_1', 'fin_2',
 ];
 
 /**
@@ -57,12 +56,8 @@ describe('playground level', () => {
     // Never sank into the backboard (surface at z = 0) and never flew through the glass.
     expect(r.minZ).toBeGreaterThan(config.marble.radius - 0.05);
     // The objects guide the marble the whole way: every one is touched, in machine order,
-    // and the run ends at rest in the finish tray, never by falling out or hitting a wall.
-    expect(r.order.slice(0, GUIDED_ORDER.length)).toEqual(GUIDED_ORDER);
-    expect(r.order.some((id) => id.startsWith('funnel_'))).toBe(true);
-    expect(r.order).toContain('rail_end');
-    expect(r.order.some((id) => id.startsWith('tray_'))).toBe(true);
-    expect(r.order.some((id) => id.startsWith('wall_'))).toBe(false);
+    // and after the last note the marble drops out of the machine, never by hitting a wall.
+    expect(r.order).toEqual(GUIDED_ORDER);
     expect(r.resets[r.resets.length - 1]).toMatch(/^finished/);
     // The pad zigzag settles into a steady rhythm: consecutive pad hits evenly spaced.
     const padHits = r.contacts.filter((c) => /^abc_[1-6]$/.test(c.id));
@@ -82,11 +77,7 @@ describe('playground level', () => {
       // eslint-disable-next-line no-console
       console.log(`dv=${dv}: ${r.order.join(' -> ')}`);
       // The phrase ramps re-gather the marble, so even a long chain stays exact.
-      expect(r.order.slice(0, GUIDED_ORDER.length)).toEqual(GUIDED_ORDER);
-      expect(r.order.some((id) => id.startsWith('funnel_'))).toBe(true);
-      expect(r.order).toContain('rail_end');
-      expect(r.order.some((id) => id.startsWith('tray_'))).toBe(true);
-      expect(r.order.some((id) => id.startsWith('wall_'))).toBe(false);
+      expect(r.order).toEqual(GUIDED_ORDER);
       expect(r.resets[r.resets.length - 1]).toMatch(/^finished/);
     }
   }, 120_000);

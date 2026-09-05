@@ -11,7 +11,7 @@ const silent = { play() {}, setRolling() {} };
 /**
  * Every registered machine must be a complete, guided, playable performance:
  * every object in its own order, no wall contact, the song's notes in order,
- * every target judged as a hit, and a finish in the tray.
+ * every target judged as a hit, and the marble leaving the machine at the bottom.
  */
 describe('switching machines', () => {
   it('unloads one machine and plays another on the same simulation', async () => {
@@ -61,11 +61,9 @@ describe.each(machines.map((m) => [m.id, m] as const))('machine %s', (_id, machi
     // eslint-disable-next-line no-console
     console.log(`${machine.title}: score ${s.score}, ${s.hits}/${s.total}, maxCombo ${s.maxCombo}, misses ${s.ratings.MISS}`);
     expect(finished).toBe(true);
-    // Guided objects (everything except the walls and the board-wide finale) in level order.
-    const guided = machine.level.objects.map((o) => o.id!).filter((id) => !/^(wall_|funnel_|rail_end|tray_)/.test(id));
-    expect(order.slice(0, guided.length)).toEqual(guided);
-    expect(order.some((id) => id.startsWith('wall_'))).toBe(false);
-    expect(order).toContain('rail_end');
+    // Guided objects (everything except the walls) in level order, then the drop into the dark.
+    const guided = machine.level.objects.map((o) => o.id!).filter((id) => !/^wall_/.test(id));
+    expect(order).toEqual(guided);
     // The song, note for note.
     const targets = new Set(machine.song.events.map((e) => e.object));
     const notes = played.filter((n) => targets.has(n.object.id)).map((n) => n.note);

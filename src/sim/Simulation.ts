@@ -10,6 +10,20 @@ import type { LevelDef, ObjectDef } from '../levels/LevelTypes';
 import { applyEnvironmentMaterials, geometries, visuals } from '../objects/materials';
 import { tupleToVector3 } from '../core/math';
 
+/** How far below the finish line the marble must fall before the run counts as over (out of frame). */
+const FINISH_DROP = 9;
+
+/** Lowest point of anything the marble can play; walls do not count. */
+function lowestObjectY(level: LevelDef): number {
+  let y = level.spawn.position[1];
+  for (const o of level.objects) {
+    if (o.type === 'wall') continue;
+    if ('points' in o) for (const p of o.points) y = Math.min(y, p[1]);
+    else if ('position' in o) y = Math.min(y, o.position[1]);
+  }
+  return y;
+}
+
 let rapierReady: Promise<void> | null = null;
 export function initRapier(): Promise<void> {
   if (!rapierReady) rapierReady = RAPIER.init();
@@ -29,6 +43,8 @@ export class Simulation {
   readonly objects: InteractiveObject[] = [];
   readonly objectsById = new Map<string, InteractiveObject>();
   level: LevelDef | null = null;
+  /** The line the camera holds at the end; the marble falls past it into the dark and the run is over. */
+  finishY = 0;
   lastContact: MarbleContactEvent | null = null;
   private boardMesh: THREE.Mesh | null = null;
   private boardBody: RAPIER.RigidBody | null = null;
@@ -55,6 +71,7 @@ export class Simulation {
     // (contact caches, handle order) must not leak between machines.
     this.rebuildWorld();
     this.level = level;
+    this.finishY = level.finishY ?? lowestObjectY(level) - 5;
     applyEnvironmentMaterials(level.environment);
     this.buildBoard(level);
     for (const def of level.objects) this.addObject(def);
@@ -186,17 +203,19 @@ export class Simulation {
     const level = this.level;
     if (!level) return;
     const p = this.marble.body.translation();
+    // The end of the machine: the marble has fallen out of the frame below the last object.
+    if (p.y < this.finishY - FINISH_DROP) {
+      this.resetMarble('finished');
+      return;
+    }
     if (p.y < level.killY) {
       this.resetMarble('fell');
       return;
     }
-    // A marble at rest is either finished (inside the finish zone) or stuck.
+    // A marble at rest anywhere is stuck.
     if (this.marble.speed() < 0.05) {
       this.stalledFor += dt;
-      const f = level.finish;
-      const inFinish = f && Math.hypot(p.x - f.position[0], p.y - f.position[1]) <= f.radius;
-      if (inFinish && this.stalledFor > 1.2) this.resetMarble('finished');
-      else if (this.stalledFor > 3) this.resetMarble('stalled');
+      if (this.stalledFor > 3) this.resetMarble('stalled');
     } else {
       this.stalledFor = 0;
     }

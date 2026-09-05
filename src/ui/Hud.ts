@@ -41,6 +41,8 @@ export class Hud {
     this.results = root.querySelector('#hud-results')!;
     this.offs.push(bus.on('score:rating', (r) => this.onRating(r)));
     this.offs.push(bus.on('score:reset', () => this.onReset()));
+    // The run is over once the marble has fallen out of the machine; the score has just been reset, so read the last run.
+    this.offs.push(bus.on('marble:reset', (e) => e.reason === 'finished' && !this.shownResults && this.showResults()));
   }
 
   private onRating(r: RatingEvent): void {
@@ -49,7 +51,6 @@ export class Hud {
     this.score.textContent = r.score.toLocaleString();
     this.pop(r.rating === 'MISS' ? 'COMBO LOST' : r.rating + (r.rating === 'PERFECT' || r.rating === 'EXACT' ? '!' : ''), `rating-${r.rating.toLowerCase()}`);
     if (r.event.lyric && r.rating !== 'MISS') this.pop(r.event.lyric, 'lyric');
-    if (this.scoring.finished && !this.shownResults) this.showResults();
   }
 
   private onReset(): void {
@@ -72,7 +73,7 @@ export class Hud {
 
   private showResults(): void {
     this.shownResults = true;
-    const s = this.scoring.summary();
+    const s = this.scoring.lastRun ?? this.scoring.summary();
     this.onFinished?.(s.score);
     const rows = (['PERFECT', 'EXACT', 'GOOD', 'EARLY', 'LATE', 'MISS'] as const)
       .map((k) => `<div class="row"><span>${k}</span><span>${s.ratings[k]}</span></div>`)
