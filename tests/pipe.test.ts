@@ -18,7 +18,7 @@ describe('pipe', () => {
     };
     const sim = new Simulation();
     sim.load(level);
-    const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(p[0], p[1], p[2] || 0.55)), false, 'centripetal', 0.5);
+    const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(p[0], p[1], p[2] || 0.51)), false, 'centripetal', 0.5);
     const samples = curve.getSpacedPoints(80);
     const dt = config.physics.fixedDt;
     let entered = false;

@@ -29,6 +29,9 @@ npm run screenshot   # Playwright screenshots against the dev server
 
 Level authoring: fix the board first, then `scripts/layout.ts` places objects on
 the real simulated path and writes the level JSON, `scripts/finale.ts` appends
-the ending, `scripts/bake.ts` bakes checkpoints. Never hand-edit geometry after
+the ending, `scripts/pipealign.ts` puts pipe mouths exactly on the path,
+`scripts/relaypads.ts` re-lays named pads after something upstream moved,
+`scripts/songfrombake.ts` rewrites a song's beats from the run, and
+`scripts/bake.ts` bakes checkpoints. Never hand-edit geometry after
 layout (re-lay instead), and never let the marble free-fall more than ~4 units
 between contacts. `docs/PLAN.md` has the lessons in detail.

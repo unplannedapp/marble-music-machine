@@ -61,6 +61,14 @@ Reconciled against the full specification and the five reference videos.
   by the phrase ramp. Tiny drops (0.55) trap the marble between pads.
 - Round bumpers are chaotic by nature; use one at a time and follow it with a
   board-wide funnel.
+- Pipes must sit exactly on the path. A marble that meets a pipe mouth a unit
+  off-axis hits the thin mesh rim and is pushed through the wall (it "phases"
+  into the pipe). `scripts/pipealign.ts` slides each pipe onto the marble's real
+  crossing point and aims its first segment along the velocity; the mouths are
+  funnels and the floor is flush with the board so there is no lip. Moving a
+  pipe moves its exit, so re-lay the pads after it with `scripts/relaypads.ts`
+  (one at a time, in order, until the trace hits everything), then re-bake the
+  song and checkpoints.
 
 ## Design decisions carried forward
 

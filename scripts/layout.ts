@@ -24,6 +24,7 @@ import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef 
 import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
+import { DEG, solveNormal } from './lib/aim';
 
 const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
@@ -33,7 +34,6 @@ interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe'; y?: number; dro
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
-const DEG = Math.PI / 180;
 const padHalfThick = 0.14;
 const bumperRadius = Number(process.env.BUMPER_R ?? 0.45);
 
@@ -65,31 +65,6 @@ function simulate(level: LevelDef, yTarget: number, after: number): { state: Sta
   }
   sim.dispose();
   return { state: out, hits };
-}
-
-/** Reflect direction d (unit) about normal n with restitution e, plus an outward kick (units/s) at speed. */
-function bounce(d: [number, number], n: [number, number], e: number, speed: number, kick: number): [number, number] {
-  const dn = d[0] * n[0] + d[1] * n[1];
-  const r = [(d[0] - (1 + e) * dn * n[0]) * speed + kick * n[0], (d[1] - (1 + e) * dn * n[1]) * speed + kick * n[1]];
-  const len = Math.hypot(r[0], r[1]);
-  return [r[0] / len, r[1] / len];
-}
-
-/** Normal angle (deg, measured from +Y toward -X like the pad angle) that sends d closest to o. */
-function solveNormal(d: [number, number], o: [number, number], e: number, speed: number, kick: number): number {
-  let bestA = 0;
-  let bestDot = -Infinity;
-  for (let a = -89; a <= 89; a += 0.5) {
-    const n: [number, number] = [-Math.sin(a * DEG), Math.cos(a * DEG)];
-    if (d[0] * n[0] + d[1] * n[1] >= 0) continue;
-    const r = bounce(d, n, e, speed, kick);
-    const dot = r[0] * o[0] + r[1] * o[1];
-    if (dot > bestDot) {
-      bestDot = dot;
-      bestA = a;
-    }
-  }
-  return bestA;
 }
 
 const base: LevelFile = JSON.parse(JSON.stringify(playground));

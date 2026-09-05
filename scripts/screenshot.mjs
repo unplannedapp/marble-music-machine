@@ -27,7 +27,7 @@ else await page.click('#start');
 await page.waitForFunction(() => window.mmm.sim.simTime > 0.5, null, { timeout: 30000 });
 console.log('audio state after tap:', await page.evaluate(() => window.mmm.audio.ctx.state));
 for (const t of (process.env.SHOT_TIMES ?? '1.5,4.5,6.5,9').split(',').map(Number)) {
-  await page.waitForFunction((tt) => window.mmm.sim.simTime >= tt, t, { timeout: 60000 });
+  await page.waitForFunction((tt) => window.mmm.sim.simTime >= tt, t, { timeout: Number(process.env.SHOT_TIMEOUT ?? 60000) });
   const info = await page.evaluate(() => {
     const s = window.mmm.sim; const p = s.marble.body.translation();
     return { t: s.simTime.toFixed(2), pos: [p.x.toFixed(2), p.y.toFixed(2), p.z.toFixed(2)], contacts: s.physics.contactCount, last: s.lastContact?.object.id, notes: window.mmm.notes() };
