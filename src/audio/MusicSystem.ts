@@ -22,6 +22,7 @@ export const defaultInstrument: Record<string, InstrumentName> = {
   ramp: 'thud',
   wall: 'thud',
   spinner: 'wood',
+  launcher: 'kick',
 };
 
 /** Contacts within this window on the same object are one strike, not a flurry. */

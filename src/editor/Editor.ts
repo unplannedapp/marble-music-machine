@@ -3,7 +3,7 @@ import type { Simulation } from '../sim/Simulation';
 import type { SceneRenderer } from '../render/SceneRenderer';
 import type { FollowCamera } from '../render/FollowCamera';
 import type { InteractiveObject } from '../objects/InteractiveObject';
-import type { ObjectDef, PadDef, BumperDef, RampDef, RailDef, PipeDef, SpinnerDef } from '../levels/LevelTypes';
+import type { ObjectDef, PadDef, BumperDef, RampDef, RailDef, PipeDef, SpinnerDef, LauncherDef } from '../levels/LevelTypes';
 import type { LevelFile } from '../levels/LevelFormat';
 import { serializeLevel, parseLevel } from '../levels/LevelFormat';
 import { environmentPresets } from '../levels/template';
@@ -60,7 +60,7 @@ export class Editor {
       <div class="ed-bar">
         <div class="ed-palette">
           <button data-add="pad">+ Pad</button><button data-add="bumper">+ Bumper</button>
-          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><button data-add="pipe">+ Pipe</button><button data-add="loop">+ Loop</button><button data-add="spinner">+ Spinner</button>
+          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><button data-add="pipe">+ Pipe</button><button data-add="loop">+ Loop</button><button data-add="spinner">+ Spinner</button><button data-add="launcher">+ Launcher</button>
         </div>
         <div class="ed-actions">
           <button id="ed-simulate" class="primary">▶ Simulate</button>
@@ -260,6 +260,11 @@ export class Editor {
     if (d.type === 'pad') rows.push(`<label>Angle <input data-k="angle" type="range" min="-80" max="80" step="0.5" value="${d.angle ?? 0}"><span>${d.angle ?? 0}°</span></label>`);
     if (d.type === 'ramp') rows.push(`<label>Tilt <input data-k="tilt" type="range" min="-60" max="60" step="0.5" value="${d.rotation?.[2] ?? 0}"><span>${d.rotation?.[2] ?? 0}°</span></label>`, `<label>Length <input data-k="length" type="range" min="1" max="10" step="0.1" value="${d.size[0]}"><span>${d.size[0]}</span></label>`);
     if (d.type === 'bumper') rows.push(`<label>Size <input data-k="radius" type="range" min="0.3" max="1.2" step="0.05" value="${d.radius ?? 0.45}"><span>${d.radius ?? 0.45}</span></label>`);
+    if (d.type === 'launcher') rows.push(
+      `<label>Aim <input data-k="direction" type="range" min="-180" max="180" step="5" value="${d.direction ?? 0}"><span>${d.direction ?? 0}°</span></label>`,
+      `<label>Speed <input data-k="speed" type="range" min="4" max="20" step="0.5" value="${d.speed ?? 13}"><span>${d.speed ?? 13}</span></label>`,
+      `<label>Hold <input data-k="hold" type="range" min="0" max="2" step="0.1" value="${d.hold ?? 0.5}"><span>${d.hold ?? 0.5}</span></label>`,
+    );
     if (d.type === 'spinner') rows.push(
       `<label>Speed <input data-k="rpm" type="range" min="-120" max="120" step="5" value="${d.rpm ?? 40}"><span>${d.rpm ?? 40}</span></label>`,
       `<label>Blades <input data-k="blades" type="range" min="2" max="6" step="1" value="${d.blades ?? 4}"><span>${d.blades ?? 4}</span></label>`,
@@ -270,7 +275,7 @@ export class Editor {
       rows.push(`<label>Instrument <select data-k="instrument">${opt(['none', ...INSTRUMENTS], d.instrument ?? defaultInstrumentOf(d.type))}</select></label>`);
       rows.push(`<label>Note <select data-k="note">${opt(NOTES, d.note ?? 'C5')}</select></label>`);
     }
-    if (d.type === 'pad' || d.type === 'bumper' || d.type === 'ramp' || d.type === 'pipe' || d.type === 'spinner') {
+    if (d.type === 'pad' || d.type === 'bumper' || d.type === 'ramp' || d.type === 'pipe' || d.type === 'spinner' || d.type === 'launcher') {
       rows.push(`<div class="ed-colors">${COLORS.map((c) => `<button data-color="${c}" style="background:${c}" class="${(d as PadDef).color === c ? 'on' : ''}"></button>`).join('')}</div>`);
     }
     rows.push(`<div class="row"><button id="ed-dup">Duplicate</button><button id="ed-del" class="danger">Delete</button></div>`);
@@ -296,12 +301,15 @@ export class Editor {
       case 'rpm': (def as SpinnerDef).rpm = num; break;
       case 'blades': (def as SpinnerDef).blades = num; break;
       case 'phase': (def as SpinnerDef).phase = num; break;
+      case 'direction': (def as LauncherDef).direction = num; break;
+      case 'speed': (def as LauncherDef).speed = num; break;
+      case 'hold': (def as LauncherDef).hold = num; break;
       case 'instrument': def.instrument = value; break;
       case 'note': def.note = value; break;
       case 'color': (def as PadDef).color = value; break;
     }
     this.selected = this.sim.replaceObject(obj.id, def);
-    if (input?.nextElementSibling) input.nextElementSibling.textContent = key === 'angle' || key === 'tilt' || key === 'phase' ? `${value}°` : value;
+    if (input?.nextElementSibling) input.nextElementSibling.textContent = key === 'angle' || key === 'tilt' || key === 'phase' || key === 'direction' ? `${value}°` : value;
     if (key === 'color') this.refreshInspector();
     this.updateHighlight();
   }
@@ -319,6 +327,7 @@ export class Editor {
     let def: ObjectDef;
     if (type === 'pad') def = { type, id: this.freshId('pad'), position: [x, y, 0], angle: 40, color: COLORS[this.nextId % 7], instrument: 'marimba', note: 'C5' } as PadDef;
     else if (type === 'bumper') def = { type, id: this.freshId('bumper'), position: [x, y, 0], radius: 0.6, color: '#c9a24a', instrument: 'kick' } as BumperDef;
+    else if (type === 'launcher') def = { type, id: this.freshId('launcher'), position: [x, y, 0], direction: 0, speed: 13, color: '#c9a24a', instrument: 'kick' } as LauncherDef;
     else if (type === 'spinner') def = { type, id: this.freshId('spinner'), position: [x, y, 0], radius: 1.1, blades: 4, rpm: 40, color: COLORS[this.nextId % 7], instrument: 'wood', note: 'C4' } as SpinnerDef;
     else if (type === 'ramp') def = { type, id: this.freshId('ramp'), position: [x, y, 0.45], rotation: [0, 0, -20], size: [4, 0.4, 0.9], instrument: 'wood' } as RampDef;
     else if (type === 'rail') def = { type, id: this.freshId('rail'), points: [[x - 2, y + 0.5, 0], [x - 0.7, y + 0.2, 0], [x + 0.8, y - 0.3, 0], [x + 2, y - 1, 0]] } as RailDef;

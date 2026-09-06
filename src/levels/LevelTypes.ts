@@ -97,7 +97,22 @@ export interface SpinnerDef extends BaseObjectDef {
   color?: string;
 }
 
-export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef | SpinnerDef;
+export interface LauncherDef extends BaseObjectDef {
+  type: 'launcher';
+  /** Rest position of the plunger head's centre (on the lane). */
+  position: Vec3Tuple;
+  /** Firing direction in the board plane, degrees: 0 = +x, 90 = up. */
+  direction?: number;
+  /** Head speed at the end of the stroke; the marble leaves at about this. Default 13. */
+  speed?: number;
+  /** How far the head travels. Default 2. */
+  stroke?: number;
+  /** Seconds the marble rests against the head before it fires. Default 0.5. */
+  hold?: number;
+  color?: string;
+}
+
+export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef | SpinnerDef | LauncherDef;
 
 /**
  * The look of a machine: every song has its own world in the references, so the

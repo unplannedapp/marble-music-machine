@@ -20,7 +20,7 @@
  */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef, SpinnerDef } from '../src/levels/LevelTypes';
+import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef, SpinnerDef, LauncherDef } from '../src/levels/LevelTypes';
 import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
@@ -31,7 +31,7 @@ const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -121,6 +121,7 @@ const withPlaced = (placedSoFar: ObjectDef[]): ObjectDef[] => [
   ...base.objects.slice(insertAt),
 ];
 const placed: ObjectDef[] = [];
+let stepsDone = 0;
 const colors = ['#d9534f', '#d99a4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f'];
 const notes = ['C4', 'E4', 'G4', 'C5', 'A4', 'F4', 'D4', 'B4'];
 let lastY = 0;
@@ -158,9 +159,55 @@ for (let k = 0; k < steps.length; k++) {
     const rail: RailDef = { type: 'rail', id, points: pts };
     def = rail;
     placed.push(def);
+    stepsDone++;
     lastY = y0 - 1.7;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> rail toward ${dx > 0 ? 'right' : 'left'}, ends at y ${lastY.toFixed(2)}`);
+    continue;
+  }
+  if (step.k === 'launcher') {
+    // Pinball plunger: the marble drops onto a level lane against the plunger's
+    // tall face (which kills its sideways speed), rests there for the hold, and
+    // is fired back along the lane. The lane slopes a hair toward the head so
+    // the marble settles, and ends in the open: the next objects are laid on
+    // the flight from its end. The head speed is searched for a clean flight.
+    const travel: 1 | -1 = state.vx >= 0 ? 1 : -1;
+    const dx: 1 | -1 = travel === 1 ? -1 : 1; // fire back the way the marble came
+    const x0 = +state.x.toFixed(2);
+    const y0 = +(state.y - 0.35).toFixed(2);
+    const laneLen = step.exit ?? 3.6;
+    const tilt = 2.5 * DEG;
+    const laneEnd: [number, number] = [+(x0 + dx * laneLen).toFixed(2), +(y0 + Math.sin(tilt) * laneLen).toFixed(2)];
+    if (Math.abs(laneEnd[0]) > base.board.width / 2 - 1.0) {
+      console.log(`${id}: launcher lane does not fit from x ${x0} firing ${dx > 0 ? 'right' : 'left'}`);
+      break;
+    }
+    const lanePts: [number, number, number][] = [0, 0.35, 0.7, 1].map((f) => [+(x0 + dx * (laneLen * f - 0.55)).toFixed(2), +(y0 + Math.sin(tilt) * (laneLen * f - 0.55)).toFixed(2), 0]);
+    const lane: RailDef = { type: 'rail', id, points: lanePts, groove: 'curve', lipDeg: 0, instrument: 'click' };
+    const headRest: [number, number, number] = [+(x0 + travel * 0.45).toFixed(2), +(y0 + 0.01).toFixed(2), 0];
+    let best: { defs: ObjectDef[]; f: NonNullable<ReturnType<typeof flight>>; speed: number } | null = null;
+    for (const speed of [8, 9, 10, 11]) {
+      const plunger: LauncherDef = { type: 'launcher', id: `${id}_plunger`, position: headRest, direction: dx > 0 ? 2.5 : 177.5, speed, hold: 0.5, instrument: 'kick', color: step.color ?? '#c9a24a' };
+      const defs: ObjectDef[] = [lane, plunger];
+      const level2 = { ...base, objects: withPlaced([...placed, ...defs]) };
+      const f = flight(level2, `${id}_plunger`, state.t - 0.2, 1.6);
+      if (process.env.LOOP_DEBUG) console.log(`    launcher try speed ${speed}: ${f ? `end (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) v=(${f.vx.toFixed(1)}, ${f.vy.toFixed(1)}) t=${f.t.toFixed(2)}` : 'lost'}`);
+      if (!f || f.bad) continue;
+      // Must have left the lane end flying the firing way and be coming down.
+      if (Math.sign(f.x - laneEnd[0]) !== dx || f.vy >= 0) continue;
+      best = { defs, f, speed };
+      break;
+    }
+    if (!best) {
+      console.log(`${id}: no plunger speed gives a clean flight from (${x0}, ${y0})`);
+      break;
+    }
+    def = best.defs[0];
+    placed.push(...best.defs);
+    stepsDone++;
+    lastY = laneEnd[1];
+    afterT = best.f.t - 0.9;
+    console.log(`${id}: marble at (${x0}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> caught by a plunger at (${headRest[0]}, ${headRest[1]}), fired ${dx > 0 ? 'right' : 'left'} at speed ${best.speed}, lane ends at (${laneEnd[0]}, ${laneEnd[1]})`);
     continue;
   }
   if (step.k === 'loop') {
@@ -215,6 +262,7 @@ for (let k = 0; k < steps.length; k++) {
     base.board.glass = Math.max(base.board.glass ?? 1.5, 2.2);
     def = best.def;
     placed.push(feed, def);
+    stepsDone++;
     const exit = loopExit(entry, dx, best.o);
     lastY = exit.y;
     afterT = state.t + 0.1;
@@ -248,6 +296,7 @@ for (let k = 0; k < steps.length; k++) {
     }
     def = best.def;
     placed.push(def);
+    stepsDone++;
     lastY = best.f.y;
     afterT = best.f.t - 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> spinner at (${cx}, ${cy}) rpm ${best.def.rpm} phase ${best.def.phase}, lob to y ${best.f.top.toFixed(2)}, lands toward (${best.f.x.toFixed(2)}, ${best.f.y.toFixed(2)}) v=(${best.f.vx.toFixed(2)}, ${best.f.vy.toFixed(2)})`);
@@ -268,6 +317,7 @@ for (let k = 0; k < steps.length; k++) {
     const pipe: PipeDef = { type: 'pipe', id, points: pts, color: step.color ?? '#7a3fb0', instrument: 'tube', note: step.note ?? 'C4' };
     def = pipe;
     placed.push(def);
+    stepsDone++;
     lastY = y0 - 4.3;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> pipe toward ${dx > 0 ? 'right' : 'left'}, exit at y ${lastY.toFixed(2)}`);
@@ -289,6 +339,7 @@ for (let k = 0; k < steps.length; k++) {
     };
     def = ramp;
     placed.push(def);
+    stepsDone++;
     lastY = cy - (len / 2) * Math.sin(theta) + 0.2;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ramp toward ${dx > 0 ? 'right' : 'left'}, lower end at y ${lastY.toFixed(2)}`);
@@ -317,6 +368,7 @@ for (let k = 0; k < steps.length; k++) {
     def = bumper;
   }
   placed.push(def);
+  stepsDone++;
   lastY = state.y;
   afterT = state.t + 0.05;
   console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ${step.k} normal ${angle}deg`);
@@ -324,11 +376,11 @@ for (let k = 0; k < steps.length; k++) {
 
 const final: LevelFile = { ...base, objects: withPlaced(placed) };
 const { hits } = simulate(final, -1000, 0);
-if (placed.length === steps.length) {
+if (stepsDone === steps.length) {
   writeFileSync(levelPath, serializeLevel(final));
   console.log(`\nWrote ${placed.length} objects into ${levelPath}`);
 } else {
-  console.log(`\nNot written: only ${placed.length}/${steps.length} steps placed.`);
+  console.log(`\nNot written: only ${stepsDone}/${steps.length} steps placed.`);
   if (process.env.LAYOUT_WRITE_PARTIAL) {
     writeFileSync(process.env.LAYOUT_WRITE_PARTIAL, serializeLevel(final));
     console.log(`partial level written to ${process.env.LAYOUT_WRITE_PARTIAL}`);
@@ -341,6 +393,7 @@ for (const o of placed) {
   else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, color: '${o.color}' },`);
   else if (o.type === 'rail') console.log(`    { type: 'rail', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}] },`);
   else if (o.type === 'rail' && o.groove === 'curve') console.log(`    loop track '${o.id}' (${o.points.length} points)`);
+  else if (o.type === 'launcher') console.log(`    { type: 'launcher', id: '${o.id}', position: [${o.position.join(', ')}], direction: ${o.direction}, speed: ${o.speed} },`);
   else if (o.type === 'spinner') console.log(`    { type: 'spinner', id: '${o.id}', position: [${o.position.join(', ')}], rpm: ${o.rpm}, phase: ${o.phase} },`);
   else if (o.type === 'pipe') console.log(`    { type: 'pipe', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}], color: '${o.color}' },`);
   else if (o.type === 'ramp') console.log(`    { type: 'ramp', id: '${o.id}', position: [${o.position.join(', ')}], rotation: [${o.rotation!.join(', ')}], size: [${o.size.join(', ')}] },`);

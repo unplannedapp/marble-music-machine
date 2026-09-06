@@ -62,8 +62,10 @@ describe.each(machines.map((m) => [m.id, m] as const))('machine %s', (_id, machi
     console.log(`${machine.title}: score ${s.score}, ${s.hits}/${s.total}, maxCombo ${s.maxCombo}, misses ${s.ratings.MISS}`);
     expect(finished).toBe(true);
     // Guided objects (everything except the walls) in level order, then the drop into the dark.
-    const guided = machine.level.objects.map((o) => o.id!).filter((id) => !/^wall_/.test(id));
-    expect(order).toEqual(guided);
+    // A mechanism's parts (a plunger and its lane) are one station: their mutual order is free.
+    const station = (id: string) => id.replace(/_(plunger|feed)$/, '');
+    const guided = [...new Set(machine.level.objects.map((o) => station(o.id!)).filter((id) => !/^wall_/.test(id)))];
+    expect([...new Set(order.map(station))]).toEqual(guided);
     // The song, note for note.
     const targets = new Set(machine.song.events.map((e) => e.object));
     const notes = played.filter((n) => targets.has(n.object.id)).map((n) => n.note);

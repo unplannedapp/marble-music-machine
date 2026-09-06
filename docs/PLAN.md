@@ -46,8 +46,13 @@ Reconciled against the full specification and the five reference videos.
    function of sim time; the sim clock restarts with every run and is
    restored by checkpoints, so mechanisms repeat exactly); and the loop-the-
    loop track (`groove: 'curve'` rails, see the lesson below; a `loop` layout
-   step searches lead-in angle and length on the real path). Ode to Joy still
-   uses the spinner as its phrase break until the loop can be fed reliably. Still to do: seesaws, launchers, funnels,
+   step searches lead-in angle and length on the real path); and the launcher
+   (a pinball plunger: kinematic head on a fixed axis, fired a beat after the
+   marble settles against its tall face, travel a pure function of time since
+   the catch; a `launcher` layout step drops the marble onto a level lane
+   against the head and searches the head speed for a clean shot; Ode to Joy
+   uses one as its phrase break). Still to do: seesaws, funnels, object-object
+   chain reactions, branching paths, and feeding the loop from a plunger. Still to do: seesaws, launchers, funnels,
    object-object chain reactions, branching paths.
 7. **Content / social:** MIDI import, generated machines, sharing.
 
