@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import type { Simulation } from '../sim/Simulation';
+import type { Pad } from '../objects/Pad';
 
 /**
  * Lit pads spill their colour onto the wall, as in the reference: a small pool
- * of point lights is assigned each frame to the pads nearest the camera focus,
- * so a machine with forty pads costs six lights. Strength comes from the
+ * of point lights is assigned each frame to the switched-on pads nearest the
+ * camera focus, so a machine with forty pads costs six lights. A pad the
+ * marble has not struck yet is dark and throws no light. Strength comes from the
  * environment (zero in daylight worlds).
  */
 export class PadLights {
@@ -30,7 +32,7 @@ export class PadLights {
     if (this.strength <= 0) return;
     const p = new THREE.Vector3();
     const pads = this.sim.objects
-      .filter((o) => o.type === 'pad')
+      .filter((o) => o.type === 'pad' && (o as Pad).lit)
       .map((o) => ({ o, d: Math.abs(o.position(p).y - focus.y) + Math.abs(p.x - focus.x) * 0.3 }))
       .sort((a, b) => a.d - b.d)
       .slice(0, this.lights.length);

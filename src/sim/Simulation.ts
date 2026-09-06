@@ -181,7 +181,7 @@ export class Simulation {
     // Moving mechanisms are functions of the clock, so a checkpoint restores the clock too.
     if (time !== undefined) this.physics.simTime = time;
     this.marble.reset(position, velocity, spin);
-    for (const o of this.objects) o.reset();
+    for (const o of this.objects) o.restoreAt(position);
     this.physics.clearContacts();
     this.lastContact = null;
     this.stalledFor = 0;

@@ -78,6 +78,11 @@ export abstract class InteractiveObject<D extends ObjectDef = ObjectDef> {
     this.lastHitTime = -Infinity;
   }
 
+  /** Restore for a checkpoint respawn at `position`; objects may keep state the marble already earned. */
+  restoreAt(_position: THREE.Vector3): void {
+    this.reset();
+  }
+
   dispose(): void {
     const world = this.ctx.physics.world;
     for (const c of this.colliders) {

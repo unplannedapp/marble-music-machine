@@ -22,6 +22,7 @@ import { saveCustomMachine, newMachineId } from './ui/storage';
 import type { LevelFile } from './levels/LevelFormat';
 import { TargetRings } from './render/TargetRings';
 import { PadLights } from './render/PadLights';
+import { Pad } from './objects/Pad';
 
 async function main(): Promise<void> {
   await initRapier();
@@ -177,6 +178,8 @@ async function main(): Promise<void> {
       }
       follow.currentFocus(focus);
       view.followLight(freeCamera ? marblePos : focus);
+      // While building, every pad shows its colour lit; play switches them on by striking them.
+      if (editor.enabled) for (const o of sim.objects) if (o instanceof Pad && !o.lit) o.setLit(true);
       padLights.update(focus);
       debug.update();
       view.render(frameDt);

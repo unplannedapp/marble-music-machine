@@ -15,6 +15,12 @@ import type { MarbleContactEvent } from '../events/EventBus';
  * recoils, and settles back on its own. Off-centre hits rotate it more, which is
  * the "controlled unpredictability" the design calls for. Its rest angle sets
  * where it deflects the marble.
+ *
+ * Pads start switched off: dark, unlit lacquer with only a hint of their
+ * colour. The marble's first strike switches one on, in its own colour, and it
+ * stays lit for the rest of the run, so a played phrase leaves a trail of lit
+ * keys down the wall. A reset switches every pad off again; a checkpoint
+ * respawn keeps the ones the marble has already passed.
  */
 export class Pad extends InteractiveObject<PadDef> {
   private readonly padBody: RAPIER.RigidBody;
@@ -25,7 +31,13 @@ export class Pad extends InteractiveObject<PadDef> {
   private readonly mesh: THREE.Mesh;
   private flash = 0;
   private readonly baseColor: THREE.Color;
-  private readonly baseGlow: number;
+  private readonly offColor: THREE.Color;
+  private readonly litGlow: number;
+  /** Switched on by the marble's first strike this run. */
+  lit = false;
+  /** 0 = off look, 1 = fully on; ramps over a few frames so the switch-on reads. */
+  private on = 0;
+  private dirty = true;
 
   constructor(def: PadDef, ctx: BuildContext) {
     super(def, ctx);
@@ -65,8 +77,11 @@ export class Pad extends InteractiveObject<PadDef> {
     this.inertiaZ = (this.padBody.mass() * (len * len + thick * thick)) / 12;
 
     this.baseColor = new THREE.Color(def.color ?? '#c8783c');
+    // Off: the colour sunk into a dark, barely tinted lacquer, like an unlit lamp.
+    this.offColor = this.baseColor.clone().lerp(new THREE.Color(0x1a191f), 0.86);
     const material = visuals.colored(this.baseColor);
-    this.baseGlow = material.emissiveIntensity;
+    // Even in daylight worlds a switched-on pad glows a little, or the switch would not read.
+    this.litGlow = Math.max(material.emissiveIntensity, 0.22);
     this.mesh = new THREE.Mesh(geometries.unitBox, material);
     this.mesh.scale.set(len, thick, depth);
     this.mesh.castShadow = true;
@@ -106,19 +121,51 @@ export class Pad extends InteractiveObject<PadDef> {
 
   override onMarbleContact(event: MarbleContactEvent): void {
     super.onMarbleContact(event);
+    this.lit = true;
     this.flash = Math.min(1, 0.4 + event.impactSpeed / 8);
+    this.dirty = true;
+  }
+
+  /** Switch the pad on or off directly (the editor shows its colours lit). */
+  setLit(lit: boolean): void {
+    this.lit = lit;
+    this.on = lit ? 1 : 0;
+    this.flash = 0;
+    this.dirty = true;
   }
 
   override renderUpdate(frameDt: number): void {
+    const target = this.lit ? 1 : 0;
+    if (this.on !== target) {
+      // Snap off; switch on over ~0.12 s.
+      this.on = this.lit ? Math.min(1, this.on + frameDt * 8) : 0;
+      this.dirty = true;
+    }
+    if (this.flash > 0) {
+      this.flash = Math.max(0, this.flash - frameDt * 3);
+      this.dirty = true;
+    }
+    if (!this.dirty) return;
+    this.dirty = this.on !== target || this.flash > 0;
     const mat = this.mesh.material as THREE.MeshPhysicalMaterial;
-    if (this.flash <= 0) return;
-    this.flash = Math.max(0, this.flash - frameDt * 3);
-    mat.emissiveIntensity = this.baseGlow + this.flash * 1.2;
+    const k = this.on * this.on * (3 - 2 * this.on);
+    mat.color.copy(this.offColor).lerp(this.baseColor, k);
+    mat.emissiveIntensity = this.litGlow * k + this.flash * 1.2;
+  }
+
+  /** A checkpoint respawn keeps the keys above the respawn point lit: the marble already played them. */
+  override restoreAt(position: THREE.Vector3): void {
+    const keep = this.lit && this.restPos.y > position.y + 0.5;
+    this.reset();
+    if (keep) this.setLit(true);
   }
 
   override reset(): void {
     super.reset();
     this.flash = 0;
+    this.lit = false;
+    this.on = 0;
+    this.dirty = true;
     const q = this.restQuat;
     const p = this.restPos;
     this.padBody.setTranslation({ x: p.x, y: p.y, z: p.z }, true);
