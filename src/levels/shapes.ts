@@ -16,6 +16,13 @@ export interface LoopOptions {
   angle?: number;
   /** Length of the straight lead-in. */
   lead?: number;
+  /**
+   * Height of the lead-in. When the feeder already carries the marble up toward
+   * the camera (a V-groove rail can), the loop needs no lift of its own: the
+   * lead-in stays high, the circle descends to rail height before the
+   * crossing, and the exit is low. Default: lifted by `rise`.
+   */
+  entryZ?: number;
 }
 
 function geometry(entry: [number, number], dir: 1 | -1, o: LoopOptions) {
@@ -51,23 +58,33 @@ export function loopRail(id: string, entry: [number, number], dir: 1 | -1, o: Lo
   const zTop = railZ + rise;
   const r2 = (n: number) => +n.toFixed(3);
   const pts: Vec3Tuple[] = [];
-  // Straight lead-in at rail height: the marble arrives fast, and any lift at
-  // speed costs energy in bounces off the tube walls.
-  for (const f of [0, 0.5, 0.97]) pts.push([r2(entry[0] + g.d[0] * g.lead * f), r2(entry[1] + g.d[1] * g.lead * f), r2(railZ)]);
-  // The circle. The lift toward the camera happens over the top and down the far
-  // side, where the marble is slowest, so that the second pass crosses above the
-  // entry lead-in.
+  const high = o.entryZ !== undefined;
+  const entryZ = o.entryZ ?? railZ;
+  // Straight lead-in starting well behind the entry so a marble arriving there
+  // lands on the side of the floor rod, never on its end.
+  for (const f of [-0.18, 0, 0.5, 0.97]) pts.push([r2(entry[0] + g.d[0] * g.lead * f), r2(entry[1] + g.d[1] * g.lead * f), r2(entryZ)]);
+  // The circle. Fed low, the path lifts toward the camera over the top and down
+  // the far side, where the marble is slowest, so the second pass crosses above
+  // the entry. Fed high (a climbing feeder), it stays high past its right side
+  // (the lead-out runs under it) and eases down over the top instead.
   for (let th = g.thetaT; th <= EXIT_ANGLE + 1e-6; th += CIRCLE_STEP) {
-    const u = Math.min(1, Math.max(0, (th - g.thetaT - 100) / 220));
-    const z = railZ + rise * (u * u * (3 - 2 * u));
+    let z: number;
+    if (high) {
+      const u = Math.min(1, Math.max(0, (th - g.thetaT - 140) / 190));
+      z = entryZ - (entryZ - railZ) * (u * u * (3 - 2 * u));
+    } else {
+      const u = Math.min(1, Math.max(0, (th - g.thetaT - 100) / 220));
+      z = railZ + rise * (u * u * (3 - 2 * u));
+    }
     pts.push([r2(g.cx + g.radius * Math.cos(th * DEG) * dir), r2(g.cy + g.radius * Math.sin(th * DEG)), r2(z)]);
   }
-  // Lead-out stays lifted; the marble leaves the end and the tilt brings it back to the board.
+  // Lead-out: a gentle ski-jump, high when the loop lifted, low when it came down.
+  const outZ = high ? railZ : zTop;
   const edge = g.cx + dir * (g.radius + 0.3);
-  pts.push([r2(edge), r2(g.ey + 0.2), r2(zTop)]);
-  pts.push([r2(edge + dir * 1.2), r2(g.ey + 0.15), r2(zTop)]);
-  pts.push([r2(edge + dir * 2.3), r2(g.ey - 0.25), r2(zTop)]);
-  pts.push([r2(edge + dir * 3.3), r2(g.ey - 0.95), r2(zTop)]);
+  pts.push([r2(edge), r2(g.ey + 0.2), r2(outZ)]);
+  pts.push([r2(edge + dir * 1.2), r2(g.ey + 0.15), r2(outZ)]);
+  pts.push([r2(edge + dir * 2.3), r2(g.ey - 0.25), r2(outZ)]);
+  pts.push([r2(edge + dir * 3.3), r2(g.ey - 0.95), r2(outZ)]);
   return { type: 'rail', id, points: pts, groove: 'curve', lipDeg: 0 };
 }
 

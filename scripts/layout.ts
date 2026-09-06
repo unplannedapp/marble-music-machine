@@ -164,27 +164,44 @@ for (let k = 0; k < steps.length; k++) {
     continue;
   }
   if (step.k === 'loop') {
-    // Loop-the-loop of track: the lead-in starts where the marble is, aimed along
-    // its fall, and the whole figure must complete on the real path. Search the
-    // lead-in angle and length; keep the placement that leaves fastest.
+    // Loop-the-loop of track, fed by its own catch rail: the marble arriving
+    // from a pad is steep and unspun and bounces down a bare lead-in, but a
+    // V-groove rail on its path hands it over rolling. The rail's end sets the
+    // lead-in angle; the loop is searched over lead length and small angle
+    // offsets, and must complete on the real path.
     const dx: 1 | -1 = state.x > 0 ? -1 : 1;
     const x0 = +state.x.toFixed(2);
     const y0 = +state.y.toFixed(2);
-    // A steep, fast arrival bounces down the track; feed a loop from a rail (a
-    // 'rail' step just before), which hands the marble over shallow and rolling.
+    // The catch rail also carries the marble up toward the camera: a V-groove
+    // cradles the ball on two rods, so it climbs without a kick, and the loop
+    // then needs no lift of its own (it descends before its crossing).
+    const RAIL_Z = 0.55;
+    const HIGH_Z = 1.3;
+    const railPts: [number, number, number][] = [
+      [+(x0 - 1.0 * dx).toFixed(2), +(y0 + 0.8).toFixed(2), RAIL_Z],
+      [+(x0 - 0.5 * dx).toFixed(2), +(y0 + 0.25).toFixed(2), RAIL_Z],
+      [+(x0 + 0.5 * dx).toFixed(2), +(y0 - 0.2).toFixed(2), RAIL_Z + 0.1],
+      [+(x0 + 1.4 * dx).toFixed(2), +(y0 - 0.9).toFixed(2), RAIL_Z + 0.42],
+      [+(x0 + 2.3 * dx).toFixed(2), +(y0 - 1.7).toFixed(2), HIGH_Z - 0.05],
+      [+(x0 + 3.0 * dx).toFixed(2), +(y0 - 2.4).toFixed(2), HIGH_Z],
+    ];
+    const feed: RailDef = { type: 'rail', id: `${id}_feed`, points: railPts, instrument: 'none' };
+    const endDir = [railPts[5][0] - railPts[4][0], railPts[5][1] - railPts[4][1]];
+    const endAngle = Math.atan2(-endDir[1], Math.abs(endDir[0])) / DEG;
+    const entry: [number, number] = [+(railPts[5][0] + dx * 0.4).toFixed(2), +(railPts[5][1] - 0.45).toFixed(2)];
     let best: { def: RailDef; f: NonNullable<ReturnType<typeof flight>>; score: number; o: { angle: number; lead: number; radius?: number } } | null = null;
-    for (const angle of [40, 45, 50, 55]) {
-      for (const lead of [4, 5, 6]) {
-        const o = { angle, lead, radius: step.radius };
-        if (Math.abs(x0 + dx * loopSpan(o)) > base.board.width / 2 - 1.2) continue;
-        const cand = loopRail(id, [x0, y0], dx, o);
-        const level2 = { ...base, board: { ...base.board, glass: Math.max(base.board.glass ?? 1.5, 2.2) }, objects: withPlaced([...placed, cand]) };
-        const top = loopTop([x0, y0], o);
-        const exit = loopExit([x0, y0], dx, o);
+    for (const angle of [endAngle - 6, endAngle, endAngle + 6].map((a) => Math.round(Math.min(60, Math.max(35, a))))) {
+      for (const lead of [3, 4]) {
+        const o = { angle, lead, radius: step.radius, entryZ: process.env.LOOP_HIGH ? HIGH_Z - 0.08 : undefined };
+        if (process.env.LOOP_DEBUG && Math.abs(entry[0] + dx * loopSpan(o)) > base.board.width / 2 - 1.0) console.log(`    loop angle ${angle} lead ${lead}: does not fit (reaches x ${(entry[0] + dx * loopSpan(o)).toFixed(1)})`);
+        if (Math.abs(entry[0] + dx * loopSpan(o)) > base.board.width / 2 - 1.0) continue;
+        const cand = loopRail(id, entry, dx, o);
+        const level2 = { ...base, board: { ...base.board, glass: Math.max(base.board.glass ?? 1.5, 2.2) }, objects: withPlaced([...placed, feed, cand]) };
+        const top = loopTop(entry, o);
+        const exit = loopExit(entry, dx, o);
         const f = flight(level2, id, state.t - 0.2, 3.0);
         if (process.env.LOOP_DEBUG) console.log(`    loop try angle ${angle.toFixed(0)} lead ${lead}: ${f ? `climb ${f.climb.toFixed(2)} (need ${(top - 0.35).toFixed(2)}) end (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) t=${f.t.toFixed(2)} exit x ${exit.x.toFixed(2)}` : 'lost'}`);
         if (!f || f.bad) continue;
-        // Completed only if it climbed back over the top after the bottom and came out past the lead-out.
         if (f.climb < top - 0.35) continue;
         if (Math.sign(f.x - exit.x) !== dx && Math.abs(f.x - exit.x) > 0.5) continue;
         const score = -f.t;
@@ -192,16 +209,16 @@ for (let k = 0; k < steps.length; k++) {
       }
     }
     if (!best) {
-      console.log(`${id}: no loop completes from (${x0}, ${y0}) at ${Math.hypot(state.vx, state.vy).toFixed(1)} u/s; give it a longer drop first`);
+      console.log(`${id}: no loop completes after a catch rail at (${x0}, ${y0}); the marble arrives at ${Math.hypot(state.vx, state.vy).toFixed(1)} u/s`);
       break;
     }
     base.board.glass = Math.max(base.board.glass ?? 1.5, 2.2);
     def = best.def;
-    placed.push(def);
-    const exit = loopExit([x0, y0], dx, best.o);
+    placed.push(feed, def);
+    const exit = loopExit(entry, dx, best.o);
     lastY = exit.y;
     afterT = state.t + 0.1;
-    console.log(`${id}: marble at (${x0}, ${y0}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> loop lead-in ${best.o.angle.toFixed(0)}deg x ${best.o.lead}, exit near (${exit.x.toFixed(2)}, ${exit.y.toFixed(2)})`);
+    console.log(`${id}: marble at (${x0}, ${y0}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> catch rail then loop, lead-in ${best.o.angle.toFixed(0)}deg x ${best.o.lead}, exit near (${exit.x.toFixed(2)}, ${exit.y.toFixed(2)})`);
     continue;
   }
   if (step.k === 'spinner') {

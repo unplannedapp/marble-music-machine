@@ -78,10 +78,18 @@ Reconciled against the full specification and the five reference videos.
   for the crossing happens over the top of the loop, where the marble is
   slowest, and must clear the lifted pass's guard rods (rise 0.9). Fed rolling
   along its lead-in at 10 to 12 u/s the loop completes (tests/loop.test.ts).
-  Open problem: a marble arriving from a pad bounce, steep and unspun, bounces
-  down the lead-in and loses too much to make the top; the `loop` layout step
-  therefore rejects every placement in Ode to Joy so far. A dedicated feeder
-  (a V-groove rail handing over shallow and rolling) is the next thing to try.
+  Open problem: feeding it inside a machine. Measured: the loop needs about
+  12 u/s at its bottom after a clean, rolling handover (11 fails). A marble
+  from a pad bounce arrives steep and unspun and loses a third of its energy
+  spinning up; a V-groove catch rail (the `loop` layout step now builds one)
+  hands over rolling but only at 8 to 10 u/s, and the crossing lift costs the
+  rest. Two more lessons: straight runs of a rod chain must be single capsules
+  (the joints of short capsules make a fast marble hop), and the lead-in must
+  start behind the entry so the marble lands on the rod's side, not its end.
+  The natural feeder is the launcher (next in this phase): it fires the marble
+  at a chosen speed, already rolling, straight down the lead-in. The shape also
+  has a high-entry variant (`entryZ`) for a feeder that climbs; untested in a
+  machine.
 - Pipes must sit exactly on the path. A marble that meets a pipe mouth a unit
   off-axis hits the thin mesh rim and is pushed through the wall (it "phases"
   into the pipe). `scripts/pipealign.ts` slides each pipe onto the marble's real

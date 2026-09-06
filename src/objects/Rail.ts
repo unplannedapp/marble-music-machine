@@ -147,9 +147,11 @@ export class Rail extends InteractiveObject<RailDef> {
         guardA.push(centres[i].clone().addScaledVector(zHat, guard + flare).add(lift));
         guardB.push(centres[i].clone().addScaledVector(zHat, -guard).add(lift));
       }
-      for (let i = 0; i < floorRod.length - 1; i++) this.addSegment(body, floorRod[i], floorRod[i + 1], floorR, config.materials.rail);
+      // One capsule per straight run: joints between short capsules nudge a fast
+      // marble, so a straight lead-in becomes a single smooth rod.
+      for (const [a, b] of straightRuns(floorRod)) this.addSegment(body, a, b, floorR, config.materials.rail);
       for (const rod of [guardA, guardB]) {
-        for (let i = 0; i < rod.length - 1; i++) this.addSegment(body, rod[i], rod[i + 1], rodRadius, GUARD_MATERIAL);
+        for (const [a, b] of straightRuns(rod)) this.addSegment(body, a, b, rodRadius, GUARD_MATERIAL);
         this.addRodVisual(rod, rodRadius);
       }
       this.addRodVisual(floorRod, floorR);
@@ -250,6 +252,25 @@ export class Rail extends InteractiveObject<RailDef> {
       }
     }
   }
+}
+
+/** Split a polyline into runs that are straight to within a small angle, as [start, end] pairs. */
+function straightRuns(points: THREE.Vector3[]): [THREE.Vector3, THREE.Vector3][] {
+  const runs: [THREE.Vector3, THREE.Vector3][] = [];
+  if (points.length < 2) return runs;
+  let start = 0;
+  const dir = new THREE.Vector3().subVectors(points[1], points[0]).normalize();
+  const next = new THREE.Vector3();
+  for (let i = 1; i < points.length - 1; i++) {
+    next.subVectors(points[i + 1], points[i]).normalize();
+    if (dir.dot(next) < Math.cos(0.4 * DEG2RAD)) {
+      runs.push([points[start], points[i]]);
+      start = i;
+      dir.copy(next);
+    }
+  }
+  runs.push([points[start], points[points.length - 1]]);
+  return runs;
 }
 
 registerObjectType('rail', (def: ObjectDef, ctx) => new Rail(def as RailDef, ctx));

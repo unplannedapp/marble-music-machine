@@ -12,7 +12,8 @@ const cases: { name: string; rise?: number; cutLeadOut?: boolean; spacing?: numb
   { name: 'full' }, { name: 'no rise', rise: 0 }, { name: 'no lead-out', cutLeadOut: true }, { name: 'no rise, no lead-out', rise: 0, cutLeadOut: true }, { name: 'full, spacing 0.15', spacing: 0.15 },
 ];
 for (const c of cases) {
-  const o = { angle, rise: c.rise };
+  const o = { angle, rise: c.rise, lead: process.env.LEAD ? Number(process.env.LEAD) : undefined, entryZ: process.env.HIGH ? 1.22 : undefined };
+  const z0 = process.env.HIGH ? 1.22 : 0.32;
   const rail: RailDef = loopRail('loop', [-4, 3], 1, o);
   if (c.cutLeadOut) rail.points = rail.points.slice(0, rail.points.length - 4);
   if (c.spacing) rail.sampleSpacing = c.spacing;
@@ -20,8 +21,8 @@ for (const c of cases) {
   const level: LevelDef = { name: 't', board: { width: 16, top: 8, bottom: -40, glass: 2.4 }, spawn: { position: [-4 + Math.cos(a) * 0.4, 3 - Math.sin(a) * 0.4, 0.32], velocity: [Math.cos(a) * speed, -Math.sin(a) * speed, 0] }, killY: -30, finishY: -20, objects: [rail] };
   const sim = new Simulation(); sim.load(level);
   const ar = (arrive * Math.PI) / 180;
-  if (fall) sim.marble.reset(new THREE.Vector3(-4 - Math.cos(ar) * 0.6, 3 + Math.sin(ar) * 0.6, 0.30), new THREE.Vector3(Math.cos(ar) * speed, -Math.sin(ar) * speed, 0), new THREE.Vector3(0, 0, 0));
-  else sim.marble.reset(new THREE.Vector3(-4 + Math.cos(a) * 0.4, 3 - Math.sin(a) * 0.4, 0.32), new THREE.Vector3(Math.cos(a) * speed, -Math.sin(a) * speed, 0), new THREE.Vector3(0, 0, -speed / 0.3));
+  if (fall) sim.marble.reset(new THREE.Vector3(-4 - Math.cos(ar) * 0.6, 3 + Math.sin(ar) * 0.6, 0.30), new THREE.Vector3(Math.cos(ar) * speed, -Math.sin(ar) * speed, 0), new THREE.Vector3(0, 0, process.env.SPIN ? -speed / 0.3 : 0));
+  else sim.marble.reset(new THREE.Vector3(-4 + Math.cos(a) * 0.4, 3 - Math.sin(a) * 0.4, z0), new THREE.Vector3(Math.cos(a) * speed, -Math.sin(a) * speed, 0), new THREE.Vector3(0, 0, -speed / 0.3));
   const dt = config.physics.fixedDt;
   const top = loopTop([-4, 3], o); const exit = loopExit([-4, 3], 1, o);
   let overTop = false, minYBeforeTop = 9, speedTop = 0, exitReached = false, maxZ = 0, lastOn = 0, firstOff = '';

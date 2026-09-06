@@ -14,6 +14,7 @@ describe('loop', () => {
     await initRapier();
     const entry: [number, number] = [-4, 3];
     const angle = 45;
+    const entryZ = 0.32;
     const rail = loopRail('loop', entry, 1, { angle });
     const level: LevelDef = {
       name: 'loop test',
@@ -29,7 +30,7 @@ describe('loop', () => {
     const speed = 12;
     // Enter the track rolling, as the layout feeds it.
     sim.marble.reset(
-      new THREE.Vector3(entry[0] + Math.cos(a) * 0.4, entry[1] - Math.sin(a) * 0.4, 0.32),
+      new THREE.Vector3(entry[0] + Math.cos(a) * 0.4, entry[1] - Math.sin(a) * 0.4, entryZ),
       new THREE.Vector3(Math.cos(a) * speed, -Math.sin(a) * speed, 0),
       new THREE.Vector3(0, 0, -speed / config.marble.radius),
     );
@@ -50,7 +51,7 @@ describe('loop', () => {
       if (on && p.y > top - 0.35 && minY < top - 1.2) overTop = true;
       if (overTop && p.x > exit.x - 0.4 && Math.abs(p.y - exit.y) < 0.6) exited = true;
     }
-    // Lifted toward the camera on the way in, so the entry crosses above the second pass.
+    // Lifted toward the camera over the top, so the second pass crosses above the entry.
     expect(lifted).toBeGreaterThan(0.9);
     expect(overTop).toBe(true);
     expect(exited).toBe(true);
