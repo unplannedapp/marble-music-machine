@@ -61,6 +61,9 @@ export class AudioEngine implements NotePlayer {
     this.roll = { source, filter, gain };
   }
 
+  /** Gain buses of chords scheduled or sounding, so a reset can cut them. */
+  private chords: GainNode[] = [];
+
   get unlocked(): boolean {
     return this.ctx.state === 'running';
   }
@@ -104,6 +107,76 @@ export class AudioEngine implements NotePlayer {
       noise: this.noise,
     };
     playInstrument(event.instrument, voice);
+  }
+
+  /**
+   * Accompaniment chord: soft triangle pad with a slow attack held for the bar,
+   * and a round bass pluck on the given beats. Kept well under the marble's
+   * notes so the pads stay the voice you hear.
+   */
+  playChord(simTime: number, notes: string[], seconds: number, bassBeats: number[]): void {
+    if (!this.unlocked) return;
+    const ctx = this.ctx;
+    const lead = config.audio.leadSeconds;
+    let time = Number.isFinite(this.offset) ? simTime + this.offset + lead : ctx.currentTime + lead;
+    if (time < ctx.currentTime + 0.005) time = ctx.currentTime + 0.005;
+    const level = config.audio.backing;
+    if (level <= 0) return;
+    const bus = ctx.createGain();
+    bus.gain.value = 1;
+    bus.connect(this.dry);
+    bus.connect(this.wet);
+    this.chords.push(bus);
+    const end = time + seconds;
+    for (const name of notes) {
+      const f = noteToFreq(name);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, time);
+      g.gain.linearRampToValueAtTime((level * 0.5) / notes.length, time + 0.25);
+      g.gain.setTargetAtTime((level * 0.32) / notes.length, time + 0.6, 0.6);
+      g.gain.setTargetAtTime(0, end - 0.12, 0.08);
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 900;
+      for (const [type, detune] of [['triangle', -4], ['triangle', 4], ['sine', 0]] as const) {
+        const o = ctx.createOscillator();
+        o.type = type;
+        o.frequency.value = f * (type === 'sine' ? 2 : 1);
+        o.detune.value = detune;
+        o.connect(filter);
+        o.start(time);
+        o.stop(end + 0.5);
+      }
+      filter.connect(g).connect(bus);
+    }
+    // Bass: the chord's root two octaves down, plucked.
+    const root = noteToFreq(notes[0]) / 2;
+    for (const beat of bassBeats) {
+      const at = time + beat;
+      if (at >= end) continue;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(level * 0.9, at + 0.012);
+      g.gain.setTargetAtTime(0, at + 0.05, 0.22);
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(root * 1.5, at);
+      o.frequency.exponentialRampToValueAtTime(root, at + 0.04);
+      o.connect(g).connect(bus);
+      o.start(at);
+      o.stop(at + 1.2);
+    }
+    // Only the last few bars can still be sounding.
+    if (this.chords.length > 8) this.chords.shift();
+  }
+
+  stopChords(): void {
+    const t = this.ctx.currentTime;
+    for (const b of this.chords) {
+      b.gain.cancelScheduledValues(t);
+      b.gain.setTargetAtTime(0, t, 0.03);
+    }
+    this.chords = [];
   }
 
   setRolling(intensity: number, speed: number): void {

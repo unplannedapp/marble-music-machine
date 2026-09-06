@@ -9,11 +9,14 @@
  *   steps: [{ k: 'pad'|'bumper', y?: number, drop?: number, dir: -1|1, exit?: number, note?, color? }]
  *     y     absolute Y where the object meets the marble (first step), or
  *     drop  Y below the previous object's meeting point
- *     dir   -1 sends the marble left, 1 right, 0 reverses whichever way it is actually moving
- *           (a rail ignores it and carries toward the centre)
- *   A 'rail' step is a short catch rail crossing the path, a 'ramp' step a short tilted
- *   shelf: both re-gather the marble so small deviations do not accumulate over a long
- *   run, and their lower end is the next drop origin.
+ *     dir   -1 sends the marble left, 1 right, 0 reverses whichever way it is actually moving,
+ *           'auto' sweeps it across the board and back (a rail runs the marble's own way)
+ *   A 'rail' step lays one of the rail family (shape: short|long|longer|arc|bend|s,
+ *   optional len and slope) where the marble lands, carrying it toward the centre
+ *   (or the way `dir` says); with `time` the length is searched so the marble rolls
+ *   on it for that many seconds, which is how a rest in the music becomes a rail.
+ *   A 'ramp' step is a short tilted shelf. Both re-gather the marble so small
+ *   deviations do not accumulate, and their lower end is the next drop origin.
  *     exit  outgoing elevation in degrees above horizontal (default 15)
  *   prefix  id prefix; existing objects with this prefix are replaced (default "auto_")
  *   afterT  only consider the trajectory after this simulation time
@@ -25,13 +28,13 @@ import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
 import { DEG, solveNormal } from './lib/aim';
-import { loopRail, loopExit, loopTop, loopSpan } from '../src/levels/shapes';
+import { loopRail, loopExit, loopTop, loopSpan, railShape, railShapeLength, type RailShape } from '../src/levels/shapes';
 
 const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher' | 'bowl'; hold?: number; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher' | 'bowl'; hold?: number; y?: number; drop?: number; dir: -1 | 0 | 1 | 'auto'; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number; shape?: RailShape; len?: number; slope?: number; time?: number }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -40,7 +43,7 @@ const bumperRadius = Number(process.env.BUMPER_R ?? 0.45);
 
 await initRapier();
 
-interface State { x: number; y: number; vx: number; vy: number; t: number }
+interface State { x: number; y: number; vx: number; vy: number; t: number; z: number; vz: number; spin: [number, number, number] }
 
 function simulate(level: LevelDef, yTarget: number, after: number): { state: State | null; hits: string[] } {
   const sim = new Simulation();
@@ -60,7 +63,8 @@ function simulate(level: LevelDef, yTarget: number, after: number): { state: Sta
     const p = sim.marble.body.translation();
     const v = sim.marble.body.linvel();
     if (out === null && t > after && p.y <= yTarget && v.y < 0) {
-      out = { x: p.x, y: p.y, vx: v.x, vy: v.y, t };
+      const w = sim.marble.body.angvel();
+      out = { x: p.x, y: p.y, vx: v.x, vy: v.y, t, z: p.z, vz: v.z, spin: [w.x, w.y, w.z] };
       break;
     }
   }
@@ -108,6 +112,60 @@ function flight(level: LevelDef, id: string, after: number, settle = 0.9): { x: 
   return last;
 }
 
+/**
+ * Run until the marble has landed on `id` and left it: when and where did it let
+ * go? A full replay from the spawn, like every other step: the run only stays
+ * consistent while objects are added because the start is steady (a straight
+ * start rail with the marble seated in it; see template.ts).
+ */
+function railRide(level: LevelDef, id: string, after: number): { x: number; y: number; vx: number; vy: number; t: number; landed: number } | null {
+  const sim = new Simulation();
+  sim.load(level);
+  const rail = sim.objects.find((o) => o.id === id);
+  if (!rail) return null;
+  let landed = -1;
+  let bad = false;
+  sim.bus.on('marble:contact', (e) => {
+    if (landed >= 0 && e.object.id.startsWith('wall_')) {
+      bad = true;
+      if (process.env.RAIL_DEBUG) console.log(`      wall at t=${e.simTime.toFixed(2)}`);
+    }
+  });
+  // Dropping past the finish line after the rail is fine (the finish sits
+  // under the lowest object placed so far); losing the marble is not.
+  let done = false;
+  sim.bus.on('marble:reset', (e) => {
+    if (e.reason === 'finished' && landed >= 0) done = true;
+    else {
+      bad = true;
+      if (process.env.RAIL_DEBUG) console.log(`      reset ${e.reason} at t=${e.simTime.toFixed(2)} (landed ${landed >= 0 ? landed.toFixed(2) : 'never'})`);
+    }
+  });
+  const dt = config.physics.fixedDt;
+  let last: ReturnType<typeof railRide> = null;
+  let lastTouch = -1;
+  for (let i = 0; i < 30 / dt; i++) {
+    sim.fixedUpdate(dt);
+    const t = sim.simTime;
+    if (bad || done) break;
+    const touching = sim.physics.isTouching(rail);
+    if (touching && t > after) {
+      if (landed < 0) landed = t;
+      lastTouch = t;
+      const p = sim.marble.body.translation();
+      const v = sim.marble.body.linvel();
+      last = { x: p.x, y: p.y, vx: v.x, vy: v.y, t, landed };
+    }
+    // Gone for good: a quarter second clear of the rail after having ridden it.
+    if (landed >= 0 && !touching && t - lastTouch > 0.25) break;
+  }
+  sim.dispose();
+  if (bad || !last) return null;
+  // Do not count a marble that merely grazed the lip and never rolled.
+  if (last.t - last.landed < 0.08) return null;
+  return last;
+}
+
 const base: LevelFile = JSON.parse(JSON.stringify(playground));
 // Keep the level's object order: placed objects go where the replaced ones were.
 // Insertion order affects the solver, so the tool must simulate the same world
@@ -137,32 +195,85 @@ for (let k = 0; k < steps.length; k++) {
   const speed = Math.hypot(state.vx, state.vy);
   const d: [number, number] = [state.vx / speed, state.vy / speed];
   const exit = step.exit ?? 15;
-  const dir = step.dir === 0 ? (state.vx > 0 ? -1 : 1) : step.dir;
+  // 'auto': sweep across the board. Keep going the way the marble is moving
+  // until it nears the side band, then turn it back; before a rail (which runs
+  // the marble's own way) turn toward the side with the most room.
+  const nextStep = steps[k + 1];
+  const autoDir = (): -1 | 1 => {
+    const edge = base.board.width / 2 - 5.2; // a hop is ~4 wide: turn back before the next one reaches the wall
+    const restAhead = (n: number) => steps[k + n] && steps[k + n].k === 'rail' && steps[k + n].time !== undefined;
+    if (restAhead(1)) {
+      // The rail will run the way this pad sends the marble: send it toward the
+      // side with more room beyond where it lands (a hop is ~3.5 wide).
+      const room = (d: -1 | 1) => base.board.width / 2 - 0.9 - d * (state.x + d * 3.5);
+      return room(1) >= room(-1) ? 1 : -1;
+    }
+    // Two pads before a rest, head outward so the pad before it can send the
+    // marble back across the whole board.
+    if (restAhead(2) && Math.abs(state.x) < edge + 1) return state.x > 0 ? 1 : -1;
+    if (state.x > edge) return -1;
+    if (state.x < -edge) return 1;
+    return state.vx < 0 ? -1 : 1;
+  };
+  const dir = (step.dir as unknown) === 'auto' ? autoDir() : step.dir === 0 ? (state.vx > 0 ? -1 : 1) : step.dir;
   const o: [number, number] = [dir * Math.cos(exit * DEG), Math.sin(exit * DEG)];
   const id = `${prefix}${k + 1}`;
   let def: ObjectDef;
   let angle = 0;
   if (step.k === 'rail') {
-    // Carry toward the board centre so the rail never runs into a wall; a marble
-    // moving away from the centre climbs it, stops, and rolls back.
-    const dx = state.x > 0 ? -1 : 1;
+    // Carry toward the board centre unless told otherwise so the rail never runs
+    // into a wall; a marble moving away from the centre climbs it, stops, and rolls back.
+    const shape: RailShape = step.shape ?? 'short';
+    // A rail runs the way the marble is already going (only pads and pipes turn
+    // it round); a short catch rail may instead face the centre to re-gather it.
+    const dx: 1 | -1 = step.dir === 1 || step.dir === -1 ? step.dir : Math.abs(state.vx) < 1.5 ? (state.x > 0 ? -1 : 1) : state.vx < 0 ? -1 : 1;
+    if (Math.sign(state.vx) === -dx && Math.abs(state.vx) > 1.5) console.log(`${id}: warning, ${shape} rail runs against the marble (vx ${state.vx.toFixed(1)})`);
     const x0 = +state.x.toFixed(2);
     const y0 = +state.y.toFixed(2);
-    // Steep upstream lip: a marble arriving the wrong way stops and turns back quickly.
-    const pts: [number, number, number][] = [
-      [+(x0 - 1.0 * dx).toFixed(2), +(y0 + 0.8).toFixed(2), 0],
-      [+(x0 - 0.5 * dx).toFixed(2), +(y0 + 0.25).toFixed(2), 0],
-      [+(x0 + 0.6 * dx).toFixed(2), +(y0 - 0.2).toFixed(2), 0],
-      [+(x0 + 1.8 * dx).toFixed(2), +(y0 - 0.8).toFixed(2), 0],
-      [+(x0 + 2.6 * dx).toFixed(2), +(y0 - 1.7).toFixed(2), 0],
-    ];
-    const rail: RailDef = { type: 'rail', id, points: pts };
+    const room = base.board.width / 2 - 0.9 - dx * x0; // horizontal room before the wall
+    // A scoop meets the marble along its own line of fall.
+    const entry = +(Math.atan2(-state.vy, Math.abs(state.vx)) / DEG).toFixed(1);
+    const opts = (len: number) => ({ len, slope: step.slope, entry });
+    const fits = (len: number) => {
+      const pts = railShape(id, shape, [x0, y0], dx, opts(len)).points;
+      // Leave room for the hop off the end: a pad placed against the wall is a wall hit.
+      return pts.every((p) => Math.abs(p[0]) < base.board.width / 2 - 2.2);
+    };
+    let best: { len: number; ride: NonNullable<ReturnType<typeof railRide>> } | null = null;
+    if (step.time !== undefined) {
+      // Search the length that keeps the marble rolling for `time` seconds.
+      const lens: number[] = [];
+      for (let len = 1.5; len <= 14; len += 0.5) lens.push(len);
+      for (const len of lens) {
+        if (!fits(len)) continue;
+        const cand = railShape(id, shape, [x0, y0], dx, opts(len));
+        const ride = railRide({ ...base, objects: withPlaced([...placed, cand]) }, id, state.t - 0.1);
+        if (!ride) {
+          if (process.env.RAIL_DEBUG) console.log(`    ${shape} len ${len}: lost`);
+          continue;
+        }
+        // Closest roll time wins; among near-equals the longer rail (a rest should look like one).
+        const err = Math.abs(ride.t - ride.landed - step.time) + 0.01 * (14 - len);
+        if (process.env.RAIL_DEBUG) console.log(`    ${shape} len ${len}: rolls ${(ride.t - ride.landed).toFixed(2)}s, off at (${ride.x.toFixed(2)}, ${ride.y.toFixed(2)})`);
+        if (!best || err < Math.abs(best.ride.t - best.ride.landed - step.time) + 0.01 * (14 - best.len)) best = { len, ride };
+      }
+    } else {
+      const len = step.len ?? Math.min(railShapeLength(shape), Math.max(1.5, room));
+      const cand = railShape(id, shape, [x0, y0], dx, opts(len));
+      const ride = railRide({ ...base, objects: withPlaced([...placed, cand]) }, id, state.t - 0.1);
+      if (ride) best = { len, ride };
+    }
+    if (!best) {
+      console.log(`${id}: no ${shape} rail from (${x0}, ${y0}) carries the marble (room ${room.toFixed(1)})`);
+      break;
+    }
+    const rail = railShape(id, shape, [x0, y0], dx, opts(best.len));
     def = rail;
     placed.push(def);
     stepsDone++;
-    lastY = y0 - 1.7;
-    afterT = state.t + 0.05;
-    console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> rail toward ${dx > 0 ? 'right' : 'left'}, ends at y ${lastY.toFixed(2)}`);
+    lastY = best.ride.y;
+    afterT = best.ride.t - 0.02;
+    console.log(`${id}: marble at (${x0}, ${y0}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ${shape} rail ${best.len} long toward ${dx > 0 ? 'right' : 'left'}, rolls ${(best.ride.t - best.ride.landed).toFixed(2)}s, off at (${best.ride.x.toFixed(2)}, ${best.ride.y.toFixed(2)}) t=${best.ride.t.toFixed(2)}`);
     continue;
   }
   if (step.k === 'bowl') {

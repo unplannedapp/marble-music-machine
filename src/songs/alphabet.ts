@@ -12,6 +12,7 @@ export const alphabetSong: SongDef = {
   bpm: 113,
   key: 'C',
   sections: ['A to G', 'H to P', 'Q to V', 'W to Z', 'Now I know', 'Next time'],
+  backing: { chords: ['C', 'F', 'C', 'G', 'C', 'F', 'C', 'G', 'C', 'F', 'C', 'G', 'C', 'F', 'G', 'C'] },
   events: [
     { beat: 0, object: 'abc_1', note: 'C5', lyric: "A", section: 0 },
     { beat: 1, object: 'abc_2', note: 'C5', lyric: "B", section: 0 },

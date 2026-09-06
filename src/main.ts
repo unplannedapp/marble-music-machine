@@ -10,6 +10,7 @@ import { createMarbleMesh } from './render/marbleVisual';
 import { DebugPanel } from './debug/DebugPanel';
 import { AudioEngine } from './audio/AudioEngine';
 import { MusicSystem } from './audio/MusicSystem';
+import { Backing } from './audio/Backing';
 import { HitEffects } from './render/HitEffects';
 import { ScoreSystem } from './game/Scoring';
 import { Hud } from './ui/Hud';
@@ -58,6 +59,7 @@ async function main(): Promise<void> {
 
   // Song, timing, combo and score.
   let scoring = new ScoreSystem(sim, machine.song);
+  let backing = new Backing(sim, audio, machine.song);
   let flow = new GameFlow(sim, scoring);
   let rings = new TargetRings(sim, scoring);
   view.scene.add(rings.group);
@@ -78,6 +80,8 @@ async function main(): Promise<void> {
     view.applyEnvironment(m.level.environment, m.level.board);
     padLights.setStrength(m.level.environment?.padLight ?? 0);
     scoring = new ScoreSystem(sim, m.song);
+    backing.dispose();
+    backing = new Backing(sim, audio, m.song);
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
     rings.setColor(m.level.environment?.ring ?? '#f0e6c8');
@@ -136,6 +140,8 @@ async function main(): Promise<void> {
     view.applyEnvironment(target.level.environment, target.level.board);
     padLights.setStrength(target.level.environment?.padLight ?? 0);
     scoring = new ScoreSystem(sim, target.song);
+    backing.dispose();
+    backing = new Backing(sim, audio, target.song);
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
     overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
@@ -165,6 +171,7 @@ async function main(): Promise<void> {
       sim.renderUpdate(alpha, frameDt);
       audio.syncClock(sim.simTime);
       music.update();
+      backing.update();
       effects.update(frameDt);
       rings.update(frameDt);
       overlay.update();

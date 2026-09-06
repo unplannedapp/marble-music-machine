@@ -104,6 +104,39 @@ Reconciled against the full specification and the five reference videos.
   (one at a time, in order, until the trace hits everything), then re-bake the
   song and checkpoints.
 
+## Reference pass (after phase 6): layout, camera, rails, backing
+
+Studying the reference clips again, four things separated them from our
+machines and were fixed together:
+
+- **Layout sweeps across the board.** The reference marble zig-zags left to
+  right across the whole screen, a few same-direction hops then a turn; ours
+  fell straight down a narrow column. The layout tool's `dir: 'auto'` now
+  keeps the marble going until it nears the side band, then turns it back,
+  and steers the two pads before a rest so the rail has room. Mary and Joy
+  were re-laid this way.
+- **Camera looks down the board.** Marble high in frame, the next objects
+  laid out below and receding, full sideways follow with lead, a gentle yaw
+  toward the direction of travel.
+- **Rails for the rests.** A family of rail shapes (short, long, longer,
+  arc, bend, s) and a `time` search in the layout tool that picks the length
+  the marble rolls for exactly that long. Lessons: straight stretches must
+  be single capsules (a capsule chain makes a fast marble skip); a V-groove
+  cannot follow a bend that faces down once v^2/R passes the gravity across
+  the path, and cannot hold the marble at all near vertical (no hooks: that
+  is what loops, pipes and pads are for); a scoop must meet the marble along
+  its own line of fall, a lip in front of it kicks a fast marble away; the
+  marble lands more gently, and rolls more predictably, when the drop onto a
+  rail is about 1 unit rather than 2.
+- **The start must be steady.** Any added collider reorders the solver, and
+  hops on the old curved start rail then landed differently, so every layout
+  pass diverged. A straight start rail with the marble seated in it made the
+  replay identical with or without the object being placed.
+- **Only the pads sing.** Strikes on anything else play at less than half
+  velocity, and a chord bed with bass now runs under the machine on the same
+  section-anchored clock the score uses, so the music is continuous and a
+  rest the marble spends on a rail stays in time.
+
 ## Design decisions carried forward
 
 - Musical timing must emerge from geometry. The regular hop period of a zigzag

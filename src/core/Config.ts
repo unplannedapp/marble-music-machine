@@ -66,15 +66,24 @@ export const config = {
     angularDamping: 0.5 * PACE,
   },
   camera: {
-    distance: 14,
-    pitchDeg: 16,
+    distance: 15,
+    /** Looking down the board: what lies ahead recedes below the marble. */
+    pitchDeg: 30,
     lookAheadTime: 0.3,
     smoothTime: 0.28,
     /** How much the camera follows the marble sideways (0 = locked to board center). */
-    xFollow: 0.85,
+    xFollow: 1.0,
+    /** How far ahead of the marble the camera looks sideways, per unit of horizontal speed (capped). */
+    sideLead: 0.35,
+    sideLeadMax: 3.2,
+    /** The frame centre sits this far below the marble, so the marble rides high and the next objects show. */
+    aimBelow: 3.0,
+    /** The camera swings round toward where the marble is heading (degrees per unit of horizontal speed, capped). */
+    yawPerSpeed: 0.9,
+    yawMaxDeg: 7,
     fov: 42,
     /** Board width that must stay visible; on a narrow portrait screen the camera pulls back to keep it. */
-    minVisibleWidth: 7.5,
+    minVisibleWidth: 8.5,
   },
   audio: {
     volume: 0.8,
@@ -87,6 +96,10 @@ export const config = {
     referenceImpact: 11,
     /** Level of the continuous rolling sound on rails. */
     rolling: 0.5,
+    /** Level of the chord bed under the machine (0 = melody only). */
+    backing: 0.34,
+    /** Strikes on anything but a pad are this much quieter: the pads are the voice, the rest is the machine working. */
+    accompanimentLevel: 0.45,
   },
   scoring: {
     /** Timing windows in seconds (absolute delta from the song's expected time). */

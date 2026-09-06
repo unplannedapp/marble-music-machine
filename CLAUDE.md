@@ -36,4 +36,8 @@ the real simulated path and writes the level JSON, `scripts/pipealign.ts` puts p
 the last note the marble drops off the bottom into the dark (`finishY`, by
 default a little under the lowest object) and that fall is the finish. Never hand-edit geometry after
 layout (re-lay instead), and never let the marble free-fall more than ~4 units
-between contacts. `docs/PLAN.md` has the lessons in detail.
+between contacts. Keep the start steady (a straight start rail, the marble
+seated in it): hops there make every layout pass diverge. Lay songs as sweeps
+across the board (`dir: 'auto'`) with rails fitted to the rests (`rail` steps
+with `time`), and use `scripts/experiments/order.ts` to confirm the final
+level strikes every object once, in order. `docs/PLAN.md` has the lessons in detail.

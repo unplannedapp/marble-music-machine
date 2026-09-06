@@ -34,3 +34,10 @@ export interface NotePlayer {
   /** Continuous rolling sound: 0 = silent, 1 = full speed. */
   setRolling(intensity: number, speed: number): void;
 }
+
+/** Plays the accompaniment: a held chord starting at a simulation time. */
+export interface BackingPlayer {
+  playChord(simTime: number, notes: string[], seconds: number, bassBeats: number[]): void;
+  /** Silence every chord still sounding or scheduled (the marble was put back). */
+  stopChords(): void;
+}

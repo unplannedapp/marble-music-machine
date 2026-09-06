@@ -7,12 +7,14 @@ export function blankLevel(name: string): LevelFile {
     name,
     environment: { ...environmentPresets.Slate },
     board: { width: 16, top: 8, bottom: -80 },
-    spawn: { position: [-5, 5.05, 0.55], velocity: [1.2, 0, 0] },
+    spawn: { position: [-5, 4.916, 0.55], velocity: [1.174, -0.247, 0] },
     killY: -76,
     objects: [
       { type: 'wall', id: 'wall_left', position: [-8.2, -36, 0.6], size: [0.4, 92, 1.2], instrument: 'none' },
       { type: 'wall', id: 'wall_right', position: [8.2, -36, 0.6], size: [0.4, 92, 1.2], instrument: 'none' },
-      { type: 'rail', id: 'rail_start', points: [[-5.4, 5, 0], [-3.5, 4.75, 0], [-1.5, 4.2, 0], [0.6, 3.9, 0], [2.2, 3.4, 0]] },
+      // One straight rod pair, no lip, the marble seated in its groove and already
+      // rolling: a start with no hops, so the run is insensitive to what is added later.
+      { type: 'rail', id: 'rail_start', points: [[-5.4, 5, 0], [2.2, 3.4, 0]], lipDeg: 0 },
       { type: 'pad', id: 'pad_1', position: [3.7, 2.3, 0], angle: 53, color: '#d9534f', instrument: 'marimba', note: 'C5' },
       { type: 'pad', id: 'pad_2', position: [1.4, 0.2, 0], angle: -38, color: '#d99a4e', instrument: 'marimba', note: 'E5' },
       { type: 'pad', id: 'pad_3', position: [4.5, -2, 0], angle: 42, color: '#5bc0de', instrument: 'marimba', note: 'G5' },

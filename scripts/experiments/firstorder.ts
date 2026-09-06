@@ -1,0 +1,14 @@
+import { config } from '../../src/core/Config';
+import { Simulation, initRapier } from '../../src/sim/Simulation';
+import { findMachine } from '../../src/machines';
+await initRapier();
+const m = findMachine(process.argv[2] ?? 'mary');
+const sim = new Simulation();
+sim.load(m.level);
+const order: string[] = [];
+sim.bus.on('marble:contact', (e) => { if (!order.includes(e.object.id)) order.push(`${e.object.id}@${e.simTime.toFixed(2)}`); });
+let reason = '';
+sim.bus.on('marble:reset', (e) => (reason = e.reason));
+const dt = config.physics.fixedDt;
+for (let t = 0; t < 40 && !reason; t += dt) sim.fixedUpdate(dt);
+console.log(reason, order.join(' '));

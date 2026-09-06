@@ -3,11 +3,11 @@ import type { Simulation } from '../sim/Simulation';
 import type { SceneRenderer } from '../render/SceneRenderer';
 import type { FollowCamera } from '../render/FollowCamera';
 import type { InteractiveObject } from '../objects/InteractiveObject';
-import type { ObjectDef, PadDef, BumperDef, RampDef, RailDef, PipeDef, SpinnerDef, LauncherDef, BowlDef } from '../levels/LevelTypes';
+import type { ObjectDef, PadDef, BumperDef, RampDef, PipeDef, SpinnerDef, LauncherDef, BowlDef } from '../levels/LevelTypes';
 import type { LevelFile } from '../levels/LevelFormat';
 import { serializeLevel, parseLevel } from '../levels/LevelFormat';
 import { environmentPresets } from '../levels/template';
-import { loopRail } from '../levels/shapes';
+import { loopRail, railShape, type RailShape } from '../levels/shapes';
 import type { InstrumentName } from '../audio/types';
 
 const INSTRUMENTS: InstrumentName[] = ['marimba', 'bell', 'wood', 'metal', 'tube', 'kick', 'snare', 'hihat', 'cymbal', 'pop', 'thud', 'click'];
@@ -60,7 +60,7 @@ export class Editor {
       <div class="ed-bar">
         <div class="ed-palette">
           <button data-add="pad">+ Pad</button><button data-add="bumper">+ Bumper</button>
-          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><button data-add="pipe">+ Pipe</button><button data-add="loop">+ Loop</button><button data-add="spinner">+ Spinner</button><button data-add="bowl">+ Bowl</button><button data-add="launcher">+ Launcher</button>
+          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><select id="ed-railshape" title="Rail shape"><option value="short">short</option><option value="long">long</option><option value="longer">longer</option><option value="arc">arc (scoop)</option><option value="bend">bend</option><option value="s">S-curve</option></select><button data-add="pipe">+ Pipe</button><button data-add="loop">+ Loop</button><button data-add="spinner">+ Spinner</button><button data-add="bowl">+ Bowl</button><button data-add="launcher">+ Launcher</button>
         </div>
         <div class="ed-actions">
           <button id="ed-simulate" class="primary">▶ Simulate</button>
@@ -335,7 +335,10 @@ export class Editor {
     else if (type === 'launcher') def = { type, id: this.freshId('launcher'), position: [x, y, 0], direction: 0, speed: 13, color: '#c9a24a', instrument: 'kick' } as LauncherDef;
     else if (type === 'spinner') def = { type, id: this.freshId('spinner'), position: [x, y, 0], radius: 1.1, blades: 4, rpm: 40, color: COLORS[this.nextId % 7], instrument: 'wood', note: 'C4' } as SpinnerDef;
     else if (type === 'ramp') def = { type, id: this.freshId('ramp'), position: [x, y, 0.45], rotation: [0, 0, -20], size: [4, 0.4, 0.9], instrument: 'wood' } as RampDef;
-    else if (type === 'rail') def = { type, id: this.freshId('rail'), points: [[x - 2, y + 0.5, 0], [x - 0.7, y + 0.2, 0], [x + 0.8, y - 0.3, 0], [x + 2, y - 1, 0]] } as RailDef;
+    else if (type === 'rail') {
+      const shape = (this.panel.querySelector<HTMLSelectElement>('#ed-railshape')?.value ?? 'short') as RailShape;
+      def = railShape(this.freshId('rail'), shape, [x - 1.5, y + 0.5], 1);
+    }
     else if ((type as string) === 'loop') {
       def = loopRail(this.freshId('loop'), [x - 3, y + 1.5], 1);
       // A loop crosses over itself toward the camera: give it room in front of the board.

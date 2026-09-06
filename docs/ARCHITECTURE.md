@@ -99,11 +99,22 @@ compressor and a synthetic-room convolver sit on the master bus, and a looping
 filtered-noise "rolling" voice follows the marble's speed while it rides a
 rail. Audio starts on the first tap, which browsers require.
 
+The pads are the voice: a strike on anything else (rail, bumper, pipe, a
+mechanism) plays at `accompanimentLevel` of its velocity, so the machine is
+heard working under the melody rather than competing with it. Under it all,
+`Backing` lays the full music: a song carries `backing.chords`, one chord
+symbol per bar, and `Backing` schedules a soft chord bed plus bass pluck for
+every bar on the same section-anchored clock the score uses (beat 0 is the
+first strike of a section). A rest the marble spends rolling on a rail keeps
+the chords in step with the notes either side of it; a reset or checkpoint
+respawn cuts the bed and the next strike starts it again. `AudioEngine.playChord`
+is the voice, well under the marble's notes (`config.audio.backing`).
+
 ## Objects
 
 | Object | Physics | Response today |
 | --- | --- | --- |
-| Rail | two rods of capsule colliders forming a V-groove that holds the marble off the board | none (rides) |
+| Rail | two rods of capsule colliders forming a V-groove that holds the marble off the board; every straight stretch is one capsule (a chain of short ones nudges a fast marble at each joint, and it skips). `shapes.ts` has the family the machines are built from: short / long / longer straight runs at a shallow slope, `arc` (a scoop that gathers a falling marble), `bend` (a gentle sweep), `s` (a snake); none goes near vertical, because a V-groove holds the marble only by the gravity across the path | none (rides) |
 | Ramp / Wall | fixed box | none |
 | Bumper | fixed cylinder, high restitution | in-plane impulse kick, cap squash |
 | Pad | dynamic box, translations locked, rotation only about Z, explicit torsion spring + damper applied each step | swings and settles; starts dark and switches on in its own colour at the first strike, staying lit for the run (PadLights only light lit pads; a respawn keeps pads above it lit) |
@@ -137,8 +148,16 @@ neutral room provides reflections for metal and lacquer, a cool rim light draws
 edges, and `PadLights` assigns a small pool of coloured point lights to the pads
 nearest the camera so lit pads spill their colour onto the wall (`padLight`).
 The marble gets no light of its own. Then ACES tone mapping and a post chain of
-MSAA render target, bloom (for what is genuinely bright), vignette and grain.
-Every lever is in the level's `environment`, so a world is graded as data.
+MSAA render target, vignette and grain (no bloom). Every lever is in the level's
+`environment`, so a world is graded as data.
+
+`FollowCamera` frames the machine the way the reference does: it looks down
+the board (`pitchDeg`) at a point `aimBelow` under the marble, so the marble
+rides high in the frame with the next objects laid out below it and receding;
+it pans fully across with the marble and leads toward where it is heading
+(`sideLead`), and swings a few degrees round the marble in the direction of
+travel (`yawPerSpeed`) so a left-right sweep reads as motion. Every axis is
+damped independently.
 
 ## Environment
 
@@ -187,6 +206,16 @@ fix the board  ->  layout.ts (pads / ramps / rails / bumpers on the real path)
 Never hand-edit geometry after layout: even resizing the board shifts
 floating-point contacts enough to diverge a long chain. Change the board,
 re-lay, re-bake.
+
+The start must be steady. Adding any collider anywhere reorders the contact
+solver, and if the marble hops on the start rail those hops land differently,
+so the whole run diverges between layout passes. The template's start is one
+straight rod pair with no lip and the marble seated in its groove, already
+rolling: no hops, and a replay with more objects is the same replay. The
+layout tool's `dir: 'auto'` sweeps the marble across the board and back the
+way the reference machines do; a `rail` step with `time` searches the rail
+length so the marble rolls for that long, which is how a rest in the music
+becomes a rail.
 
 ## Determinism as a tool
 

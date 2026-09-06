@@ -1,0 +1,18 @@
+import { readFileSync } from 'node:fs';
+import { config } from '../../src/core/Config';
+import { Simulation, initRapier } from '../../src/sim/Simulation';
+import { parseLevel } from '../../src/levels/LevelFormat';
+await initRapier();
+const level = parseLevel(JSON.parse(readFileSync(process.argv[2], 'utf8')));
+const prefix = process.argv[3];
+const sim = new Simulation();
+sim.load(level);
+const order: string[] = [];
+sim.bus.on('marble:contact', (e) => { if (e.object.id.startsWith(prefix) && order[order.length - 1] !== e.object.id) order.push(e.object.id); });
+let reason = '';
+sim.bus.on('marble:reset', (e) => (reason = e.reason));
+const dt = config.physics.fixedDt;
+for (let t = 0; t < 40 && !reason; t += dt) sim.fixedUpdate(dt);
+const expected = level.objects.filter((o) => o.id.startsWith(prefix)).map((o) => o.id);
+const ok = JSON.stringify(order) === JSON.stringify(expected);
+console.log(`${reason} after ${sim.simTime.toFixed(2)}s: ${order.length}/${expected.length} objects, order ${ok ? 'exact' : 'DIFFERS: ' + order.join(' ')}`);

@@ -15,12 +15,21 @@ export interface SongEvent {
   section?: number;
 }
 
+/** Accompaniment that plays under the machine: one chord symbol per bar, in song order. */
+export interface BackingDef {
+  /** Chord per bar, e.g. 'C', 'G', 'Am', 'F'. Repeats if the song runs past the end. */
+  chords: string[];
+  /** Beats per bar. Default 4. */
+  beatsPerBar?: number;
+}
+
 export interface SongDef {
   name: string;
   bpm: number;
   key?: string;
   sections?: string[];
   events: SongEvent[];
+  backing?: BackingDef;
 }
 
 export function beatSeconds(song: SongDef, beat: number): number {

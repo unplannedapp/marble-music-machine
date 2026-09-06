@@ -30,8 +30,8 @@
     "bottom": -90
   },
   "spawn": {
-    "position": [-5, 5.05, 0.55],
-    "velocity": [1.2, 0, 0]
+    "position": [-5, 4.916, 0.55],
+    "velocity": [1.174, -0.247, 0]
   },
   "killY": -88,
   "objects": [
@@ -54,258 +54,268 @@
       "id": "rail_start",
       "points": [
         [-5.4, 5, 0],
-        [-3.5, 4.75, 0],
-        [-1.5, 4.2, 0],
-        [0.6, 3.9, 0],
         [2.2, 3.4, 0]
-      ]
+      ],
+      "lipDeg": 0
     },
     {
       "type": "pad",
       "id": "joy_1",
-      "position": [5.46, -2.15, 0],
-      "angle": 38.5,
+      "position": [3.87, 2.32, 0],
+      "angle": 55.5,
       "color": "#d9534f",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_2",
-      "position": [1.16, -3.99, 0],
-      "angle": -45,
+      "position": [2.19, 0.36, 0],
+      "angle": 22.5,
       "color": "#f0ad4e",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_3",
-      "position": [4.12, -5.81, 0],
-      "angle": 42,
+      "position": [-0.15, -1.46, 0],
+      "angle": 16.5,
       "color": "#5bc0de",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "joy_4",
-      "position": [1.26, -7.64, 0],
-      "angle": -42.5,
+      "position": [-3.66, -3.13, 0],
+      "angle": -49,
       "color": "#8e6bd6",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "joy_5",
-      "position": [3.97, -9.45, 0],
-      "angle": 41.5,
+      "position": [-1.22, -5.12, 0],
+      "angle": -19.5,
       "color": "#5cb85c",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "joy_6",
-      "position": [1.29, -11.26, 0],
-      "angle": -41.5,
+      "position": [1.5, -6.99, 0],
+      "angle": -15,
       "color": "#e86fb0",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "joy_7",
-      "position": [3.96, -13.07, 0],
-      "angle": 41.5,
+      "position": [5.3, -8.67, 0],
+      "angle": 50,
       "color": "#f7f7f7",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_8",
-      "position": [1.29, -14.87, 0],
-      "angle": -41.5,
+      "position": [2.77, -10.66, 0],
+      "angle": 19,
       "color": "#2f9e8f",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "joy_9",
-      "position": [3.96, -16.68, 0],
-      "angle": 41.5,
+      "position": [0.07, -12.48, 0],
+      "angle": 15,
       "color": "#d9534f",
       "note": "C5"
     },
     {
       "type": "pad",
       "id": "joy_10",
-      "position": [1.28, -18.56, 0],
-      "angle": -41,
+      "position": [-3.67, -14.17, 0],
+      "angle": -49.5,
       "color": "#f0ad4e",
       "note": "C5"
     },
     {
       "type": "pad",
       "id": "joy_11",
-      "position": [3.98, -20.4, 0],
-      "angle": 41.5,
+      "position": [-1.19, -16.12, 0],
+      "angle": -19.5,
       "color": "#5bc0de",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "joy_12",
-      "position": [1.28, -22.22, 0],
-      "angle": -41.5,
+      "position": [1.49, -17.98, 0],
+      "angle": -15.5,
       "color": "#8e6bd6",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_13",
-      "position": [4.25, -24.89, 0],
-      "angle": 39.5,
+      "position": [5.75, -20.5, 0],
+      "angle": 47,
       "color": "#5cb85c",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_14",
-      "position": [1.37, -26.01, 0],
-      "angle": -47,
+      "position": [3.11, -21.79, 0],
+      "angle": 15.5,
       "color": "#e86fb0",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "joy_15",
-      "position": [3.77, -27.92, 0],
-      "angle": 39.5,
+      "position": [0.66, -23.64, 0],
+      "angle": 16,
       "color": "#f7f7f7",
       "note": "D5"
     },
     {
       "type": "bowl",
       "id": "joy_16",
-      "position": [0.27, -30.74, 0],
+      "position": [-2.37, -26.41, 0],
       "radius": 1.5,
       "hold": 1.06,
       "instrument": "bell",
       "note": "C6"
     },
     {
-      "type": "pad",
+      "type": "rail",
       "id": "joy_17",
-      "position": [1.57, -35.74, 0],
-      "angle": 34,
-      "color": "#2f9e8f",
-      "note": "E5"
+      "points": [
+        [-3.53, -29.85, 0],
+        [-3.03, -30.4, 0],
+        [-2.43, -30.65, 0],
+        [-1.94, -30.77, 0],
+        [-1.46, -30.89, 0],
+        [-0.97, -31.01, 0]
+      ]
     },
     {
       "type": "pad",
       "id": "joy_18",
-      "position": [-1.64, -37.53, 0],
-      "angle": -43.5,
-      "color": "#d9534f",
+      "position": [0.22, -33.31, 0],
+      "angle": -19,
+      "color": "#2f9e8f",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_19",
-      "position": [1.19, -39.4, 0],
-      "angle": 41.5,
+      "position": [3.47, -35, 0],
+      "angle": 47,
+      "color": "#d9534f",
+      "note": "E5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_20",
+      "position": [1.17, -36.99, 0],
+      "angle": 19.5,
       "color": "#f0ad4e",
       "note": "F5"
     },
     {
       "type": "pad",
-      "id": "joy_20",
-      "position": [-1.81, -41.24, 0],
-      "angle": -46.5,
-      "color": "#5bc0de",
-      "note": "G5"
-    },
-    {
-      "type": "pad",
       "id": "joy_21",
-      "position": [1.06, -43.06, 0],
-      "angle": 44.5,
-      "color": "#8e6bd6",
+      "position": [-1.52, -38.84, 0],
+      "angle": 15,
+      "color": "#5bc0de",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "joy_22",
-      "position": [-1.52, -44.9, 0],
-      "angle": -41,
+      "position": [-5.28, -40.52, 0],
+      "angle": -49.5,
+      "color": "#8e6bd6",
+      "note": "G5"
+    },
+    {
+      "type": "pad",
+      "id": "joy_23",
+      "position": [-2.8, -42.47, 0],
+      "angle": -19.5,
       "color": "#5cb85c",
       "note": "F5"
     },
     {
       "type": "pad",
-      "id": "joy_23",
-      "position": [1.16, -46.75, 0],
-      "angle": 41.5,
+      "id": "joy_24",
+      "position": [-0.12, -44.33, 0],
+      "angle": -15.5,
       "color": "#e86fb0",
       "note": "E5"
     },
     {
       "type": "pad",
-      "id": "joy_24",
-      "position": [-1.54, -48.61, 0],
-      "angle": -41,
+      "id": "joy_25",
+      "position": [3.66, -46.06, 0],
+      "angle": 49.5,
       "color": "#f7f7f7",
       "note": "D5"
     },
     {
       "type": "pad",
-      "id": "joy_25",
-      "position": [1.17, -50.45, 0],
-      "angle": 41.5,
+      "id": "joy_26",
+      "position": [1.16, -47.99, 0],
+      "angle": 19,
       "color": "#2f9e8f",
       "note": "C5"
     },
     {
       "type": "pad",
-      "id": "joy_26",
-      "position": [-1.54, -52.27, 0],
-      "angle": -41.5,
+      "id": "joy_27",
+      "position": [-1.48, -49.8, 0],
+      "angle": 15.5,
       "color": "#d9534f",
       "note": "C5"
     },
     {
       "type": "pad",
-      "id": "joy_27",
-      "position": [1.18, -54.14, 0],
-      "angle": 41.5,
+      "id": "joy_28",
+      "position": [-5.18, -51.48, 0],
+      "angle": -50,
       "color": "#f0ad4e",
       "note": "D5"
     },
     {
       "type": "pad",
-      "id": "joy_28",
-      "position": [-1.6, -55.98, 0],
-      "angle": -42,
+      "id": "joy_29",
+      "position": [-2.69, -53.42, 0],
+      "angle": -19,
       "color": "#5bc0de",
       "note": "E5"
     },
     {
       "type": "pad",
-      "id": "joy_29",
-      "position": [1.4, -58.65, 0],
-      "angle": 39.5,
+      "id": "joy_30",
+      "position": [0.34, -56.04, 0],
+      "angle": -17,
       "color": "#8e6bd6",
       "note": "D5"
     },
     {
       "type": "pad",
-      "id": "joy_30",
-      "position": [-1.44, -59.74, 0],
-      "angle": -46.5,
+      "id": "joy_31",
+      "position": [3.98, -57.03, 0],
+      "angle": 54.5,
       "color": "#5cb85c",
       "note": "C5"
     },
     {
       "type": "pad",
-      "id": "joy_31",
-      "position": [0.9, -61.61, 0],
-      "angle": 39.5,
+      "id": "joy_32",
+      "position": [1.68, -59.06, 0],
+      "angle": 20,
       "color": "#e86fb0",
       "note": "C5"
     }
@@ -313,17 +323,17 @@
   "checkpoints": [
     {
       "section": 0,
-      "position": [3.745, 1.946, 0.298],
-      "velocity": [4.394, -7.821, -0.062],
-      "spin": [15.712, 14.127, -14.93],
-      "time": 2.8
+      "position": [1.488, 3.548, 0.549],
+      "velocity": [5.734, -1.284, -0.045],
+      "spin": [2.704, 12.707, -20.352],
+      "time": 1.9417
     },
     {
       "section": 1,
-      "position": [0.719, -32.685, 0.322],
-      "velocity": [1.942, -5.114, -1.966],
-      "spin": [3.47, 3.879, -9.602],
-      "time": 12.675
+      "position": [-0.78, -31.031, 0.483],
+      "velocity": [3.57, -2.029, -0.502],
+      "spin": [2.103, 6.018, -10.5],
+      "time": 12.75
     }
   ]
 }

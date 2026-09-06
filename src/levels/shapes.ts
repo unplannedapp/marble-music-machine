@@ -105,3 +105,94 @@ export function loopSpan(o: LoopOptions = {}): number {
   const g = geometry([0, 0], 1, o);
   return Math.abs(g.cx) + g.radius + 3.6;
 }
+
+// ---- the rail family ---------------------------------------------------------
+
+export type RailShape = 'short' | 'long' | 'longer' | 'arc' | 'bend' | 's';
+export const RAIL_SHAPES: RailShape[] = ['short', 'long', 'longer', 'arc', 'bend', 's'];
+
+export interface RailShapeOptions {
+  /** Length of the rolling part, board units. Each shape has its own default. */
+  len?: number;
+  /** Descent of a straight run below horizontal, degrees. Default 14: gravity is strong here and long rails must stay slow. */
+  slope?: number;
+  /** Arc only: heading below horizontal where the marble lands, degrees, at most 45 (match its descent so it rolls in). Default 45. */
+  entry?: number;
+}
+
+const RAIL_DEFAULT_LEN: Record<RailShape, number> = { short: 2.6, long: 5, longer: 8, arc: 5, bend: 6, s: 8 };
+
+/** Default rolling length of a shape. */
+export function railShapeLength(shape: RailShape): number {
+  return RAIL_DEFAULT_LEN[shape];
+}
+
+/**
+ * Points for one of the family of rails the machines are built from. `start`
+ * is where the marble lands; the rail begins a little upstream with a steep
+ * lip (a marble arriving the wrong way stops and rolls back), then runs
+ * downhill `len` units in direction `dir`:
+ *
+ *   short / long / longer  straight runs at a shallow slope; the marble crosses the board and drops off the end
+ *   arc                    a scoop: steep where the marble lands, curving out to shallow, so a falling marble is
+ *                          gathered and sent across (the bend faces up, gravity presses the marble into it)
+ *   bend                   a gentle sweep that steepens as it goes; gentle because a bend that faces down can
+ *                          only be followed while v^2/R stays under gravity
+ *   s                      a snake: shallow, steeper, shallow again while still travelling `dir`
+ *
+ * A V-groove holds the marble only by the part of gravity across the path, so
+ * no shape here goes near vertical or turns back (that is what a loop track,
+ * pipe or pad is for). The heading is integrated along the length, giving a
+ * smooth Catmull-Rom path the marble follows in its groove.
+ */
+export function railShapePoints(shape: RailShape, start: [number, number], dir: 1 | -1, o: RailShapeOptions = {}): Vec3Tuple[] {
+  const len = o.len ?? RAIL_DEFAULT_LEN[shape];
+  const slope = (o.slope ?? 14) * DEG;
+  const r2 = (n: number) => +n.toFixed(2);
+  const [x0, y0] = start;
+  const entry = Math.min(45, Math.max(20, o.entry ?? 45)) * DEG; // steeper than 45 and a V-groove no longer holds a fast marble
+  // A scoop has no hump at its mouth: it extends straight back along the
+  // marble's own line of arrival, so a fast marble rolls in instead of being
+  // kicked. Other shapes start with a steep lip.
+  const pts: Vec3Tuple[] =
+    shape === 'arc'
+      ? [
+          [r2(x0 - 0.9 * dir * Math.cos(entry)), r2(y0 + 0.9 * Math.sin(entry)), 0],
+          [r2(x0 - 0.4 * dir * Math.cos(entry)), r2(y0 + 0.4 * Math.sin(entry)), 0],
+        ]
+      : [
+          [r2(x0 - 1.0 * dir), r2(y0 + 0.8), 0],
+          [r2(x0 - 0.5 * dir), r2(y0 + 0.25), 0],
+        ];
+  // Heading below horizontal as a function of progress u in [0, 1].
+  const ease = (u: number) => u * u * (3 - 2 * u);
+  const heading = (u: number): number => {
+    switch (shape) {
+      case 'arc':
+        return entry - (entry - 12 * DEG) * ease(u);
+      case 'bend':
+        return (12 + 24 * u) * DEG;
+      case 's':
+        return (24 - 12 * Math.cos(u * Math.PI * 2)) * DEG;
+      default:
+        return slope;
+    }
+  };
+  const n = Math.max(3, Math.round(len / (shape === 'short' || shape === 'long' || shape === 'longer' ? 1.5 : 0.8)));
+  let x = shape === 'arc' ? x0 : x0 + 0.1 * dir;
+  let y = y0;
+  pts.push([r2(x), r2(y), 0]);
+  const ds = len / n;
+  for (let i = 0; i < n; i++) {
+    const h = heading((i + 0.5) / n);
+    x += dir * Math.cos(h) * ds;
+    y -= Math.sin(h) * ds;
+    pts.push([r2(x), r2(y), 0]);
+  }
+  return pts;
+}
+
+/** A rail of the family as a level object. */
+export function railShape(id: string, shape: RailShape, start: [number, number], dir: 1 | -1, o: RailShapeOptions = {}): RailDef {
+  return { type: 'rail', id, points: railShapePoints(shape, start, dir, o) };
+}

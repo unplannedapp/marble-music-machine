@@ -63,7 +63,7 @@ export class Rail extends InteractiveObject<RailDef> {
     const length = curve.getLength();
     // A ribbon track is a polyline of facets: each corner costs the marble the
     // velocity component into it, so a loop needs far finer sampling than rods.
-    const spacing = curveGroove ? (def.sampleSpacing ?? 0.08) : 0.3;
+    const spacing = def.sampleSpacing ?? (curveGroove ? 0.08 : 0.3);
     const samples = Math.max(8, Math.ceil(length / spacing));
     const centres = curve.getSpacedPoints(samples);
 
@@ -175,8 +175,10 @@ export class Rail extends InteractiveObject<RailDef> {
       rodA.push(base.clone().addScaledVector(side, gauge / 2));
       rodB.push(base.clone().addScaledVector(side, -gauge / 2));
     }
+    // Straight stretches are one capsule each: the union of collinear capsules
+    // is the same surface, but a chain of them nudges a fast marble at every joint.
     for (const rod of [rodA, rodB]) {
-      for (let i = 0; i < rod.length - 1; i++) this.addSegment(body, rod[i], rod[i + 1], rodRadius);
+      for (const [a, b] of straightRuns(rod)) this.addSegment(body, a, b, rodRadius);
       this.addRodVisual(rod, rodRadius);
     }
     this.addPosts(rodA, rodB, rodRadius);

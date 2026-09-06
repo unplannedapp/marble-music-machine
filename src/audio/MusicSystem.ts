@@ -61,7 +61,8 @@ export class MusicSystem {
       object: e.object,
       instrument,
       note: def.note ?? null,
-      velocity: velocityFromImpact(e.impactSpeed, config.audio.referenceImpact),
+      // Only the pads sing out; rails, bumpers and mechanisms are heard working, quietly.
+      velocity: velocityFromImpact(e.impactSpeed, config.audio.referenceImpact) * (e.object.type === 'pad' ? 1 : config.audio.accompanimentLevel),
       impactSpeed: e.impactSpeed,
     };
     this.player.play(note);
