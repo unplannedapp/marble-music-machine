@@ -10,7 +10,11 @@ import type { BackingPlayer, NoteEvent, NotePlayer } from '../src/audio/types';
 class Recorder implements NotePlayer, BackingPlayer {
   notes: NoteEvent[] = [];
   chords: { at: number; notes: string[]; seconds: number }[] = [];
+  melody: { at: number; note: string }[] = [];
   stops = 0;
+  playMelody(at: number, note: string): void {
+    this.melody.push({ at, note });
+  }
   play(e: NoteEvent): void {
     this.notes.push(e);
   }
@@ -53,9 +57,16 @@ describe('backing', () => {
     for (let i = 1; i < rec.chords.length; i++) expect(rec.chords[i].at - rec.chords[i - 1].at).toBeGreaterThan(bar - 0.06);
     // The finishing reset cut the bed.
     expect(rec.stops).toBeGreaterThan(0);
-    // Everything that is not a pad is quieter than a pad strike of the same impact.
-    const rail = rec.notes.find((n) => n.object.type === 'rail');
-    if (rail) expect(rail.velocity).toBeLessThan(0.6);
+    // Only objects with a note sound when struck: the rails carry the marble in silence.
+    expect(rec.notes.every((n) => !!n.object.def.note)).toBe(true);
+    expect(rec.notes.some((n) => n.object.type === 'rail')).toBe(false);
+    // The melody line plays on underneath at the song's own beats, after the first strike,
+    // and matches the notes the pads play.
+    const padNotes = rec.notes.filter((n) => n.object.type === 'pad');
+    expect(rec.melody.length).toBe(m.song.events.length - m.song.sections!.length);
+    for (const s of rec.melody) expect(s.at).toBeGreaterThanOrEqual(first.simTime);
+    const byTime = padNotes.map((n) => n.note);
+    for (const s of rec.melody) expect(byTime).toContain(s.note);
     music.dispose();
     backing.dispose();
   });

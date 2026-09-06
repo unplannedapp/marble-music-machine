@@ -170,6 +170,38 @@ export class AudioEngine implements NotePlayer {
     if (this.chords.length > 8) this.chords.shift();
   }
 
+  /** The song's melody, soft and round, so the tune carries on under the machine. */
+  playMelody(simTime: number, note: string, seconds: number): void {
+    if (!this.unlocked) return;
+    const level = config.audio.melody;
+    if (level <= 0) return;
+    const ctx = this.ctx;
+    const lead = config.audio.leadSeconds;
+    let time = Number.isFinite(this.offset) ? simTime + this.offset + lead : ctx.currentTime + lead;
+    if (time < ctx.currentTime + 0.005) time = ctx.currentTime + 0.005;
+    const f = noteToFreq(note);
+    const bus = ctx.createGain();
+    bus.gain.value = 1;
+    bus.connect(this.dry);
+    bus.connect(this.wet);
+    this.chords.push(bus);
+    if (this.chords.length > 12) this.chords.shift();
+    const hold = Math.min(seconds, 1.2);
+    for (const [ratio, amp, decay] of [[1, 0.6, hold], [2, 0.18, hold * 0.5], [3, 0.05, 0.2]] as const) {
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, time);
+      g.gain.linearRampToValueAtTime(level * amp, time + 0.02);
+      g.gain.setTargetAtTime(level * amp * 0.5, time + 0.05, decay * 0.5);
+      g.gain.setTargetAtTime(0, time + hold, 0.1);
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f * ratio;
+      o.connect(g).connect(bus);
+      o.start(time);
+      o.stop(time + hold + 0.6);
+    }
+  }
+
   stopChords(): void {
     const t = this.ctx.currentTime;
     for (const b of this.chords) {

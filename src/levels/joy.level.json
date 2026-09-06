@@ -183,9 +183,7 @@
       "id": "joy_16",
       "position": [-2.37, -26.41, 0],
       "radius": 1.5,
-      "hold": 1.06,
-      "instrument": "bell",
-      "note": "C6"
+      "hold": 1.06
     },
     {
       "type": "rail",

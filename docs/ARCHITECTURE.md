@@ -99,16 +99,17 @@ compressor and a synthetic-room convolver sit on the master bus, and a looping
 filtered-noise "rolling" voice follows the marble's speed while it rides a
 rail. Audio starts on the first tap, which browsers require.
 
-The pads are the voice: a strike on anything else (rail, bumper, pipe, a
-mechanism) plays at `accompanimentLevel` of its velocity, so the machine is
-heard working under the melody rather than competing with it. Under it all,
-`Backing` lays the full music: a song carries `backing.chords`, one chord
-symbol per bar, and `Backing` schedules a soft chord bed plus bass pluck for
-every bar on the same section-anchored clock the score uses (beat 0 is the
-first strike of a section). A rest the marble spends rolling on a rail keeps
-the chords in step with the notes either side of it; a reset or checkpoint
-respawn cuts the bed and the next strike starts it again. `AudioEngine.playChord`
-is the voice, well under the marble's notes (`config.audio.backing`).
+Only an object with a note sounds when struck (`sounds()`): the pads are the
+instrument the marble plays, and a rail, ramp, pipe or mechanism carries the
+marble to the next note in silence (just the quiet rolling noise). The song
+itself never stops: `Backing` plays the full music under the machine on the
+same section-anchored clock the score uses (beat 0 is the first strike of a
+section): a soft chord bed plus bass pluck per bar from `backing.chords`, and
+the melody line itself, softly, at its written beats (`config.audio.melody`),
+so the marble's strike is the bright highlight on a tune that is already
+playing. A rest the marble spends rolling on a rail keeps everything in step
+with the notes either side of it; a reset or checkpoint respawn cuts the bed
+and the next strike starts it again.
 
 ## Objects
 

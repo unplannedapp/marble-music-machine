@@ -11,8 +11,12 @@ import type { InstrumentName, NoteEvent, NotePlayer } from './types';
  *   marble:contact -> instrument + note for that object -> velocity from impact
  *                  -> player.play(...) and a `music:note` event for visuals/score.
  *
- * Which instrument an object plays comes from its level definition; each object
- * type has a sensible default so untagged objects still sound like what they are.
+ * Only an object with a note plays: the pads are the instrument the marble
+ * plays, and everything else (rails, ramps, pipes, mechanisms) is silent as it
+ * guides the marble to the next note, the way the reference machines work; the
+ * full song plays on underneath (Backing), the strike is the highlight. An
+ * object given a note in the level can still be any instrument; the default is
+ * the pad's marimba.
  */
 export const defaultInstrument: Record<string, InstrumentName> = {
   pad: 'marimba',
@@ -25,6 +29,11 @@ export const defaultInstrument: Record<string, InstrumentName> = {
   launcher: 'kick',
   bowl: 'bell',
 };
+
+/** Whether a strike on this object sounds at all: it needs a note, and not `instrument: 'none'`. */
+export function sounds(def: { note?: string; instrument?: string }): boolean {
+  return !!def.note && def.instrument !== 'none';
+}
 
 /** Contacts within this window on the same object are one strike, not a flurry. */
 const RETRIGGER_SECONDS = 0.06;
@@ -46,8 +55,8 @@ export class MusicSystem {
 
   private onContact(e: MarbleContactEvent, bus: EventBus): void {
     const def = e.object.def;
-    const instrument = (def.instrument as InstrumentName | undefined) ?? defaultInstrument[e.object.type];
-    if (!instrument || def.instrument === 'none') return;
+    if (!sounds(def)) return;
+    const instrument = (def.instrument as InstrumentName | undefined) ?? defaultInstrument[e.object.type] ?? 'marimba';
     const last = this.lastNoteTime.get(e.object) ?? -Infinity;
     if (e.simTime - last < RETRIGGER_SECONDS) return;
     // Rails get a faint tick only when landed on, never for every rod segment;
@@ -61,8 +70,7 @@ export class MusicSystem {
       object: e.object,
       instrument,
       note: def.note ?? null,
-      // Only the pads sing out; rails, bumpers and mechanisms are heard working, quietly.
-      velocity: velocityFromImpact(e.impactSpeed, config.audio.referenceImpact) * (e.object.type === 'pad' ? 1 : config.audio.accompanimentLevel),
+      velocity: velocityFromImpact(e.impactSpeed, config.audio.referenceImpact),
       impactSpeed: e.impactSpeed,
     };
     this.player.play(note);

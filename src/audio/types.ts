@@ -38,6 +38,8 @@ export interface NotePlayer {
 /** Plays the accompaniment: a held chord starting at a simulation time. */
 export interface BackingPlayer {
   playChord(simTime: number, notes: string[], seconds: number, bassBeats: number[]): void;
+  /** One note of the song's melody line, soft, under the machine. */
+  playMelody(simTime: number, note: string, seconds: number): void;
   /** Silence every chord still sounding or scheduled (the marble was put back). */
   stopChords(): void;
 }

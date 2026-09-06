@@ -95,11 +95,11 @@ export const config = {
     /** Impact speed that counts as a full-velocity strike. */
     referenceImpact: 11,
     /** Level of the continuous rolling sound on rails. */
-    rolling: 0.5,
-    /** Level of the chord bed under the machine (0 = melody only). */
+    rolling: 0.3,
+    /** Level of the chord bed under the machine (0 = off). */
     backing: 0.34,
-    /** Strikes on anything but a pad are this much quieter: the pads are the voice, the rest is the machine working. */
-    accompanimentLevel: 0.45,
+    /** Level of the song's own melody line played softly under the machine, so the tune never stops; the pad strike is the highlight on top. */
+    melody: 0.3,
   },
   scoring: {
     /** Timing windows in seconds (absolute delta from the song's expected time). */

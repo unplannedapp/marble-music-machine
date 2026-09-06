@@ -330,11 +330,11 @@ export class Editor {
     const y = +f.y.toFixed(2);
     let def: ObjectDef;
     if (type === 'pad') def = { type, id: this.freshId('pad'), position: [x, y, 0], angle: 40, color: COLORS[this.nextId % 7], instrument: 'marimba', note: 'C5' } as PadDef;
-    else if (type === 'bumper') def = { type, id: this.freshId('bumper'), position: [x, y, 0], radius: 0.6, color: '#c9a24a', instrument: 'kick' } as BumperDef;
-    else if (type === 'bowl') def = { type, id: this.freshId('bowl'), position: [x, y - 1.2, 0], radius: 1.5, hold: 1, instrument: 'bell', note: 'C6' } as BowlDef;
-    else if (type === 'launcher') def = { type, id: this.freshId('launcher'), position: [x, y, 0], direction: 0, speed: 13, color: '#c9a24a', instrument: 'kick' } as LauncherDef;
-    else if (type === 'spinner') def = { type, id: this.freshId('spinner'), position: [x, y, 0], radius: 1.1, blades: 4, rpm: 40, color: COLORS[this.nextId % 7], instrument: 'wood', note: 'C4' } as SpinnerDef;
-    else if (type === 'ramp') def = { type, id: this.freshId('ramp'), position: [x, y, 0.45], rotation: [0, 0, -20], size: [4, 0.4, 0.9], instrument: 'wood' } as RampDef;
+    else if (type === 'bumper') def = { type, id: this.freshId('bumper'), position: [x, y, 0], radius: 0.6, color: '#c9a24a' } as BumperDef;
+    else if (type === 'bowl') def = { type, id: this.freshId('bowl'), position: [x, y - 1.2, 0], radius: 1.5, hold: 1 } as BowlDef;
+    else if (type === 'launcher') def = { type, id: this.freshId('launcher'), position: [x, y, 0], direction: 0, speed: 13, color: '#c9a24a' } as LauncherDef;
+    else if (type === 'spinner') def = { type, id: this.freshId('spinner'), position: [x, y, 0], radius: 1.1, blades: 4, rpm: 40, color: COLORS[this.nextId % 7] } as SpinnerDef;
+    else if (type === 'ramp') def = { type, id: this.freshId('ramp'), position: [x, y, 0.45], rotation: [0, 0, -20], size: [4, 0.4, 0.9] } as RampDef;
     else if (type === 'rail') {
       const shape = (this.panel.querySelector<HTMLSelectElement>('#ed-railshape')?.value ?? 'short') as RailShape;
       def = railShape(this.freshId('rail'), shape, [x - 1.5, y + 0.5], 1);
@@ -344,7 +344,7 @@ export class Editor {
       // A loop crosses over itself toward the camera: give it room in front of the board.
       if (this.sim.level) this.sim.level.board.glass = Math.max(this.sim.level.board.glass ?? 1.5, 2.2);
     }
-    else if (type === 'pipe') def = { type, id: this.freshId('pipe'), points: [[x - 1.5, y + 1.2, 0], [x - 0.3, y + 0.2, 0], [x + 1.2, y - 0.8, 0], [x + 1.6, y - 2.4, 0], [x + 0.6, y - 3.6, 0]], color: COLORS[this.nextId % 7], instrument: 'tube', note: 'C4' } as PipeDef;
+    else if (type === 'pipe') def = { type, id: this.freshId('pipe'), points: [[x - 1.5, y + 1.2, 0], [x - 0.3, y + 0.2, 0], [x + 1.2, y - 0.8, 0], [x + 1.6, y - 2.4, 0], [x + 0.6, y - 3.6, 0]], color: COLORS[this.nextId % 7] } as PipeDef;
     else return;
     const obj = this.sim.addObject(def, true);
     this.select(obj);

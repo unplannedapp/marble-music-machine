@@ -132,10 +132,11 @@ machines and were fixed together:
   hops on the old curved start rail then landed differently, so every layout
   pass diverged. A straight start rail with the marble seated in it made the
   replay identical with or without the object being placed.
-- **Only the pads sing.** Strikes on anything else play at less than half
-  velocity, and a chord bed with bass now runs under the machine on the same
-  section-anchored clock the score uses, so the music is continuous and a
-  rest the marble spends on a rail stays in time.
+- **Only the pads sing.** An object without a note makes no sound when the
+  marble climbs or rides it: it is guiding the marble to the next note. The
+  song itself plays continuously (chord bed, bass and a soft melody line on
+  the score's section-anchored clock) and the marble's strike highlights
+  the note, so a rest the marble spends on a rail stays in time.
 
 ## Design decisions carried forward
 

@@ -18,8 +18,11 @@ const CHORD_NOTES: Record<string, string[]> = {
 };
 
 /**
- * The full music under the machine. The melody is what the marble plays on the
- * pads; this lays a soft chord bed and bass under it, in time with the song.
+ * The full music under the machine: the song plays continuously and the marble
+ * highlights its notes. This lays a soft chord bed and bass, and the melody
+ * line itself played softly at its written beats, in time with the song; the
+ * pad strike is the bright note on top. An object the marble merely rides or
+ * climbs makes no sound of its own: it is carrying the marble to the next note.
  * It runs on the same clock the score uses: beat 0 is the first strike of a
  * section, so a rest that the marble spends rolling on a rail keeps the chords
  * exactly in step with the notes either side of it, and every run sounds the
@@ -30,6 +33,8 @@ export class Backing {
   private anchoredSection = -1;
   /** Highest bar index already scheduled on the current anchor. */
   private scheduledBar = -1;
+  /** Index into the song's events of the next melody note to schedule. */
+  private nextEvent = 0;
   /** Start time of the last chord handed to the player, so a re-anchor never doubles a bar. */
   private lastScheduledAt = -Infinity;
   private readonly beatByObject = new Map<string, { beat: number; section: number }>();
@@ -59,8 +64,11 @@ export class Backing {
 
   private onNote(n: NoteEvent): void {
     const target = this.beatByObject.get(n.object.id);
-    if (!target || !this.chords.length) return;
+    if (!target) return;
     if (target.section !== this.anchoredSection || !Number.isFinite(this.anchor)) {
+      // The melody line resumes from this strike's note (already sounding as the strike itself).
+      const idx = this.song.events.findIndex((e) => e.object === n.object.id);
+      this.nextEvent = idx >= 0 ? idx + 1 : this.song.events.length;
       // Re-anchor like the score does; chords already sounding run on to their bar's end.
       this.anchor = n.simTime - beatSeconds(this.song, target.beat);
       this.anchoredSection = target.section;
@@ -72,10 +80,23 @@ export class Backing {
     }
   }
 
-  /** Per frame: schedule the bars that fall inside the lookahead window. */
+  /** Per frame: schedule the melody notes and the bars that fall inside the lookahead window. */
   update(): void {
-    if (!Number.isFinite(this.anchor) || !this.chords.length) return;
+    if (!Number.isFinite(this.anchor)) return;
     const now = this.sim.simTime;
+    const events = this.song.events;
+    while (this.nextEvent < events.length) {
+      const e = events[this.nextEvent];
+      // A later section re-anchors on its own first strike; do not run ahead into it.
+      if ((e.section ?? 0) !== this.anchoredSection) break;
+      const at = this.anchor + beatSeconds(this.song, e.beat);
+      if (at > now + LOOKAHEAD) break;
+      const following = events[this.nextEvent + 1];
+      const seconds = following ? Math.max(0.25, beatSeconds(this.song, following.beat - e.beat)) : beatSeconds(this.song, 2);
+      if (e.note) this.player.playMelody(Math.max(at, now), e.note, seconds);
+      this.nextEvent++;
+    }
+    if (!this.chords.length) return;
     const bar = this.beatsPerBar;
     const lastBar = Math.floor(this.lastBeat / bar) + TAIL_BARS;
     while (this.scheduledBar < lastBar) {
@@ -97,6 +118,7 @@ export class Backing {
     this.anchor = NaN;
     this.anchoredSection = -1;
     this.scheduledBar = -1;
+    this.nextEvent = 0;
     this.lastScheduledAt = -Infinity;
     this.player.stopChords();
   }
