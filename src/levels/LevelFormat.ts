@@ -29,7 +29,7 @@ function fail(path: string, msg: string): never {
   throw new Error(`Level ${path}: ${msg}`);
 }
 
-const OBJECT_TYPES = new Set(['rail', 'ramp', 'wall', 'bumper', 'pad', 'pipe', 'spinner', 'launcher']);
+const OBJECT_TYPES = new Set(['rail', 'ramp', 'wall', 'bumper', 'pad', 'pipe', 'spinner', 'launcher', 'bowl']);
 
 function checkObject(o: unknown, i: number): ObjectDef {
   const path = `objects[${i}]`;

@@ -23,6 +23,7 @@ export const defaultInstrument: Record<string, InstrumentName> = {
   wall: 'thud',
   spinner: 'wood',
   launcher: 'kick',
+  bowl: 'bell',
 };
 
 /** Contacts within this window on the same object are one strike, not a flurry. */
@@ -69,7 +70,7 @@ export class MusicSystem {
 
   /** Per frame: drive the continuous rolling sound from the marble's state. */
   update(): void {
-    const touchingRail = this.sim.objects.some((o) => (o.type === 'rail' || o.type === 'pipe') && this.sim.physics.isTouching(o));
+    const touchingRail = this.sim.objects.some((o) => (o.type === 'rail' || o.type === 'pipe' || o.type === 'bowl') && this.sim.physics.isTouching(o));
     const speed = this.sim.marble.speed();
     this.player.setRolling(touchingRail ? 1 : 0, speed);
   }

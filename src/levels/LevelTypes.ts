@@ -112,7 +112,21 @@ export interface LauncherDef extends BaseObjectDef {
   color?: string;
 }
 
-export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef | SpinnerDef | LauncherDef;
+export interface BowlDef extends BaseObjectDef {
+  type: 'bowl';
+  /** Centre of the bowl's arc. */
+  position: Vec3Tuple;
+  /** Radius of the U. Default 1.5. */
+  radius?: number;
+  /** Seconds from the marble's arrival until the trapdoor opens. Default 1. */
+  hold?: number;
+  /** Half-width of the trapdoor, degrees of arc either side of the bottom. Default 22. */
+  gateDeg?: number;
+  lipDeg?: number;
+  color?: string;
+}
+
+export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef | SpinnerDef | LauncherDef | BowlDef;
 
 /**
  * The look of a machine: every song has its own world in the references, so the

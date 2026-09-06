@@ -181,72 +181,58 @@
       "note": "D5"
     },
     {
-      "type": "rail",
+      "type": "bowl",
       "id": "joy_16",
-      "points": [
-        [0.6, -30.42, 0],
-        [1.86, -30.37, 0],
-        [3.12, -30.31, 0],
-        [4.2, -30.27, 0]
-      ],
-      "groove": "curve",
-      "lipDeg": 0,
-      "instrument": "click"
-    },
-    {
-      "type": "launcher",
-      "id": "joy_16_plunger",
-      "position": [0.7, -30.39, 0],
-      "direction": 2.5,
-      "speed": 8,
-      "hold": 0.5,
-      "instrument": "kick",
-      "color": "#c9a24a"
+      "position": [0.27, -30.74, 0],
+      "radius": 1.5,
+      "hold": 1.06,
+      "instrument": "bell",
+      "note": "C6"
     },
     {
       "type": "pad",
       "id": "joy_17",
-      "position": [6.67, -32.39, 0],
-      "angle": 46,
+      "position": [1.57, -35.74, 0],
+      "angle": 34,
       "color": "#2f9e8f",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_18",
-      "position": [4.09, -34.26, 0],
-      "angle": -39.5,
+      "position": [-1.64, -37.53, 0],
+      "angle": -43.5,
       "color": "#d9534f",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_19",
-      "position": [6.81, -36.05, 0],
-      "angle": 42,
+      "position": [1.19, -39.4, 0],
+      "angle": 41.5,
       "color": "#f0ad4e",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "joy_20",
-      "position": [4.15, -37.9, 0],
-      "angle": -41,
+      "position": [-1.81, -41.24, 0],
+      "angle": -46.5,
       "color": "#5bc0de",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "joy_21",
-      "position": [6.84, -39.71, 0],
-      "angle": 41.5,
+      "position": [1.06, -43.06, 0],
+      "angle": 44.5,
       "color": "#8e6bd6",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "joy_22",
-      "position": [4.16, -41.57, 0],
+      "position": [-1.52, -44.9, 0],
       "angle": -41,
       "color": "#5cb85c",
       "note": "F5"
@@ -254,7 +240,7 @@
     {
       "type": "pad",
       "id": "joy_23",
-      "position": [6.88, -43.43, 0],
+      "position": [1.16, -46.75, 0],
       "angle": 41.5,
       "color": "#e86fb0",
       "note": "E5"
@@ -262,15 +248,15 @@
     {
       "type": "pad",
       "id": "joy_24",
-      "position": [4.16, -45.25, 0],
-      "angle": -41.5,
+      "position": [-1.54, -48.61, 0],
+      "angle": -41,
       "color": "#f7f7f7",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "joy_25",
-      "position": [6.87, -47.1, 0],
+      "position": [1.17, -50.45, 0],
       "angle": 41.5,
       "color": "#2f9e8f",
       "note": "C5"
@@ -278,7 +264,7 @@
     {
       "type": "pad",
       "id": "joy_26",
-      "position": [4.17, -48.9, 0],
+      "position": [-1.54, -52.27, 0],
       "angle": -41.5,
       "color": "#d9534f",
       "note": "C5"
@@ -286,23 +272,23 @@
     {
       "type": "pad",
       "id": "joy_27",
-      "position": [6.84, -50.76, 0],
-      "angle": 41,
+      "position": [1.18, -54.14, 0],
+      "angle": 41.5,
       "color": "#f0ad4e",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "joy_28",
-      "position": [4.14, -52.61, 0],
-      "angle": -41.5,
+      "position": [-1.6, -55.98, 0],
+      "angle": -42,
       "color": "#5bc0de",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "joy_29",
-      "position": [7.14, -55.3, 0],
+      "position": [1.4, -58.65, 0],
       "angle": 39.5,
       "color": "#8e6bd6",
       "note": "D5"
@@ -310,15 +296,15 @@
     {
       "type": "pad",
       "id": "joy_30",
-      "position": [4.27, -56.4, 0],
-      "angle": -47,
+      "position": [-1.44, -59.74, 0],
+      "angle": -46.5,
       "color": "#5cb85c",
       "note": "C5"
     },
     {
       "type": "pad",
       "id": "joy_31",
-      "position": [6.66, -58.31, 0],
+      "position": [0.9, -61.61, 0],
       "angle": 39.5,
       "color": "#e86fb0",
       "note": "C5"
@@ -334,10 +320,10 @@
     },
     {
       "section": 1,
-      "position": [4.728, -30.352, 0.299],
-      "velocity": [5.028, -1.842, -0.046],
-      "spin": [1.188, 12.962, -14.727],
-      "time": 12.4417
+      "position": [0.719, -32.685, 0.322],
+      "velocity": [1.942, -5.114, -1.966],
+      "spin": [3.47, 3.879, -9.602],
+      "time": 12.675
     }
   ]
 }

@@ -109,6 +109,7 @@ rail. Audio starts on the first tap, which browsers require.
 | Pad | dynamic box, translations locked, rotation only about Z, explicit torsion spring + damper applied each step | swings and settles, emissive flash |
 | Pipe | triangle-mesh tube (same mesh the player sees, flared mouths); the marble rolls on the real inner wall | tube note on entry, rolling sound inside |
 | Loop track | a rail with `groove: 'curve'`: one thick floor rod the marble rolls on with its full radius (a V-groove would turn the ball into a flywheel), two slippery guard rods at its equator, ties for the look; the path lifts toward the camera over the top so the second pass crosses above the entry | click on entry, rolling sound |
+| Bowl | a U of gravity-groove rail (same rod placement as Rail) on a fixed body, except a short arc at the bottom whose capsules ride a kinematic body hinged at its left end; the trapdoor swings open a set time after the marble's first contact and closes again | bell on the catch, rolling sound while swinging |
 | Launcher | kinematic plunger head on a fixed axis plus a fixed housing; on the marble's first contact it holds, then travels: constant acceleration to the launch speed over 60% of the stroke, constant speed to the end, ease back; every launch is the same launch | kick on the catch, head and coil spring animate |
 | Spinner | kinematic hub + blade cuboids; angle = phase + rpm x sim time, handed to the physics as the next kinematic pose each step | the blade's own velocity flings the marble; wood note, blade flash |
 

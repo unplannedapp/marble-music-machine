@@ -20,7 +20,7 @@
  */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef, SpinnerDef, LauncherDef } from '../src/levels/LevelTypes';
+import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef, SpinnerDef, LauncherDef, BowlDef } from '../src/levels/LevelTypes';
 import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
@@ -31,7 +31,7 @@ const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher'; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher' | 'bowl'; hold?: number; y?: number; drop?: number; dir: -1 | 0 | 1; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -163,6 +163,33 @@ for (let k = 0; k < steps.length; k++) {
     lastY = y0 - 1.7;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> rail toward ${dx > 0 ? 'right' : 'left'}, ends at y ${lastY.toFixed(2)}`);
+    continue;
+  }
+  if (step.k === 'bowl') {
+    // Funnel bowl under the marble: it drops in on the near rim, swings, and the
+    // trapdoor lets it out of the bottom after the hold. The marble leaves
+    // straight down from the bowl's centre, so the next object goes under it.
+    const radius = step.radius ?? 1.5;
+    const dx = state.x > 0 ? -1 : 1;
+    // Centre the U so the marble, arriving on a diagonal, lands inside the near rim and rolls toward the middle.
+    const cx = +(state.x + dx * radius * 0.55).toFixed(2);
+    const cy = +(state.y - radius * 0.35).toFixed(2);
+    if (Math.abs(cx) + radius > base.board.width / 2 - 0.9) {
+      console.log(`${id}: bowl does not fit at x ${cx}`);
+      break;
+    }
+    const bowl: BowlDef = { type: 'bowl', id, position: [cx, cy, 0], radius, hold: step.hold ?? 1.0, instrument: 'bell', note: step.note ?? 'C6' };
+    const f = flight({ ...base, objects: withPlaced([...placed, bowl]) }, id, state.t - 0.2, (step.hold ?? 1.0) + 0.9);
+    if (!f || f.bad || f.y > cy - radius - 0.3) {
+      console.log(`${id}: bowl at (${cx}, ${cy}) did not release the marble cleanly${f ? ` (ended at ${f.x.toFixed(2)}, ${f.y.toFixed(2)})` : ''}`);
+      break;
+    }
+    def = bowl;
+    placed.push(def);
+    stepsDone++;
+    lastY = cy - radius;
+    afterT = f.t - 0.4;
+    console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> bowl centred (${cx}, ${cy}) r ${radius}, hold ${step.hold ?? 1.0}s, out at (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) t=${f.t.toFixed(2)}`);
     continue;
   }
   if (step.k === 'launcher') {
@@ -393,6 +420,7 @@ for (const o of placed) {
   else if (o.type === 'bumper') console.log(`    { type: 'bumper', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, color: '${o.color}' },`);
   else if (o.type === 'rail') console.log(`    { type: 'rail', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}] },`);
   else if (o.type === 'rail' && o.groove === 'curve') console.log(`    loop track '${o.id}' (${o.points.length} points)`);
+  else if (o.type === 'bowl') console.log(`    { type: 'bowl', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, hold: ${o.hold} },`);
   else if (o.type === 'launcher') console.log(`    { type: 'launcher', id: '${o.id}', position: [${o.position.join(', ')}], direction: ${o.direction}, speed: ${o.speed} },`);
   else if (o.type === 'spinner') console.log(`    { type: 'spinner', id: '${o.id}', position: [${o.position.join(', ')}], rpm: ${o.rpm}, phase: ${o.phase} },`);
   else if (o.type === 'pipe') console.log(`    { type: 'pipe', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}], color: '${o.color}' },`);
