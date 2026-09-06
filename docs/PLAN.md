@@ -138,6 +138,21 @@ machines and were fixed together:
   the score's section-anchored clock) and the marble's strike highlights
   the note, so a rest the marble spends on a rail stays in time.
 
+Follow-ups from the same pass: the side walls are invisible (still solid);
+the Alphabet Song was re-laid the same way on a 20-wide board (seven rails
+for its seven rests, each rolling a full second, the LMNOP eighths as a tight
+stair) with a self-correcting final pass in the layout tool: it replays the
+finished machine, treats a missed object, a return to an earlier one or a pad
+struck twice as a fault, and re-lays from that step with the later objects
+kept in the world; a rest with no board left gets a catch rail first, and a
+rail's lip is now low enough that a marble bouncing off the pad before it
+never meets it. Lessons: the bend shape (a convex sweep) lifts the marble
+off and re-lands it, so the pad after it is unreliable; use it in the editor,
+not in a song. A 16-wide board leaves a mid-board rest only five units of
+run, so rails came out short until the board was widened; and the seesaw joined the mechanisms: a plank that catches the
+marble against a lip, holds it for an exact time, tips, and lets it run off
+the far end. Still to do in phase 6: chain reactions and branching paths.
+
 ## Design decisions carried forward
 
 - Musical timing must emerge from geometry. The regular hop period of a zigzag

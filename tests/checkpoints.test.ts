@@ -14,7 +14,7 @@ describe('level format', () => {
     const level = findMachine('alphabet').level;
     const again = parseLevel(JSON.parse(serializeLevel(level)));
     expect(again.objects.length).toBe(level.objects.length);
-    expect(again.checkpoints?.length).toBe(6);
+    expect(again.checkpoints?.length).toBe(findMachine('alphabet').song.sections!.length);
     expect(() => parseLevel({ ...level, format: 99 })).toThrow(/format/);
     expect(() => parseLevel({ ...level, objects: [{ type: 'pad' }] })).toThrow(/position/);
     expect(() => parseLevel({ ...level, objects: [{ type: 'pad', id: 'a', position: [0, 0, 0] }, { type: 'pad', id: 'a', position: [1, 0, 0] }] })).toThrow(/duplicate/);

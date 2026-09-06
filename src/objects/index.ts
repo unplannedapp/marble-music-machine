@@ -7,6 +7,7 @@ import './Pipe';
 import './Spinner';
 import './Launcher';
 import './Bowl';
+import './Seesaw';
 export { InteractiveObject, createObject, registerObjectType } from './InteractiveObject';
 export { Rail } from './Rail';
 export { Ramp } from './Ramp';

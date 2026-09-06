@@ -27,6 +27,9 @@ export class Ramp extends InteractiveObject<RampDef | WallDef> {
     mesh.scale.set(w, h, d);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    // The side walls keep the marble on the board but are not part of the picture:
+    // the reference machines have no visible edges, and the camera now pans out to them.
+    if (def.type === 'wall') mesh.visible = false;
     this.root.add(mesh);
     this.root.position.copy(pos);
     this.root.quaternion.copy(q);

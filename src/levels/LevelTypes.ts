@@ -126,7 +126,22 @@ export interface BowlDef extends BaseObjectDef {
   color?: string;
 }
 
-export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef | SpinnerDef | LauncherDef | BowlDef;
+export interface SeesawDef extends BaseObjectDef {
+  type: 'seesaw';
+  /** The pivot. */
+  position: Vec3Tuple;
+  /** Which way the marble travels across it: 1 = it arrives from the left. Default 1. */
+  direction?: 1 | -1;
+  /** Plank length. Default 3.6. */
+  length?: number;
+  /** Rest and tipped angle, degrees. Default 12. */
+  tilt?: number;
+  /** Seconds from the marble's arrival until the plank tips. Default 1. */
+  hold?: number;
+  color?: string;
+}
+
+export type ObjectDef = RailDef | RampDef | WallDef | BumperDef | PadDef | PipeDef | SpinnerDef | LauncherDef | BowlDef | SeesawDef;
 
 /**
  * The look of a machine: every song has its own world in the references, so the

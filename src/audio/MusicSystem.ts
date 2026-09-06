@@ -28,6 +28,7 @@ export const defaultInstrument: Record<string, InstrumentName> = {
   spinner: 'wood',
   launcher: 'kick',
   bowl: 'bell',
+  seesaw: 'wood',
 };
 
 /** Whether a strike on this object sounds at all: it needs a note, and not `instrument: 'none'`. */
@@ -79,7 +80,7 @@ export class MusicSystem {
 
   /** Per frame: drive the continuous rolling sound from the marble's state. */
   update(): void {
-    const touchingRail = this.sim.objects.some((o) => (o.type === 'rail' || o.type === 'pipe' || o.type === 'bowl') && this.sim.physics.isTouching(o));
+    const touchingRail = this.sim.objects.some((o) => (o.type === 'rail' || o.type === 'pipe' || o.type === 'bowl' || o.type === 'seesaw') && this.sim.physics.isTouching(o));
     const speed = this.sim.marble.speed();
     this.player.setRolling(touchingRail ? 1 : 0, speed);
   }

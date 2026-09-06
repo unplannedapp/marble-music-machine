@@ -63,7 +63,7 @@ describe.each(machines.map((m) => [m.id, m] as const))('machine %s', (_id, machi
     expect(finished).toBe(true);
     // Guided objects (everything except the walls) in level order, then the drop into the dark.
     // A mechanism's parts (a plunger and its lane) are one station: their mutual order is free.
-    const station = (id: string) => id.replace(/_(plunger|feed)$/, '');
+    const station = (id: string) => id.replace(/_(plunger|feed|catch)$/, '');
     const guided = [...new Set(machine.level.objects.map((o) => station(o.id!)).filter((id) => !/^wall_/.test(id)))];
     expect([...new Set(order.map(station))]).toEqual(guided);
     // The song, note for note.

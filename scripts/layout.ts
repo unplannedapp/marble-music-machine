@@ -23,7 +23,7 @@
  */
 import { config } from '../src/core/Config';
 import { Simulation, initRapier } from '../src/sim/Simulation';
-import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef, SpinnerDef, LauncherDef, BowlDef } from '../src/levels/LevelTypes';
+import type { BumperDef, LevelDef, ObjectDef, PadDef, RailDef, RampDef, PipeDef, SpinnerDef, LauncherDef, BowlDef, SeesawDef } from '../src/levels/LevelTypes';
 import type { LevelFile } from '../src/levels/LevelFormat';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseLevel, serializeLevel } from '../src/levels/LevelFormat';
@@ -34,7 +34,7 @@ const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher' | 'bowl'; hold?: number; y?: number; drop?: number; dir: -1 | 0 | 1 | 'auto'; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number; shape?: RailShape; len?: number; slope?: number; time?: number }
+interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher' | 'bowl' | 'seesaw'; hold?: number; y?: number; drop?: number; dir: -1 | 0 | 1 | 'auto'; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number; shape?: RailShape; len?: number; slope?: number; time?: number }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -183,10 +183,94 @@ let stepsDone = 0;
 const colors = ['#d9534f', '#d99a4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f'];
 const notes = ['C4', 'E4', 'G4', 'C5', 'A4', 'F4', 'D4', 'B4'];
 let lastY = 0;
-for (let k = 0; k < steps.length; k++) {
+/** Per successful step: the drop origin and time the next step started from, and how many objects it placed. */
+const records: { lastY: number; afterT: number; objects: number }[] = [];
+let startK = 0;
+/**
+ * Which placed object the final world fails to strike in order, if any. Later
+ * objects nudge the contact solver enough to shift an earlier bounce by a hair,
+ * so the last pass replays the whole machine and re-lays from the first
+ * object it misses.
+ */
+function firstMissed(): number {
+  const { hits } = simulate({ ...base, objects: withPlaced(placed) }, -1000, 0);
+  const station = (id: string) => id.replace(/_(plunger|feed|catch)$/, '');
+  const order: string[] = [];
+  const lastAt = new Map<string, number>();
+  for (const h of hits) {
+    const [rawId, rest] = h.split('@');
+    const id = station(rawId);
+    if (!id.startsWith(prefix)) continue;
+    const at = Number.parseFloat(rest);
+    // A pad struck twice, well apart, plays its note twice: that is a fault of
+    // the object after it (the marble came back off it) or of the pad's own angle.
+    const prev = lastAt.get(rawId);
+    if (prev !== undefined && at - prev > 0.1 && placed.find((o) => o.id === rawId)?.type === 'pad') {
+      const i = placed.findIndex((o) => o.id === rawId);
+      console.log(`  ${rawId} is struck twice (${(at - prev).toFixed(2)}s apart)`);
+      doubleStruck = i;
+      return i;
+    }
+    lastAt.set(rawId, at);
+    if (order[order.length - 1] !== id) order.push(id);
+  }
+  let cursor = 0;
+  const seen = new Set<string>();
+  for (let i = 0; i < placed.length; i++) {
+    const want = station(placed[i].id!);
+    if (order[cursor] === want) {
+      seen.add(want);
+      cursor++;
+      continue;
+    }
+    // A station's parts may come in either order.
+    if (i > 0 && station(placed[i - 1].id!) === want) continue;
+    // The marble came back to something it had already played: the object
+    // before this one sent it the wrong way, so that is the one to re-place.
+    if (seen.has(order[cursor])) return Math.max(0, i - 1);
+    return i;
+  }
+  return -1;
+}
+/**
+ * In a correction pass, the objects from the previous pass that have not been
+ * re-placed yet. They stay in the world so a re-placed object lands on the
+ * path the finished machine actually has, except those that could stand in
+ * the marble's way before the point being placed: the step's own old copy, the
+ * next step's, and anything not clearly below the target height.
+ */
+let stale: ObjectDef[] = [];
+let currentId = '';
+let nextId = '';
+let currentYTarget = -Infinity;
+const topY = (o: ObjectDef): number => ('points' in o ? Math.max(...o.points.map((q) => q[1])) : o.position[1] + 1.2);
+const world = (p: ObjectDef[]): ObjectDef[] =>
+  withPlaced([
+    ...p,
+    ...stale.filter((o) => !p.some((q) => q.id === o.id) && !o.id!.startsWith(currentId) && !o.id!.startsWith(nextId) && topY(o) < currentYTarget - 1.0),
+  ]);
+const MAX_PASSES = 6;
+let lastMissedId = '';
+/** Index in `placed` of a pad the finished machine strikes twice, if that is the fault found. */
+let doubleStruck = -1;
+let cleanRetry = false;
+for (let pass = 0; pass < MAX_PASSES; pass++) {
+if (pass > 0) {
+  let count = 0;
+  for (let i = 0; i < startK; i++) count += records[i].objects;
+  stale = cleanRetry ? [] : placed.slice(count);
+  placed.length = count;
+  records.length = startK;
+  stepsDone = startK;
+  lastY = startK > 0 ? records[startK - 1].lastY : 0;
+  afterT = startK > 0 ? records[startK - 1].afterT : Number(process.argv[5] ?? 0);
+}
+for (let k = startK; k < steps.length; k++) {
   const step = steps[k];
+  const placedBefore = placed.length;
+  const record = () => records.push({ lastY, afterT, objects: placed.length - placedBefore });
   const yTarget = step.y ?? lastY - (step.drop ?? 1.8);
-  const level = { ...base, objects: withPlaced(placed) };
+  const level = { ...base, objects: world(placed) };
   const { state, hits } = simulate(level, yTarget, afterT);
   if (!state) {
     console.log(`step ${k}: marble never reached y=${yTarget}. Contacts: ${hits.join(' ')}`);
@@ -200,7 +284,7 @@ for (let k = 0; k < steps.length; k++) {
   // the marble's own way) turn toward the side with the most room.
   const nextStep = steps[k + 1];
   const autoDir = (): -1 | 1 => {
-    const edge = base.board.width / 2 - 5.2; // a hop is ~4 wide: turn back before the next one reaches the wall
+    const edge = base.board.width / 2 - 6; // a hop is ~4.3 wide: turn back before the next one reaches the wall
     const restAhead = (n: number) => steps[k + n] && steps[k + n].k === 'rail' && steps[k + n].time !== undefined;
     if (restAhead(1)) {
       // The rail will run the way this pad sends the marble: send it toward the
@@ -208,9 +292,11 @@ for (let k = 0; k < steps.length; k++) {
       const room = (d: -1 | 1) => base.board.width / 2 - 0.9 - d * (state.x + d * 3.5);
       return room(1) >= room(-1) ? 1 : -1;
     }
-    // Two pads before a rest, head outward so the pad before it can send the
-    // marble back across the whole board.
-    if (restAhead(2) && Math.abs(state.x) < edge + 1) return state.x > 0 ? 1 : -1;
+    // Two or three pads before a rest, head outward (a pad may sit closer to the
+    // wall than the sweep band) so the pad before it can send the marble back
+    // across the whole board.
+    if ((restAhead(2) || restAhead(3)) && Math.abs(state.x) < base.board.width / 2 - 5.5) return state.x > 0 ? 1 : -1;
+    if (restAhead(2) || restAhead(3)) return state.x > 0 ? -1 : 1;
     if (state.x > edge) return -1;
     if (state.x < -edge) return 1;
     return state.vx < 0 ? -1 : 1;
@@ -218,6 +304,9 @@ for (let k = 0; k < steps.length; k++) {
   const dir = (step.dir as unknown) === 'auto' ? autoDir() : step.dir === 0 ? (state.vx > 0 ? -1 : 1) : step.dir;
   const o: [number, number] = [dir * Math.cos(exit * DEG), Math.sin(exit * DEG)];
   const id = `${prefix}${k + 1}`;
+  currentId = id;
+  nextId = `${prefix}${k + 2}`;
+  currentYTarget = yTarget;
   let def: ObjectDef;
   let angle = 0;
   if (step.k === 'rail') {
@@ -226,18 +315,44 @@ for (let k = 0; k < steps.length; k++) {
     const shape: RailShape = step.shape ?? 'short';
     // A rail runs the way the marble is already going (only pads and pipes turn
     // it round); a short catch rail may instead face the centre to re-gather it.
-    const dx: 1 | -1 = step.dir === 1 || step.dir === -1 ? step.dir : Math.abs(state.vx) < 1.5 ? (state.x > 0 ? -1 : 1) : state.vx < 0 ? -1 : 1;
+    let dx: 1 | -1 = step.dir === 1 || step.dir === -1 ? step.dir : Math.abs(state.vx) < 1.5 ? (state.x > 0 ? -1 : 1) : state.vx < 0 ? -1 : 1;
     if (Math.sign(state.vx) === -dx && Math.abs(state.vx) > 1.5) console.log(`${id}: warning, ${shape} rail runs against the marble (vx ${state.vx.toFixed(1)})`);
-    const x0 = +state.x.toFixed(2);
-    const y0 = +state.y.toFixed(2);
-    const room = base.board.width / 2 - 0.9 - dx * x0; // horizontal room before the wall
+    let x0 = +state.x.toFixed(2);
+    let y0 = +state.y.toFixed(2);
+    let arrival = state;
+    let room = base.board.width / 2 - 0.9 - dx * x0; // horizontal room before the wall
+    if (step.time !== undefined && room < 7 && (step.dir as unknown) !== 1 && (step.dir as unknown) !== -1) {
+      // Not enough board left in the marble's direction for a rest rail: a short
+      // catch rail facing the centre stops it and sends it back the other way
+      // first, and the rest rail runs from where it comes off.
+      const catchDef = railShape(`${id}_catch`, 'short', [x0, y0], -dx as 1 | -1, { len: 2.2 });
+      const ride = railRide({ ...base, objects: world([...placed, catchDef]) }, catchDef.id!, state.t - 0.1);
+      if (!ride || Math.sign(ride.vx) !== -dx) {
+        console.log(`${id}: no room for a ${shape} rail (${room.toFixed(1)}) and the catch rail does not turn the marble`);
+        break;
+      }
+      placed.push(catchDef);
+      const next = simulate({ ...base, objects: world(placed) }, ride.y - 1.0, ride.t - 0.02);
+      if (!next.state) {
+        console.log(`${id}: marble lost after the catch rail`);
+        break;
+      }
+      arrival = next.state;
+      dx = -dx as 1 | -1;
+      x0 = +arrival.x.toFixed(2);
+      y0 = +arrival.y.toFixed(2);
+      room = base.board.width / 2 - 0.9 - dx * x0;
+      console.log(`${id}_catch: caught at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) and turned ${dx > 0 ? 'right' : 'left'}; rest rail lands at (${x0}, ${y0}) t=${arrival.t.toFixed(2)}`);
+    }
     // A scoop meets the marble along its own line of fall.
-    const entry = +(Math.atan2(-state.vy, Math.abs(state.vx)) / DEG).toFixed(1);
+    const entry = +(Math.atan2(-arrival.vy, Math.abs(arrival.vx)) / DEG).toFixed(1);
     const opts = (len: number) => ({ len, slope: step.slope, entry });
     const fits = (len: number) => {
       const pts = railShape(id, shape, [x0, y0], dx, opts(len)).points;
-      // Leave room for the hop off the end: a pad placed against the wall is a wall hit.
-      return pts.every((p) => Math.abs(p[0]) < base.board.width / 2 - 2.2);
+      // Leave room for the hop off the far end: a pad placed against the wall is a
+      // wall hit. The lip behind the landing may sit nearer the wall; nothing rides it.
+      const end = pts[pts.length - 1];
+      return Math.abs(end[0]) < base.board.width / 2 - 3.2 && pts.every((p) => Math.abs(p[0]) < base.board.width / 2 - 0.7);
     };
     let best: { len: number; ride: NonNullable<ReturnType<typeof railRide>> } | null = null;
     if (step.time !== undefined) {
@@ -247,7 +362,7 @@ for (let k = 0; k < steps.length; k++) {
       for (const len of lens) {
         if (!fits(len)) continue;
         const cand = railShape(id, shape, [x0, y0], dx, opts(len));
-        const ride = railRide({ ...base, objects: withPlaced([...placed, cand]) }, id, state.t - 0.1);
+        const ride = railRide({ ...base, objects: world([...placed, cand]) }, id, arrival.t - 0.1);
         if (!ride) {
           if (process.env.RAIL_DEBUG) console.log(`    ${shape} len ${len}: lost`);
           continue;
@@ -260,7 +375,7 @@ for (let k = 0; k < steps.length; k++) {
     } else {
       const len = step.len ?? Math.min(railShapeLength(shape), Math.max(1.5, room));
       const cand = railShape(id, shape, [x0, y0], dx, opts(len));
-      const ride = railRide({ ...base, objects: withPlaced([...placed, cand]) }, id, state.t - 0.1);
+      const ride = railRide({ ...base, objects: world([...placed, cand]) }, id, arrival.t - 0.1);
       if (ride) best = { len, ride };
     }
     if (!best) {
@@ -273,7 +388,37 @@ for (let k = 0; k < steps.length; k++) {
     stepsDone++;
     lastY = best.ride.y;
     afterT = best.ride.t - 0.02;
-    console.log(`${id}: marble at (${x0}, ${y0}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ${shape} rail ${best.len} long toward ${dx > 0 ? 'right' : 'left'}, rolls ${(best.ride.t - best.ride.landed).toFixed(2)}s, off at (${best.ride.x.toFixed(2)}, ${best.ride.y.toFixed(2)}) t=${best.ride.t.toFixed(2)}`);
+    console.log(`${id}: marble at (${x0}, ${y0}) v=(${arrival.vx.toFixed(2)}, ${arrival.vy.toFixed(2)}) t=${arrival.t.toFixed(2)} -> ${shape} rail ${best.len} long toward ${dx > 0 ? 'right' : 'left'}, rolls ${(best.ride.t - best.ride.landed).toFixed(2)}s, off at (${best.ride.x.toFixed(2)}, ${best.ride.y.toFixed(2)}) t=${best.ride.t.toFixed(2)}`);
+    record();
+    continue;
+  }
+  if (step.k === 'seesaw') {
+    // Plank under the marble's landing point: it lands just past the lip on the
+    // near end, runs up the raised far half, rolls back, and after the hold the
+    // plank tips and lets it off the far end, still travelling the same way.
+    const dxs: 1 | -1 = Math.abs(state.vx) < 1.5 ? (state.x > 0 ? -1 : 1) : state.vx < 0 ? -1 : 1;
+    const half = 3.6 / 2;
+    const tilt = (step.exit ?? 12) * DEG;
+    const px = +(state.x + dxs * (half - 0.45)).toFixed(2);
+    // Surface under the landing point when the near end is down by `tilt`.
+    const py = +(state.y - 0.3 - 0.12 + (half - 0.45) * Math.sin(tilt)).toFixed(2);
+    if (Math.abs(px) + half > base.board.width / 2 - 1.2) {
+      console.log(`${id}: seesaw does not fit at x ${px}`);
+      break;
+    }
+    const seesaw: SeesawDef = { type: 'seesaw', id, position: [px, py, 0], direction: dxs, hold: step.hold ?? 1.0, tilt: step.exit ?? 12 };
+    const f = flight({ ...base, objects: world([...placed, seesaw]) }, id, state.t - 0.1, (step.hold ?? 1.0) + 1.2);
+    if (!f || f.bad || Math.sign(f.vx) !== dxs) {
+      console.log(`${id}: seesaw at (${px}, ${py}) does not carry the marble off its far end${f ? ` (ends at (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) v=(${f.vx.toFixed(1)}, ${f.vy.toFixed(1)}))` : ''}`);
+      break;
+    }
+    def = seesaw;
+    placed.push(def);
+    stepsDone++;
+    lastY = py - half * Math.sin(tilt) - 0.2;
+    afterT = f.t - 0.3;
+    console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> seesaw pivot (${px}, ${py}) arriving from the ${dxs > 0 ? 'left' : 'right'}, hold ${step.hold ?? 1.0}s, off at (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) t=${f.t.toFixed(2)}`);
+    record();
     continue;
   }
   if (step.k === 'bowl') {
@@ -290,7 +435,7 @@ for (let k = 0; k < steps.length; k++) {
       break;
     }
     const bowl: BowlDef = { type: 'bowl', id, position: [cx, cy, 0], radius, hold: step.hold ?? 1.0, instrument: 'bell', note: step.note ?? 'C6' };
-    const f = flight({ ...base, objects: withPlaced([...placed, bowl]) }, id, state.t - 0.2, (step.hold ?? 1.0) + 0.9);
+    const f = flight({ ...base, objects: world([...placed, bowl]) }, id, state.t - 0.2, (step.hold ?? 1.0) + 0.9);
     if (!f || f.bad || f.y > cy - radius - 0.3) {
       console.log(`${id}: bowl at (${cx}, ${cy}) did not release the marble cleanly${f ? ` (ended at ${f.x.toFixed(2)}, ${f.y.toFixed(2)})` : ''}`);
       break;
@@ -301,6 +446,7 @@ for (let k = 0; k < steps.length; k++) {
     lastY = cy - radius;
     afterT = f.t - 0.4;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> bowl centred (${cx}, ${cy}) r ${radius}, hold ${step.hold ?? 1.0}s, out at (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) t=${f.t.toFixed(2)}`);
+    record();
     continue;
   }
   if (step.k === 'launcher') {
@@ -327,7 +473,7 @@ for (let k = 0; k < steps.length; k++) {
     for (const speed of [8, 9, 10, 11]) {
       const plunger: LauncherDef = { type: 'launcher', id: `${id}_plunger`, position: headRest, direction: dx > 0 ? 2.5 : 177.5, speed, hold: 0.5, instrument: 'kick', color: step.color ?? '#c9a24a' };
       const defs: ObjectDef[] = [lane, plunger];
-      const level2 = { ...base, objects: withPlaced([...placed, ...defs]) };
+      const level2 = { ...base, objects: world([...placed, ...defs]) };
       const f = flight(level2, `${id}_plunger`, state.t - 0.2, 1.6);
       if (process.env.LOOP_DEBUG) console.log(`    launcher try speed ${speed}: ${f ? `end (${f.x.toFixed(2)}, ${f.y.toFixed(2)}) v=(${f.vx.toFixed(1)}, ${f.vy.toFixed(1)}) t=${f.t.toFixed(2)}` : 'lost'}`);
       if (!f || f.bad) continue;
@@ -346,6 +492,7 @@ for (let k = 0; k < steps.length; k++) {
     lastY = laneEnd[1];
     afterT = best.f.t - 0.9;
     console.log(`${id}: marble at (${x0}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> caught by a plunger at (${headRest[0]}, ${headRest[1]}), fired ${dx > 0 ? 'right' : 'left'} at speed ${best.speed}, lane ends at (${laneEnd[0]}, ${laneEnd[1]})`);
+    record();
     continue;
   }
   if (step.k === 'loop') {
@@ -381,7 +528,7 @@ for (let k = 0; k < steps.length; k++) {
         if (process.env.LOOP_DEBUG && Math.abs(entry[0] + dx * loopSpan(o)) > base.board.width / 2 - 1.0) console.log(`    loop angle ${angle} lead ${lead}: does not fit (reaches x ${(entry[0] + dx * loopSpan(o)).toFixed(1)})`);
         if (Math.abs(entry[0] + dx * loopSpan(o)) > base.board.width / 2 - 1.0) continue;
         const cand = loopRail(id, entry, dx, o);
-        const level2 = { ...base, board: { ...base.board, glass: Math.max(base.board.glass ?? 1.5, 2.2) }, objects: withPlaced([...placed, feed, cand]) };
+        const level2 = { ...base, board: { ...base.board, glass: Math.max(base.board.glass ?? 1.5, 2.2) }, objects: world([...placed, feed, cand]) };
         const top = loopTop(entry, o);
         const exit = loopExit(entry, dx, o);
         const f = flight(level2, id, state.t - 0.2, 3.0);
@@ -405,6 +552,7 @@ for (let k = 0; k < steps.length; k++) {
     lastY = exit.y;
     afterT = state.t + 0.1;
     console.log(`${id}: marble at (${x0}, ${y0}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> catch rail then loop, lead-in ${best.o.angle.toFixed(0)}deg x ${best.o.lead}, exit near (${exit.x.toFixed(2)}, ${exit.y.toFixed(2)})`);
+    record();
     continue;
   }
   if (step.k === 'spinner') {
@@ -421,7 +569,7 @@ for (let k = 0; k < steps.length; k++) {
     for (const sign of [1, -1]) {
       for (let phase = 0; phase < 360 / blades; phase += 3) {
         const cand: SpinnerDef = { type: 'spinner', id, position: [cx, cy, 0], radius, blades, rpm: sign * rpm, phase, color: step.color ?? '#e0533d', instrument: 'wood', note: step.note ?? 'C4' };
-        const f = flight({ ...base, objects: withPlaced([...placed, cand]) }, id, state.t - 0.2);
+        const f = flight({ ...base, objects: world([...placed, cand]) }, id, state.t - 0.2);
         if (!f || f.bad || f.vy >= 0 || Math.abs(f.x) > base.board.width / 2 - 2.5) continue;
         const toward = Math.sign(f.x - cx) === dx || Math.abs(f.x) < 1.5 ? 1 : 0;
         const score = (f.top - cy) + toward * 2 - Math.abs(f.x) * 0.15;
@@ -438,6 +586,7 @@ for (let k = 0; k < steps.length; k++) {
     lastY = best.f.y;
     afterT = best.f.t - 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) t=${state.t.toFixed(2)} -> spinner at (${cx}, ${cy}) rpm ${best.def.rpm} phase ${best.def.phase}, lob to y ${best.f.top.toFixed(2)}, lands toward (${best.f.x.toFixed(2)}, ${best.f.y.toFixed(2)}) v=(${best.f.vx.toFixed(2)}, ${best.f.vy.toFixed(2)})`);
+    record();
     continue;
   }
   if (step.k === 'pipe') {
@@ -459,6 +608,7 @@ for (let k = 0; k < steps.length; k++) {
     lastY = y0 - 4.3;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> pipe toward ${dx > 0 ? 'right' : 'left'}, exit at y ${lastY.toFixed(2)}`);
+    record();
     continue;
   }
   if (step.k === 'ramp') {
@@ -481,6 +631,7 @@ for (let k = 0; k < steps.length; k++) {
     lastY = cy - (len / 2) * Math.sin(theta) + 0.2;
     afterT = state.t + 0.05;
     console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ramp toward ${dx > 0 ? 'right' : 'left'}, lower end at y ${lastY.toFixed(2)}`);
+    record();
     continue;
   }
   if (step.k === 'pad') {
@@ -510,6 +661,44 @@ for (let k = 0; k < steps.length; k++) {
   lastY = state.y;
   afterT = state.t + 0.05;
   console.log(`${id}: marble at (${state.x.toFixed(2)}, ${state.y.toFixed(2)}) v=(${state.vx.toFixed(2)}, ${state.vy.toFixed(2)}) t=${state.t.toFixed(2)} -> ${step.k} normal ${angle}deg`);
+  record();
+}
+if (stepsDone < steps.length) {
+  if (stale.length) {
+    // An old object stood in the new path: re-lay the same steps in a clean world.
+    console.log(`\npass ${pass + 1} could not finish with the old objects kept; re-laying from step ${startK} without them`);
+    cleanRetry = true;
+    pass--;
+    continue;
+  }
+  break;
+}
+stale = [];
+cleanRetry = false;
+doubleStruck = -1;
+const missed = firstMissed();
+if (missed < 0) break;
+if (doubleStruck >= 0) {
+  // Re-laying the same step in the same world gives the same pad: change its
+  // exit angle a little so the marble leaves it differently.
+  let acc2 = 0;
+  let sk = 0;
+  while (sk < records.length && acc2 + records[sk].objects <= missed) acc2 += records[sk++].objects;
+  steps[sk].exit = (steps[sk].exit ?? 15) + 4;
+  console.log(`  ${placed[missed].id}: exit raised to ${steps[sk].exit} degrees`);
+  lastMissedId = '';
+}
+if (placed[missed].id === lastMissedId) {
+  console.log(`\npass ${pass + 1}: the finished machine still misses ${lastMissedId}; keeping this layout`);
+  break;
+}
+lastMissedId = placed[missed].id!;
+// Map the missed object back to its step and re-lay from there.
+let acc = 0;
+startK = 0;
+while (startK < records.length && acc + records[startK].objects <= missed) acc += records[startK++].objects;
+console.log(`\npass ${pass + 1}: the finished machine misses ${lastMissedId}; re-laying from step ${startK}`);
+if (pass === MAX_PASSES - 1) console.log(`giving up after ${MAX_PASSES} passes`);
 }
 
 const final: LevelFile = { ...base, objects: withPlaced(placed) };
@@ -532,6 +721,7 @@ for (const o of placed) {
   else if (o.type === 'rail') console.log(`    { type: 'rail', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}] },`);
   else if (o.type === 'rail' && o.groove === 'curve') console.log(`    loop track '${o.id}' (${o.points.length} points)`);
   else if (o.type === 'bowl') console.log(`    { type: 'bowl', id: '${o.id}', position: [${o.position.join(', ')}], radius: ${o.radius}, hold: ${o.hold} },`);
+  else if (o.type === 'seesaw') console.log(`    { type: 'seesaw', id: '${o.id}', position: [${o.position.join(', ')}], direction: ${o.direction}, hold: ${o.hold} },`);
   else if (o.type === 'launcher') console.log(`    { type: 'launcher', id: '${o.id}', position: [${o.position.join(', ')}], direction: ${o.direction}, speed: ${o.speed} },`);
   else if (o.type === 'spinner') console.log(`    { type: 'spinner', id: '${o.id}', position: [${o.position.join(', ')}], rpm: ${o.rpm}, phase: ${o.phase} },`);
   else if (o.type === 'pipe') console.log(`    { type: 'pipe', id: '${o.id}', points: [${o.points.map((p) => `[${p.join(', ')}]`).join(', ')}], color: '${o.color}' },`);

@@ -3,7 +3,7 @@ import type { Simulation } from '../sim/Simulation';
 import type { SceneRenderer } from '../render/SceneRenderer';
 import type { FollowCamera } from '../render/FollowCamera';
 import type { InteractiveObject } from '../objects/InteractiveObject';
-import type { ObjectDef, PadDef, BumperDef, RampDef, PipeDef, SpinnerDef, LauncherDef, BowlDef } from '../levels/LevelTypes';
+import type { ObjectDef, PadDef, BumperDef, RampDef, PipeDef, SpinnerDef, LauncherDef, BowlDef, SeesawDef } from '../levels/LevelTypes';
 import type { LevelFile } from '../levels/LevelFormat';
 import { serializeLevel, parseLevel } from '../levels/LevelFormat';
 import { environmentPresets } from '../levels/template';
@@ -60,7 +60,7 @@ export class Editor {
       <div class="ed-bar">
         <div class="ed-palette">
           <button data-add="pad">+ Pad</button><button data-add="bumper">+ Bumper</button>
-          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><select id="ed-railshape" title="Rail shape"><option value="short">short</option><option value="long">long</option><option value="longer">longer</option><option value="arc">arc (scoop)</option><option value="bend">bend</option><option value="s">S-curve</option></select><button data-add="pipe">+ Pipe</button><button data-add="loop">+ Loop</button><button data-add="spinner">+ Spinner</button><button data-add="bowl">+ Bowl</button><button data-add="launcher">+ Launcher</button>
+          <button data-add="ramp">+ Ramp</button><button data-add="rail">+ Rail</button><select id="ed-railshape" title="Rail shape"><option value="short">short</option><option value="long">long</option><option value="longer">longer</option><option value="arc">arc (scoop)</option><option value="bend">bend</option><option value="s">S-curve</option></select><button data-add="pipe">+ Pipe</button><button data-add="loop">+ Loop</button><button data-add="spinner">+ Spinner</button><button data-add="bowl">+ Bowl</button><button data-add="seesaw">+ Seesaw</button><button data-add="launcher">+ Launcher</button>
         </div>
         <div class="ed-actions">
           <button id="ed-simulate" class="primary">▶ Simulate</button>
@@ -264,6 +264,12 @@ export class Editor {
       `<label>Size <input data-k="radius" type="range" min="1" max="2.4" step="0.05" value="${d.radius ?? 1.5}"><span>${d.radius ?? 1.5}</span></label>`,
       `<label>Hold <input data-k="hold" type="range" min="0.3" max="3" step="0.1" value="${d.hold ?? 1}"><span>${d.hold ?? 1}</span></label>`,
     );
+    if (d.type === 'seesaw') rows.push(
+      `<label>Hold <input data-k="hold" type="range" min="0.3" max="3" step="0.1" value="${d.hold ?? 1}"><span>${d.hold ?? 1}</span></label>`,
+      `<label>Tilt <input data-k="tilt" type="range" min="6" max="20" step="0.5" value="${d.tilt ?? 12}"><span>${d.tilt ?? 12}°</span></label>`,
+      `<label>Length <input data-k="length" type="range" min="2.4" max="5" step="0.1" value="${d.length ?? 3.6}"><span>${d.length ?? 3.6}</span></label>`,
+      `<label>Arrives from <select data-k="direction"><option value="1" ${(d.direction ?? 1) === 1 ? 'selected' : ''}>left</option><option value="-1" ${d.direction === -1 ? 'selected' : ''}>right</option></select></label>`,
+    );
     if (d.type === 'launcher') rows.push(
       `<label>Aim <input data-k="direction" type="range" min="-180" max="180" step="5" value="${d.direction ?? 0}"><span>${d.direction ?? 0}°</span></label>`,
       `<label>Speed <input data-k="speed" type="range" min="4" max="20" step="0.5" value="${d.speed ?? 13}"><span>${d.speed ?? 13}</span></label>`,
@@ -299,15 +305,15 @@ export class Editor {
     const num = Number(value);
     switch (key) {
       case 'angle': (def as PadDef).angle = num; break;
-      case 'tilt': (def as RampDef).rotation = [0, 0, num]; break;
-      case 'length': (def as RampDef).size = [num, (def as RampDef).size[1], (def as RampDef).size[2]]; break;
+      case 'tilt': if (def.type === 'seesaw') def.tilt = num; else (def as RampDef).rotation = [0, 0, num]; break;
+      case 'length': if (def.type === 'seesaw') def.length = num; else (def as RampDef).size = [num, (def as RampDef).size[1], (def as RampDef).size[2]]; break;
       case 'radius': (def as BumperDef | SpinnerDef | BowlDef).radius = num; break;
       case 'rpm': (def as SpinnerDef).rpm = num; break;
       case 'blades': (def as SpinnerDef).blades = num; break;
       case 'phase': (def as SpinnerDef).phase = num; break;
-      case 'direction': (def as LauncherDef).direction = num; break;
+      case 'direction': if (def.type === 'seesaw') def.direction = num < 0 ? -1 : 1; else (def as LauncherDef).direction = num; break;
       case 'speed': (def as LauncherDef).speed = num; break;
-      case 'hold': (def as LauncherDef | BowlDef).hold = num; break;
+      case 'hold': (def as LauncherDef | BowlDef | SeesawDef).hold = num; break;
       case 'instrument': def.instrument = value; break;
       case 'note': def.note = value; break;
       case 'color': (def as PadDef).color = value; break;
@@ -332,6 +338,7 @@ export class Editor {
     if (type === 'pad') def = { type, id: this.freshId('pad'), position: [x, y, 0], angle: 40, color: COLORS[this.nextId % 7], instrument: 'marimba', note: 'C5' } as PadDef;
     else if (type === 'bumper') def = { type, id: this.freshId('bumper'), position: [x, y, 0], radius: 0.6, color: '#c9a24a' } as BumperDef;
     else if (type === 'bowl') def = { type, id: this.freshId('bowl'), position: [x, y - 1.2, 0], radius: 1.5, hold: 1 } as BowlDef;
+    else if (type === 'seesaw') def = { type, id: this.freshId('seesaw'), position: [x, y - 0.6, 0], hold: 1, direction: 1 } as SeesawDef;
     else if (type === 'launcher') def = { type, id: this.freshId('launcher'), position: [x, y, 0], direction: 0, speed: 13, color: '#c9a24a' } as LauncherDef;
     else if (type === 'spinner') def = { type, id: this.freshId('spinner'), position: [x, y, 0], radius: 1.1, blades: 4, rpm: 40, color: COLORS[this.nextId % 7] } as SpinnerDef;
     else if (type === 'ramp') def = { type, id: this.freshId('ramp'), position: [x, y, 0.45], rotation: [0, 0, -20], size: [4, 0.4, 0.9] } as RampDef;

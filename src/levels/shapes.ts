@@ -161,8 +161,10 @@ export function railShapePoints(shape: RailShape, start: [number, number], dir: 
           [r2(x0 - 0.4 * dir * Math.cos(entry)), r2(y0 + 0.4 * Math.sin(entry)), 0],
         ]
       : [
-          [r2(x0 - 1.0 * dir), r2(y0 + 0.8), 0],
-          [r2(x0 - 0.5 * dir), r2(y0 + 0.25), 0],
+          // A modest lip: enough to gather a marble that lands a little short,
+          // low enough that a marble bouncing off the pad before never meets it.
+          [r2(x0 - 0.8 * dir), r2(y0 + 0.42), 0],
+          [r2(x0 - 0.4 * dir), r2(y0 + 0.16), 0],
         ];
   // Heading below horizontal as a function of progress u in [0, 1].
   const ease = (u: number) => u * u * (3 - 2 * u);
@@ -173,7 +175,8 @@ export function railShapePoints(shape: RailShape, start: [number, number], dir: 
       case 'bend':
         return (12 + 24 * u) * DEG;
       case 's':
-        return (24 - 12 * Math.cos(u * Math.PI * 2)) * DEG;
+        // Never shallower than 18: on 12 a slow marble can stall in the groove.
+        return (30 - 12 * Math.cos(u * Math.PI * 2)) * DEG;
       default:
         return slope;
     }

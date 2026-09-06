@@ -122,6 +122,7 @@ and the next strike starts it again.
 | Pipe | triangle-mesh tube (same mesh the player sees, flared mouths); the marble rolls on the real inner wall | tube note on entry, rolling sound inside |
 | Loop track | a rail with `groove: 'curve'`: one thick floor rod the marble rolls on with its full radius (a V-groove would turn the ball into a flywheel), two slippery guard rods at its equator, ties for the look; the path lifts toward the camera over the top so the second pass crosses above the entry | click on entry, rolling sound |
 | Bowl | a U of gravity-groove rail (same rod placement as Rail) on a fixed body, except a short arc at the bottom whose capsules ride a kinematic body hinged at its left end; the trapdoor swings open a set time after the marble's first contact and closes again | bell on the catch, rolling sound while swinging |
+| Seesaw | a plank with a lip at its near end on a kinematic pivot body; it rests with the far end up so the marble runs up, rolls back against the lip and waits; a set time after the catch the plank tips the other way and the marble runs down across the pivot and off the far end, still travelling the same way. Angle is a pure function of time since the catch | silent (a guide); rolling sound while on it |
 | Launcher | kinematic plunger head on a fixed axis plus a fixed housing; on the marble's first contact it holds, then travels: constant acceleration to the launch speed over 60% of the stroke, constant speed to the end, ease back; every launch is the same launch | kick on the catch, head and coil spring animate |
 | Spinner | kinematic hub + blade cuboids; angle = phase + rpm x sim time, handed to the physics as the next kinematic pose each step | the blade's own velocity flings the marble; wood note, blade flash |
 
@@ -216,7 +217,15 @@ rolling: no hops, and a replay with more objects is the same replay. The
 layout tool's `dir: 'auto'` sweeps the marble across the board and back the
 way the reference machines do; a `rail` step with `time` searches the rail
 length so the marble rolls for that long, which is how a rest in the music
-becomes a rail.
+becomes a rail. Even with a steady start, objects placed later shift an
+earlier bounce by a hair over a long chain, so when every step is placed the
+tool replays the whole machine and, if any object is missed, re-lays from
+that step with the later objects kept in the world (so the re-placed object
+lands on the path the finished machine really has); positions round to 0.01,
+so the passes converge, usually in one. The sweeping layouts trade launch
+tolerance for the reference look: a long chain of shallow stair pads and slow
+rails amplifies a launch change of a few percent, which is fine because the
+game is deterministic, but it is why the perturbation test now uses 1%.
 
 ## Determinism as a tool
 
