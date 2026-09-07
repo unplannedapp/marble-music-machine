@@ -202,7 +202,70 @@ export class AudioEngine implements NotePlayer {
     }
   }
 
+  private clip: AudioBuffer | null = null;
+  private clipSrc = '';
+  private clipVoices: { gain: GainNode; end: number }[] = [];
+
+  /** Decode a recording (a data URI in the bundle) for slice playback. */
+  loadClip(src: string): void {
+    if (this.clipSrc === src) return;
+    this.clipSrc = src;
+    this.clip = null;
+    void fetch(src)
+      .then((r) => r.arrayBuffer())
+      .then((buf) => this.ctx.decodeAudioData(buf))
+      .then((decoded) => {
+        if (this.clipSrc === src) this.clip = decoded;
+      })
+      .catch(() => undefined);
+  }
+
+  /**
+   * A slice of the recording, started on the simulation clock like a note. It
+   * fades in over a few ms and out at its end; a slice still sounding when the
+   * next begins is faded out under it, so cuts never click.
+   */
+  playClip(simTime: number, offset: number, seconds: number): void {
+    if (!this.unlocked || !this.clip) return;
+    const ctx = this.ctx;
+    const lead = config.audio.leadSeconds;
+    let time = Number.isFinite(this.offset) ? simTime + this.offset + lead : ctx.currentTime + lead;
+    if (time < ctx.currentTime + 0.005) time = ctx.currentTime + 0.005;
+    const level = config.audio.recording;
+    if (level <= 0 || seconds <= 0.02) return;
+    // Hand over from whatever is still sounding.
+    for (const v of this.clipVoices) {
+      if (v.end > time) {
+        v.gain.gain.cancelScheduledValues(time);
+        v.gain.gain.setValueAtTime(v.gain.gain.value, time);
+        v.gain.gain.linearRampToValueAtTime(0, time + 0.04);
+        v.end = time + 0.04;
+      }
+    }
+    this.clipVoices = this.clipVoices.filter((v) => v.end > ctx.currentTime);
+    const source = ctx.createBufferSource();
+    source.buffer = this.clip;
+    const gain = ctx.createGain();
+    const fadeIn = 0.008;
+    const fadeOut = Math.min(0.25, seconds * 0.3);
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(level, time + fadeIn);
+    gain.gain.setValueAtTime(level, time + seconds - fadeOut);
+    gain.gain.linearRampToValueAtTime(0, time + seconds);
+    source.connect(gain);
+    gain.connect(this.dry);
+    gain.connect(this.wet);
+    source.start(time, Math.max(0, offset), seconds + 0.05);
+    this.clipVoices.push({ gain, end: time + seconds });
+  }
+
   stopChords(): void {
+    const now = this.ctx.currentTime;
+    for (const v of this.clipVoices) {
+      v.gain.gain.cancelScheduledValues(now);
+      v.gain.gain.setTargetAtTime(0, now, 0.03);
+    }
+    this.clipVoices = [];
     const t = this.ctx.currentTime;
     for (const b of this.chords) {
       b.gain.cancelScheduledValues(t);

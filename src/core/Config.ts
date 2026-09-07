@@ -100,6 +100,8 @@ export const config = {
     backing: 0.34,
     /** Level of the song's own melody line played softly under the machine, so the tune never stops; the pad strike is the highlight on top. */
     melody: 0.3,
+    /** Level of a song's original recording, when it has one (it replaces the chord bed and melody line). */
+    recording: 0.85,
   },
   scoring: {
     /** Timing windows in seconds (absolute delta from the song's expected time). */

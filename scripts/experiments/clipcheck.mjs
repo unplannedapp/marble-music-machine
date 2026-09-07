@@ -1,0 +1,10 @@
+import { chromium } from 'playwright-core';
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
+const page = await browser.newPage({ viewport: { width: 900, height: 1400 } });
+await page.goto(process.argv[2] ?? 'http://localhost:5199', { waitUntil: 'load' });
+await page.waitForFunction(() => !!window.mmm, null, { timeout: 30000 });
+const items = await page.$$('.menu-item');
+await items[Number(process.argv[3] ?? 3)].click();
+await page.waitForFunction(() => window.mmm.sim.simTime > 3.5, null, { timeout: 120000 });
+console.log(await page.evaluate(() => ({ audio: window.mmm.audio.ctx.state, clip: !!window.mmm.audio.clip, clipSeconds: window.mmm.audio.clip?.duration, voices: window.mmm.audio.clipVoices?.length })));
+await browser.close();

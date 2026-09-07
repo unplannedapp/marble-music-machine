@@ -11,6 +11,8 @@ export interface BakedMachine {
   finished: boolean;
   /** Simulation seconds the run took. */
   duration: number;
+  /** Simulation seconds at which the first pad was struck. */
+  firstStrike: number;
 }
 
 /**
@@ -79,5 +81,5 @@ export function bakeMachine(level: LevelDef, opts: { bpm?: number; name?: string
     if (s) checkpoints.push({ section: e.section!, position: r3(s.p), velocity: r3(s.v), spin: r3(s.w) });
   }
   const sections = Array.from({ length: section + 1 }, (_, i) => `Part ${i + 1}`);
-  return { song: { name: opts.name ?? level.name, bpm, key: 'C', sections, events }, checkpoints, finished, duration };
+  return { song: { name: opts.name ?? level.name, bpm, key: 'C', sections, events }, checkpoints, finished, duration, firstStrike: pads[0]?.simTime ?? 0 };
 }

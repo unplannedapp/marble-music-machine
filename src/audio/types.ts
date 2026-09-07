@@ -40,6 +40,10 @@ export interface BackingPlayer {
   playChord(simTime: number, notes: string[], seconds: number, bassBeats: number[]): void;
   /** One note of the song's melody line, soft, under the machine. */
   playMelody(simTime: number, note: string, seconds: number): void;
+  /** Load a recording so slices of it can be played. */
+  loadClip(src: string): void;
+  /** Play `seconds` of the loaded recording from `offset` seconds in, starting at a simulation time. */
+  playClip(simTime: number, offset: number, seconds: number): void;
   /** Silence every chord still sounding or scheduled (the marble was put back). */
   stopChords(): void;
 }

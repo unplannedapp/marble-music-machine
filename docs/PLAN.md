@@ -160,7 +160,11 @@ quantises it to eighth notes, snaps it to the detected key (B-flat minor,
 108 bpm here) and reads a chord per bar from the chroma for the backing.
 The first twelve bars became 42 pads and four rails, laid out in one pass.
 A real MIDI file would skip the guesswork; the backing now voices any chord
-symbol (root plus optional m), not just the six it knew.
+symbol (root plus optional m), not just the six it knew. The synthesised
+version of a transcribed track sounds nothing like the record, so a song
+from a recording now plays the recording: cut at its note onsets, one slice
+per strike, intro timed to end on the first strike. Bundle cost is the clip
+(about 250 KB for 32 s of mono 64 kbps).
 
 ## Design decisions carried forward
 

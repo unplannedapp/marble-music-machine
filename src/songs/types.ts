@@ -21,6 +21,20 @@ export interface BackingDef {
   chords: string[];
   /** Beats per bar. Default 4. */
   beatsPerBar?: number;
+  /**
+   * The original recording, when the song came from one. It replaces the
+   * synthesised bed: the recording is cut at its note onsets and each slice
+   * plays when the marble strikes the matching pad, so it is the real sound,
+   * kept in step with the marble.
+   */
+  audio?: {
+    /** URL (a data URI in the bundle). */
+    src: string;
+    /** Seconds into the recording where each song event's note begins, one per event. */
+    onsets: number[];
+    /** Seconds of recording to let ring after the last note. Default 3. */
+    tail?: number;
+  };
 }
 
 export interface SongDef {
@@ -30,6 +44,8 @@ export interface SongDef {
   sections?: string[];
   events: SongEvent[];
   backing?: BackingDef;
+  /** Simulation seconds at which the machine's first note is struck (from the bake), so a recording's intro can lead into it. */
+  firstStrike?: number;
 }
 
 export function beatSeconds(song: SongDef, beat: number): number {

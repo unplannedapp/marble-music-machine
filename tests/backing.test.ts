@@ -15,6 +15,14 @@ class Recorder implements NotePlayer, BackingPlayer {
   playMelody(at: number, note: string): void {
     this.melody.push({ at, note });
   }
+  clips: { at: number; offset: number; seconds: number }[] = [];
+  loaded = '';
+  loadClip(src: string): void {
+    this.loaded = src;
+  }
+  playClip(at: number, offset: number, seconds: number): void {
+    this.clips.push({ at, offset, seconds });
+  }
   play(e: NoteEvent): void {
     this.notes.push(e);
   }
@@ -67,6 +75,42 @@ describe('backing', () => {
     for (const s of rec.melody) expect(s.at).toBeGreaterThanOrEqual(first.simTime);
     const byTime = padNotes.map((n) => n.note);
     for (const s of rec.melody) expect(byTime).toContain(s.note);
+    music.dispose();
+    backing.dispose();
+  });
+
+  it('plays a song recording slice by slice, each cut at its onset, when the marble strikes the pad', async () => {
+    await initRapier();
+    const m = findMachine('calm');
+    const audio = m.song.backing!.audio!;
+    const sim = new Simulation();
+    sim.load(m.level);
+    const rec = new Recorder();
+    const music = new MusicSystem(sim, rec);
+    const backing = new Backing(sim, rec, m.song);
+    expect(rec.loaded).toBe(audio.src);
+    const dt = config.physics.fixedDt;
+    let finished = false;
+    sim.bus.on('marble:reset', (e) => (finished = finished || e.reason === 'finished'));
+    for (let t = 0; t < 60 && !finished; t += dt) {
+      sim.fixedUpdate(dt);
+      backing.update();
+    }
+    const strikes = rec.notes.filter((n) => n.object.type === 'pad');
+    // The intro leads into the first strike, then one slice per note, in order.
+    const slices = rec.clips.filter((c) => audio.onsets.includes(c.offset));
+    expect(slices.length).toBe(m.song.events.length);
+    slices.forEach((c, i) => {
+      expect(c.offset).toBe(audio.onsets[i]);
+      expect(Math.abs(c.at - strikes[i].simTime)).toBeLessThan(1e-6);
+      if (i + 1 < audio.onsets.length) expect(c.seconds).toBeCloseTo(audio.onsets[i + 1] - audio.onsets[i], 6);
+    });
+    const intro = rec.clips.find((c) => !audio.onsets.includes(c.offset));
+    expect(intro).toBeDefined();
+    expect(intro!.at + intro!.seconds).toBeCloseTo(m.song.firstStrike!, 2);
+    // No synthesised bed under a recording.
+    expect(rec.chords.length).toBe(0);
+    expect(rec.melody.length).toBe(0);
     music.dispose();
     backing.dispose();
   });

@@ -23,5 +23,8 @@ const sections = baked.song.sections!.map((_, i) => `'Part ${i + 1}'`);
 let src = readFileSync(file, 'utf8');
 src = src.replace(/  events: \[[\s\S]*?\n  \],/, `  events: [\n${events.join('\n')}\n  ],`);
 src = src.replace(/  sections: \[[^\]]*\],/, `  sections: [${sections.join(', ')}],`);
+// When the machine's first note is struck, so a recording's intro can lead into it.
+const first = `  firstStrike: ${baked.firstStrike.toFixed(3)},`;
+src = /  firstStrike: [^\n]*\n/.test(src) ? src.replace(/  firstStrike: [^\n]*\n/, first + '\n') : src.replace(/  events: \[/, first + '\n  events: [');
 writeFileSync(file, src);
 console.log(`${exportName}: ${events.length} events, ${sections.length} sections written to ${file}`);

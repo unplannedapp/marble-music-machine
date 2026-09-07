@@ -47,6 +47,10 @@ export class Backing {
   private readonly lastBeat: number;
   private readonly offs: (() => void)[] = [];
 
+  /** Index into the song's events of each object, for the recording's slices. */
+  private readonly eventIndex = new Map<string, number>();
+  private introPlayed = false;
+
   constructor(
     private readonly sim: Simulation,
     private readonly player: BackingPlayer,
@@ -54,6 +58,10 @@ export class Backing {
     bus: EventBus = sim.bus,
   ) {
     for (const e of song.events) if (!this.beatByObject.has(e.object)) this.beatByObject.set(e.object, { beat: e.beat, section: e.section ?? 0 });
+    song.events.forEach((e, i) => {
+      if (!this.eventIndex.has(e.object)) this.eventIndex.set(e.object, i);
+    });
+    if (song.backing?.audio) player.loadClip(song.backing.audio.src);
     this.lastBeat = song.events.length ? Math.max(...song.events.map((e) => e.beat)) : 0;
     this.offs.push(bus.on('music:note', (n) => this.onNote(n)));
     this.offs.push(bus.on('marble:reset', () => this.stop()));
@@ -68,9 +76,25 @@ export class Backing {
     return this.song.backing?.beatsPerBar ?? 4;
   }
 
+  /** With a recording: the slice of it that belongs to this event, from its onset to the next. */
+  private playSlice(index: number, at: number): void {
+    const audio = this.song.backing?.audio;
+    if (!audio) return;
+    const onset = audio.onsets[index];
+    if (onset === undefined) return;
+    const next = audio.onsets[index + 1];
+    const seconds = next !== undefined ? next - onset : (audio.tail ?? 3);
+    this.player.playClip(at, onset, seconds);
+  }
+
   private onNote(n: NoteEvent): void {
     const target = this.beatByObject.get(n.object.id);
     if (!target) return;
+    if (this.song.backing?.audio) {
+      const i = this.eventIndex.get(n.object.id);
+      if (i !== undefined) this.playSlice(i, n.simTime);
+      return;
+    }
     if (target.section !== this.anchoredSection || !Number.isFinite(this.anchor)) {
       // The melody line resumes from this strike's note (already sounding as the strike itself).
       const idx = this.song.events.findIndex((e) => e.object === n.object.id);
@@ -88,6 +112,20 @@ export class Backing {
 
   /** Per frame: schedule the melody notes and the bars that fall inside the lookahead window. */
   update(): void {
+    const audio = this.song.backing?.audio;
+    if (audio) {
+      // The recording's intro leads into the first strike, which the bake fixed in time.
+      const first = this.song.firstStrike;
+      if (!this.introPlayed && first !== undefined && audio.onsets.length && this.sim.simTime >= 0 && this.sim.simTime < first) {
+        const intro = audio.onsets[0];
+        const start = first - intro;
+        if (this.sim.simTime + LOOKAHEAD >= start) {
+          this.introPlayed = true;
+          if (intro > 0.05) this.player.playClip(Math.max(start, this.sim.simTime), Math.max(0, intro - (first - Math.max(start, this.sim.simTime))), first - Math.max(start, this.sim.simTime));
+        }
+      }
+      return;
+    }
     if (!Number.isFinite(this.anchor)) return;
     const now = this.sim.simTime;
     const events = this.song.events;
@@ -126,6 +164,7 @@ export class Backing {
     this.scheduledBar = -1;
     this.nextEvent = 0;
     this.lastScheduledAt = -Infinity;
+    this.introPlayed = false;
     this.player.stopChords();
   }
 

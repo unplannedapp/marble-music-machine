@@ -111,6 +111,16 @@ playing. A rest the marble spends rolling on a rail keeps everything in step
 with the notes either side of it; a reset or checkpoint respawn cuts the bed
 and the next strike starts it again.
 
+A song that came from a recording carries the recording itself
+(`backing.audio`: a data URI inlined by Vite, plus the onset time of each
+event's note in it). Then nothing is synthesised under the machine: the
+recording is cut at those onsets and each slice plays when the marble strikes
+the matching pad (`AudioEngine.playClip`, fades at both ends, the previous
+slice faded out under it), and its intro is scheduled to end exactly on the
+first strike, whose time the bake fixed (`song.firstStrike`). The real sound,
+kept in step with the marble however the machine's rhythm differs from the
+record's.
+
 ## Objects
 
 | Object | Physics | Response today |
