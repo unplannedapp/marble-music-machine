@@ -8,14 +8,20 @@ const LOOKAHEAD = 0.6;
 /** Bars of accompaniment after the last note, so the song does not stop dead as the marble falls away. */
 const TAIL_BARS = 1;
 
-const CHORD_NOTES: Record<string, string[]> = {
-  C: ['C3', 'E3', 'G3'],
-  F: ['F2', 'A2', 'C3'],
-  G: ['G2', 'B2', 'D3'],
-  Am: ['A2', 'C3', 'E3'],
-  Dm: ['D3', 'F3', 'A3'],
-  Em: ['E3', 'G3', 'B3'],
-};
+const NOTE_INDEX: Record<string, number> = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
+const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+/** Triad for a chord symbol such as 'C', 'Am', 'F#m' or 'Bb', voiced low (root between F2 and E3). */
+function chordNotes(symbol: string): string[] {
+  const m = /^([A-G][#b]?)(m?)$/.exec(symbol.trim());
+  if (!m) return ['C3', 'E3', 'G3'];
+  const root = NOTE_INDEX[m[1]];
+  const third = m[2] === 'm' ? 3 : 4;
+  // Root in the octave that keeps it between F2 (midi 41) and E3 (midi 52).
+  let midi = 36 + root;
+  if (midi < 41) midi += 12;
+  return [midi, midi + third, midi + 7].map((n) => `${NAMES[n % 12]}${Math.floor(n / 12) - 1}`);
+}
 
 /**
  * The full music under the machine: the song plays continuously and the marble
@@ -104,7 +110,7 @@ export class Backing {
       const at = this.anchor + beatSeconds(this.song, next * bar);
       if (at > now + LOOKAHEAD) break;
       const symbol = this.chords[next % this.chords.length];
-      const notes = CHORD_NOTES[symbol] ?? CHORD_NOTES.C;
+      const notes = chordNotes(symbol);
       const seconds = beatSeconds(this.song, bar);
       // Bass on the first and third beat of the bar.
       const bass = bar >= 4 ? [0, beatSeconds(this.song, 2)] : [0];

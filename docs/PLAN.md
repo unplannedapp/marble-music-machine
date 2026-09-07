@@ -153,6 +153,15 @@ run, so rails came out short until the board was widened; and the seesaw joined 
 marble against a lip, holds it for an exact time, tips, and lets it run off
 the far end. Still to do in phase 6: chain reactions and branching paths.
 
+A fourth machine, Calm, came from an uploaded audio track rather than a
+score: `scripts/experiments/transcribe.py` takes the top voice of the mix
+(highest constant-Q bin near each frame's peak, held with hysteresis),
+quantises it to eighth notes, snaps it to the detected key (B-flat minor,
+108 bpm here) and reads a chord per bar from the chroma for the backing.
+The first twelve bars became 42 pads and four rails, laid out in one pass.
+A real MIDI file would skip the guesswork; the backing now voices any chord
+symbol (root plus optional m), not just the six it knew.
+
 ## Design decisions carried forward
 
 - Musical timing must emerge from geometry. The regular hop period of a zigzag

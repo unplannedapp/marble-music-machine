@@ -1,0 +1,22 @@
+import { config } from '../../src/core/Config';
+import { Simulation, initRapier } from '../../src/sim/Simulation';
+import { ScoreSystem } from '../../src/game/Scoring';
+import { MusicSystem } from '../../src/audio/MusicSystem';
+import { findMachine } from '../../src/machines';
+await initRapier();
+const m = findMachine(process.argv[2] ?? 'calm');
+const sim = new Simulation();
+const music = new MusicSystem(sim, { play() {}, setRolling() {} });
+const scoring = new ScoreSystem(sim, m.song);
+sim.load(m.level);
+const out: string[] = [];
+sim.bus.on('score:rating', (r) => out.push(`${r.event.object}:${r.rating}${r.rating === 'MISS' ? '' : '(' + (r.delta * 1000).toFixed(0) + 'ms)'}@${r.simTime.toFixed(2)}`));
+sim.bus.on('marble:contact', (e) => { if (e.object.type === 'pad') out.push(`  hit ${e.object.id}@${e.simTime.toFixed(2)}`); });
+let finished = false;
+sim.bus.on('marble:reset', (e) => (finished = e.reason === 'finished'));
+const dt = config.physics.fixedDt;
+for (let i = 0; i < 120 / dt && !finished; i++) { sim.fixedUpdate(dt); scoring.fixedUpdate(); }
+console.log(out.filter((l) => l.includes('MISS')).join('\n'));
+const idx = out.findIndex((l) => l.includes('MISS'));
+console.log(out.slice(Math.max(0, idx - 6), idx + 4).join('\n'));
+music.dispose();

@@ -58,7 +58,9 @@ export function bakeMachine(level: LevelDef, opts: { bpm?: number; name?: string
   let b = 0;
   let prevTime = pads[0]?.simTime ?? 0;
   for (const n of pads) {
-    const gap = Math.max(0.5, Math.round(((n.simTime - prevTime) / beat) * 2) / 2);
+    // Quarter-beat resolution: a hop that is consistently 0.8 of a beat must not
+    // be written as a whole one, or the error piles up along a run of them.
+    const gap = Math.max(0.25, Math.round(((n.simTime - prevTime) / beat) * 4) / 4);
     if (events.length > 0) b += gap;
     if (gap >= 2 && events.length > 0) section++;
     events.push({ beat: b, object: n.object.id, note: n.object.def.note, lyric: n.object.def.note, section });

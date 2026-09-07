@@ -1,0 +1,488 @@
+{
+  "format": 1,
+  "name": "Calm",
+  "environment": {
+    "board": "#1f2233",
+    "background": "#0b0c14",
+    "keyLight": "#dfe8ff",
+    "keyIntensity": 1.7,
+    "keyRake": 0.55,
+    "fill": "#3c4a7a",
+    "fillIntensity": 0.5,
+    "rim": "#7fa0e0",
+    "rimIntensity": 0.5,
+    "metal": "#9aa6c4",
+    "wood": "#3a3f6b",
+    "ring": "#e6e9f5",
+    "envIntensity": 0.2,
+    "exposure": 1,
+    "vignette": 0.5,
+    "padGlow": 0.5,
+    "padLight": 4,
+    "boardGrain": 0.6,
+    "shaft": 0.8,
+    "shaftColor": "#c9d8ff",
+    "shaftAngle": 22
+  },
+  "board": {
+    "width": 20,
+    "top": 8,
+    "bottom": -110
+  },
+  "spawn": {
+    "position": [-5, 4.916, 0.55],
+    "velocity": [1.174, -0.247, 0]
+  },
+  "killY": -112.98,
+  "objects": [
+    {
+      "type": "wall",
+      "id": "wall_left",
+      "position": [-10.2, -52.49, 0.6],
+      "size": [0.4, 124.98, 1.2],
+      "instrument": "none"
+    },
+    {
+      "type": "wall",
+      "id": "wall_right",
+      "position": [10.2, -52.49, 0.6],
+      "size": [0.4, 124.98, 1.2],
+      "instrument": "none"
+    },
+    {
+      "type": "rail",
+      "id": "rail_start",
+      "points": [
+        [-5.4, 5, 0],
+        [2.2, 3.4, 0]
+      ],
+      "lipDeg": 0
+    },
+    {
+      "type": "pad",
+      "id": "calm_1",
+      "position": [3.45, 2.14, 0],
+      "angle": -8,
+      "color": "#d9534f",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_2",
+      "position": [6.46, 1.2, 0],
+      "angle": 53.5,
+      "color": "#f0ad4e",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_3",
+      "position": [4.04, -0.69, 0],
+      "angle": -38,
+      "color": "#5bc0de",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_4",
+      "position": [6.49, -1.81, 0],
+      "angle": 45.5,
+      "color": "#8e6bd6",
+      "note": "A#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_5",
+      "position": [4.69, -3.76, 0],
+      "angle": 20.5,
+      "color": "#5cb85c",
+      "note": "C#5"
+    },
+    {
+      "type": "rail",
+      "id": "calm_6",
+      "points": [
+        [2.99, -4.43, 0],
+        [2.59, -4.69, 0],
+        [2.09, -4.85, 0],
+        [0.51, -5.24, 0],
+        [-1.06, -5.64, 0],
+        [-2.64, -6.03, 0],
+        [-4.22, -6.42, 0]
+      ]
+    },
+    {
+      "type": "pad",
+      "id": "calm_7",
+      "position": [-7.3, -8.49, 0],
+      "angle": -53,
+      "color": "#e86fb0",
+      "note": "A#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_8",
+      "position": [-4.52, -10.49, 0],
+      "angle": -19,
+      "color": "#f7f7f7",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_9",
+      "position": [-1.41, -13.14, 0],
+      "angle": -17,
+      "color": "#2f9e8f",
+      "note": "A#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_10",
+      "position": [1.81, -14.29, 0],
+      "angle": -8.5,
+      "color": "#d9534f",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_11",
+      "position": [6.61, -16.8, 0],
+      "angle": 49,
+      "color": "#f0ad4e",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_12",
+      "position": [3.51, -18.77, 0],
+      "angle": 18,
+      "color": "#5bc0de",
+      "note": "A#4"
+    },
+    {
+      "type": "rail",
+      "id": "calm_13",
+      "points": [
+        [1.52, -19.43, 0],
+        [1.12, -19.69, 0],
+        [0.62, -19.85, 0],
+        [-0.17, -20.13, 0],
+        [-0.89, -20.55, 0],
+        [-1.52, -21.09, 0],
+        [-2.16, -21.63, 0],
+        [-2.88, -22.04, 0],
+        [-3.66, -22.32, 0]
+      ]
+    },
+    {
+      "type": "pad",
+      "id": "calm_14",
+      "position": [-6.62, -24.13, 0],
+      "angle": -55,
+      "color": "#8e6bd6",
+      "note": "A#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_15",
+      "position": [-3.9, -25.4, 0],
+      "angle": -16,
+      "color": "#5cb85c",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_16",
+      "position": [-1.37, -28.03, 0],
+      "angle": -19,
+      "color": "#e86fb0",
+      "note": "A#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_17",
+      "position": [1.64, -29.2, 0],
+      "angle": -9,
+      "color": "#f7f7f7",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_18",
+      "position": [6.23, -31.73, 0],
+      "angle": 48.5,
+      "color": "#2f9e8f",
+      "note": "A#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_19",
+      "position": [3.18, -33.71, 0],
+      "angle": 18,
+      "color": "#d9534f",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_20",
+      "position": [0.32, -35.52, 0],
+      "angle": 14.5,
+      "color": "#f0ad4e",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_21",
+      "position": [-3.61, -38.14, 0],
+      "angle": 13.5,
+      "color": "#5bc0de",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_22",
+      "position": [-8.38, -39.78, 0],
+      "angle": -53.5,
+      "color": "#8e6bd6",
+      "note": "F#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_23",
+      "position": [-5.51, -41.76, 0],
+      "angle": -18.5,
+      "color": "#5cb85c",
+      "note": "F#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_24",
+      "position": [-2, -44.29, 0],
+      "angle": 43,
+      "color": "#e86fb0",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_25",
+      "position": [-4.86, -45.42, 0],
+      "angle": -45.5,
+      "color": "#f7f7f7",
+      "note": "C#5"
+    },
+    {
+      "type": "rail",
+      "id": "calm_26",
+      "points": [
+        [-3.65, -46.21, 0],
+        [-3.25, -46.47, 0],
+        [-2.75, -46.63, 0],
+        [-1.17, -47.02, 0],
+        [0.4, -47.42, 0],
+        [1.98, -47.81, 0],
+        [3.56, -48.2, 0]
+      ]
+    },
+    {
+      "type": "pad",
+      "id": "calm_27",
+      "position": [6.38, -50.26, 0],
+      "angle": 51,
+      "color": "#2f9e8f",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_28",
+      "position": [3.79, -52.25, 0],
+      "angle": 19.5,
+      "color": "#d9534f",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_29",
+      "position": [1.47, -53.42, 0],
+      "angle": 13,
+      "color": "#f0ad4e",
+      "note": "G#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_30",
+      "position": [-0.96, -54.53, 0],
+      "angle": 10,
+      "color": "#5bc0de",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_31",
+      "position": [-3.67, -55.66, 0],
+      "angle": 9,
+      "color": "#8e6bd6",
+      "note": "G#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_32",
+      "position": [-7.03, -56.59, 0],
+      "angle": -56,
+      "color": "#5cb85c",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_33",
+      "position": [-4.47, -59.42, 0],
+      "angle": -21.5,
+      "color": "#e86fb0",
+      "note": "G#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_34",
+      "position": [-0.52, -62, 0],
+      "angle": 43.5,
+      "color": "#f7f7f7",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_35",
+      "position": [-3.02, -63.23, 0],
+      "angle": 15.5,
+      "color": "#2f9e8f",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_36",
+      "position": [-5.89, -64.93, 0],
+      "angle": -45,
+      "color": "#d9534f",
+      "note": "C#5"
+    },
+    {
+      "type": "rail",
+      "id": "calm_37",
+      "points": [
+        [-4.45, -65.77, 0],
+        [-4.05, -66.03, 0],
+        [-3.55, -66.19, 0],
+        [-2.9, -66.35, 0],
+        [-2.26, -66.51, 0],
+        [-1.61, -66.67, 0]
+      ]
+    },
+    {
+      "type": "pad",
+      "id": "calm_38",
+      "position": [0.12, -68.83, 0],
+      "angle": -15,
+      "color": "#f0ad4e",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_39",
+      "position": [2.87, -69.95, 0],
+      "angle": -9,
+      "color": "#5bc0de",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_40",
+      "position": [6.23, -70.92, 0],
+      "angle": 55,
+      "color": "#8e6bd6",
+      "note": "A#4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_41",
+      "position": [3.8, -73.72, 0],
+      "angle": 22,
+      "color": "#5cb85c",
+      "note": "C#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_42",
+      "position": [0.79, -75.56, 0],
+      "angle": 14.5,
+      "color": "#e86fb0",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_43",
+      "position": [-2.08, -76.68, 0],
+      "angle": 9,
+      "color": "#f7f7f7",
+      "note": "D#5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_44",
+      "position": [-6.11, -78.39, 0],
+      "angle": -51.5,
+      "color": "#2f9e8f",
+      "note": "C4"
+    },
+    {
+      "type": "pad",
+      "id": "calm_45",
+      "position": [-3.75, -79.66, 0],
+      "angle": -16.5,
+      "color": "#d9534f",
+      "note": "F5"
+    },
+    {
+      "type": "pad",
+      "id": "calm_46",
+      "position": [-1.54, -81.51, 0],
+      "angle": -17,
+      "color": "#f0ad4e",
+      "note": "D#5"
+    }
+  ],
+  "checkpoints": [
+    {
+      "section": 0,
+      "position": [1.488, 3.548, 0.549],
+      "velocity": [5.734, -1.284, -0.045],
+      "spin": [2.704, 12.707, -20.352],
+      "time": 1.9417
+    },
+    {
+      "section": 1,
+      "position": [-4.433, -6.356, 0.298],
+      "velocity": [-7.474, -2.277, -0.062],
+      "spin": [6.884, -24.947, 24.483],
+      "time": 5.7
+    },
+    {
+      "section": 2,
+      "position": [-3.324, -22.052, 0.328],
+      "velocity": [-8.872, -1.705, 0.489],
+      "spin": [9.172, -24.405, 27.085],
+      "time": 10.025
+    },
+    {
+      "section": 3,
+      "position": [3.771, -48.138, 0.298],
+      "velocity": [6.738, -2.23, -0.062],
+      "spin": [6.667, 22.487, -22.029],
+      "time": 18.2417
+    },
+    {
+      "section": 4,
+      "position": [-1.354, -66.63, 0.299],
+      "velocity": [4.701, -2.024, -0.046],
+      "spin": [5.567, 15.642, -15.252],
+      "time": 24.2333
+    }
+  ]
+}
