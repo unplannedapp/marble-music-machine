@@ -70,6 +70,7 @@ export class AudioEngine implements NotePlayer {
 
   async unlock(): Promise<void> {
     if (this.ctx.state !== 'running') await this.ctx.resume();
+    this.decodeClip();
   }
 
   /** Call every frame with the current simulation time to keep the clocks aligned. */
@@ -206,18 +207,62 @@ export class AudioEngine implements NotePlayer {
   private clipSrc = '';
   private clipVoices: { gain: GainNode; end: number }[] = [];
 
-  /** Decode a recording (a data URI in the bundle) for slice playback. */
+  private clipBytes: ArrayBuffer | null = null;
+  private clipDecoding = false;
+
+  /**
+   * Take a recording (a data URI in the bundle) for slice playback. The bytes
+   * are unpacked here rather than fetched: the published page's security
+   * policy blocks fetches, data URIs included. Decoding waits for the audio
+   * context to be running (a phone will not decode on a suspended context).
+   */
   loadClip(src: string): void {
     if (this.clipSrc === src) return;
     this.clipSrc = src;
     this.clip = null;
+    this.clipBytes = null;
+    this.clipDecoding = false;
+    const comma = src.indexOf(',');
+    if (src.startsWith('data:') && comma > 0) {
+      const meta = src.slice(0, comma);
+      const payload = src.slice(comma + 1);
+      if (/;base64$/i.test(meta)) {
+        const bin = atob(payload);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        this.clipBytes = bytes.buffer;
+      } else {
+        this.clipBytes = new TextEncoder().encode(decodeURIComponent(payload)).buffer;
+      }
+      this.decodeClip();
+      return;
+    }
+    // A plain URL (dev server): fetch it.
     void fetch(src)
       .then((r) => r.arrayBuffer())
-      .then((buf) => this.ctx.decodeAudioData(buf))
-      .then((decoded) => {
-        if (this.clipSrc === src) this.clip = decoded;
+      .then((buf) => {
+        if (this.clipSrc !== src) return;
+        this.clipBytes = buf;
+        this.decodeClip();
       })
-      .catch(() => undefined);
+      .catch((err) => console.warn('recording: could not load', err));
+  }
+
+  private decodeClip(): void {
+    if (this.clip || this.clipDecoding || !this.clipBytes) return;
+    if (this.ctx.state !== 'running') return; // retried from unlock()
+    this.clipDecoding = true;
+    const src = this.clipSrc;
+    this.ctx.decodeAudioData(this.clipBytes.slice(0)).then(
+      (decoded) => {
+        this.clipDecoding = false;
+        if (this.clipSrc === src) this.clip = decoded;
+      },
+      (err) => {
+        this.clipDecoding = false;
+        console.warn('recording: could not decode', err);
+      },
+    );
   }
 
   /**
@@ -226,7 +271,11 @@ export class AudioEngine implements NotePlayer {
    * next begins is faded out under it, so cuts never click.
    */
   playClip(simTime: number, offset: number, seconds: number): void {
-    if (!this.unlocked || !this.clip) return;
+    if (!this.unlocked) return;
+    if (!this.clip) {
+      this.decodeClip();
+      return;
+    }
     const ctx = this.ctx;
     const lead = config.audio.leadSeconds;
     let time = Number.isFinite(this.offset) ? simTime + this.offset + lead : ctx.currentTime + lead;
