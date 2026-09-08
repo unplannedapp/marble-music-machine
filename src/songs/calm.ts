@@ -1,5 +1,5 @@
 import type { SongDef } from './types';
-import calmClip from '../assets/calm.mp3?url';
+import calmClip from '../assets/calm.wav?url';
 
 /**
  * Transcribed from an uploaded audio track ("Calm Music"): the top voice of

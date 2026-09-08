@@ -6,5 +6,5 @@ await page.waitForFunction(() => !!window.mmm, null, { timeout: 30000 });
 const items = await page.$$('.menu-item');
 await items[Number(process.argv[3] ?? 3)].click();
 await page.waitForFunction(() => window.mmm.sim.simTime > 3.5, null, { timeout: 120000 });
-console.log(await page.evaluate(() => ({ audio: window.mmm.audio.ctx.state, clip: !!window.mmm.audio.clip, clipSeconds: window.mmm.audio.clip?.duration, voices: window.mmm.audio.clipVoices?.length })));
+console.log(await page.evaluate(() => ({ audio: window.mmm.audio.ctx.state, status: window.mmm.audio.clipStatus, clip: !!window.mmm.audio.clip, clipSeconds: window.mmm.audio.clip?.duration, voices: window.mmm.audio.clipVoices?.length })));
 await browser.close();

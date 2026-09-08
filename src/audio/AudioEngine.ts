@@ -209,6 +209,9 @@ export class AudioEngine implements NotePlayer {
 
   private clipBytes: ArrayBuffer | null = null;
   private clipDecoding = false;
+  /** Where the song's recording stands, for a notice when a device cannot play it. */
+  clipStatus: 'none' | 'loading' | 'ready' | 'failed' = 'none';
+  clipError = '';
 
   /**
    * Take a recording (a data URI in the bundle) for slice playback. The bytes
@@ -222,6 +225,8 @@ export class AudioEngine implements NotePlayer {
     this.clip = null;
     this.clipBytes = null;
     this.clipDecoding = false;
+    this.clipStatus = 'loading';
+    this.clipError = '';
     const comma = src.indexOf(',');
     if (src.startsWith('data:') && comma > 0) {
       const meta = src.slice(0, comma);
@@ -245,7 +250,11 @@ export class AudioEngine implements NotePlayer {
         this.clipBytes = buf;
         this.decodeClip();
       })
-      .catch((err) => console.warn('recording: could not load', err));
+      .catch((err) => {
+        this.clipStatus = 'failed';
+        this.clipError = String(err);
+        console.warn('recording: could not load', err);
+      });
   }
 
   private decodeClip(): void {
@@ -253,16 +262,26 @@ export class AudioEngine implements NotePlayer {
     if (this.ctx.state !== 'running') return; // retried from unlock()
     this.clipDecoding = true;
     const src = this.clipSrc;
-    this.ctx.decodeAudioData(this.clipBytes.slice(0)).then(
-      (decoded) => {
-        this.clipDecoding = false;
-        if (this.clipSrc === src) this.clip = decoded;
-      },
-      (err) => {
-        this.clipDecoding = false;
-        console.warn('recording: could not decode', err);
-      },
-    );
+    // Callback form as well as the promise: older WebKit only honours the callbacks.
+    const done = (decoded: AudioBuffer) => {
+      this.clipDecoding = false;
+      if (this.clipSrc !== src) return;
+      this.clip = decoded;
+      this.clipStatus = 'ready';
+    };
+    const fail = (err: unknown) => {
+      this.clipDecoding = false;
+      if (this.clipSrc !== src) return;
+      this.clipStatus = 'failed';
+      this.clipError = err instanceof Error ? err.message : String(err ?? 'decode failed');
+      console.warn('recording: could not decode', err);
+    };
+    try {
+      const result = this.ctx.decodeAudioData(this.clipBytes.slice(0), done, fail);
+      if (result && typeof (result as Promise<AudioBuffer>).then === 'function') (result as Promise<AudioBuffer>).then(done, fail);
+    } catch (err) {
+      fail(err);
+    }
   }
 
   /**

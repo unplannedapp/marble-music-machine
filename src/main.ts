@@ -157,6 +157,7 @@ async function main(): Promise<void> {
     lastNote = `${n.instrument}${n.note ? ' ' + n.note : ''}  vel ${n.velocity.toFixed(2)}`;
   });
 
+  let noticeShown = false;
   const marblePos = new THREE.Vector3();
   const marbleVel = new THREE.Vector3();
   const focus = new THREE.Vector3();
@@ -172,6 +173,15 @@ async function main(): Promise<void> {
       audio.syncClock(sim.simTime);
       music.update();
       backing.update();
+      // A song with a recording this device cannot decode: say so, once, on screen.
+      if (audio.clipStatus === 'failed' && !noticeShown) {
+        noticeShown = true;
+        const n = document.createElement('div');
+        n.className = 'notice';
+        n.textContent = `This song's recording could not be decoded here (${audio.clipError || 'unknown error'}).`;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 9000);
+      }
       effects.update(frameDt);
       rings.update(frameDt);
       overlay.update();
