@@ -181,16 +181,16 @@ async function main(): Promise<void> {
       // A song with a recording: at the first note, say on screen if the recording is not playing, and why.
       if (machine.song.backing?.audio && !noticeShown && sim.simTime > (machine.song.firstStrike ?? 2) + 0.3) {
         noticeShown = true;
-        if (audio.clipStatus !== 'ready') {
-          const n = document.createElement('div');
-          n.className = 'notice';
-          n.textContent =
-            audio.clipStatus === 'failed'
+        const n = document.createElement('div');
+        n.className = 'notice';
+        n.textContent =
+          audio.clipStatus === 'ready'
+            ? `♪ playing the original recording (build ${typeof __BUILD__ === 'string' ? __BUILD__ : 'dev'})`
+            : audio.clipStatus === 'failed'
               ? `This song's recording could not be decoded here (${audio.clipError || 'unknown error'}).`
               : `This song's recording is not ready (${audio.clipStatus}, audio ${audio.ctx.state}).`;
-          document.body.appendChild(n);
-          setTimeout(() => n.remove(), 9000);
-        }
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), audio.clipStatus === 'ready' ? 4000 : 9000);
       }
       effects.update(frameDt);
       rings.update(frameDt);

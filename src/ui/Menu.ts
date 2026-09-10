@@ -40,6 +40,7 @@ export class Menu {
     root.innerHTML = `
       <div class="menu-title">Marble Music Machine</div>
       <div class="menu-sub">Pick a machine · sound on</div>
+      <div class="menu-sub" style="font-size:11px;opacity:.5">build ${typeof __BUILD__ === 'string' ? __BUILD__ : 'dev'}</div>
       <div class="menu-list"></div>
       <div class="menu-sub menu-mine">My machines</div>
       <div class="menu-list menu-custom"></div>
