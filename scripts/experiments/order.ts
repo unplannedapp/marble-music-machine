@@ -12,7 +12,7 @@ sim.bus.on('marble:contact', (e) => { if (e.object.id.startsWith(prefix) && orde
 let reason = '';
 sim.bus.on('marble:reset', (e) => (reason = e.reason));
 const dt = config.physics.fixedDt;
-for (let t = 0; t < 40 && !reason; t += dt) sim.fixedUpdate(dt);
+for (let t = 0; t < 120 && !reason; t += dt) sim.fixedUpdate(dt);
 const expected = level.objects.filter((o) => o.id.startsWith(prefix)).map((o) => o.id);
 const ok = JSON.stringify(order) === JSON.stringify(expected);
 console.log(`${reason} after ${sim.simTime.toFixed(2)}s: ${order.length}/${expected.length} objects, order ${ok ? 'exact' : 'DIFFERS: ' + order.join(' ')}`);

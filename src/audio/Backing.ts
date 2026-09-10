@@ -66,7 +66,7 @@ export class Backing {
     this.offs.push(bus.on('music:note', (n) => this.onNote(n)));
     // A lost marble cuts the music; a finished run lets a recording ring out (the next run's start fades it under).
     this.offs.push(bus.on('marble:reset', (e) => this.stop(e.reason !== 'finished' || !song.backing?.audio)));
-    this.offs.push(bus.on('marble:respawn', () => this.stop(true)));
+    this.offs.push(bus.on('marble:respawn', () => this.stop(true, true)));
   }
 
   get chords(): string[] {
@@ -79,6 +79,37 @@ export class Backing {
 
   /** Section of the recording currently streaming, or -1. */
   private streamingSection = -1;
+  /** MIDI arrangement: index of the next note to schedule (notes are sorted by time). */
+  private nextMidi = 0;
+
+  /**
+   * Map a time in the source (MIDI) timeline onto the simulation clock: linear
+   * between consecutive strikes, whose source times (`at`) and machine times
+   * (the baked beats on the anchored clock) are both known, so the arrangement
+   * stretches with the marble's own rhythm and every note lands where its
+   * melody note is struck. Outside the strikes it runs at the nearest segment's rate.
+   */
+  /** Offset between the bake's exact strike times and this run's clock (zero unless a section re-anchored). */
+  private strikeShift = 0;
+
+  private sourceToSim(t: number): number {
+    const ev = this.song.events;
+    const anchor = this.anchor;
+    // Exact strike times from the bake when the song has them; the rounded beats otherwise.
+    const simOf = (i: number) => (ev[i].struck !== undefined ? this.strikeShift + ev[i].struck! : anchor + beatSeconds(this.song, ev[i].beat));
+    const n = ev.length;
+    if (n === 0 || ev[0].at === undefined) return anchor + t;
+    let i = 0;
+    while (i + 1 < n - 1 && (ev[i + 1].at ?? 0) <= t) i++;
+    const a = i;
+    const b = Math.min(n - 1, i + 1);
+    const ta = ev[a].at!;
+    const tb = ev[b].at!;
+    const sa = simOf(a);
+    const sb = simOf(b);
+    const rate = tb > ta ? (sb - sa) / (tb - ta) : 1;
+    return sa + (t - ta) * rate;
+  }
 
   /**
    * With a recording: the record plays straight through. It is started so its
@@ -98,6 +129,16 @@ export class Backing {
   private onNote(n: NoteEvent): void {
     const target = this.beatByObject.get(n.object.id);
     if (!target) return;
+    if (this.song.backing?.midi) {
+      if (target.section !== this.anchoredSection || !Number.isFinite(this.anchor)) {
+        this.anchor = n.simTime - beatSeconds(this.song, target.beat);
+        this.anchoredSection = target.section;
+        const i = this.eventIndex.get(n.object.id);
+        const struck = i !== undefined ? this.song.events[i].struck : undefined;
+        if (struck !== undefined) this.strikeShift = n.simTime - struck;
+      }
+      return;
+    }
     if (this.song.backing?.audio) {
       const i = this.eventIndex.get(n.object.id);
       if (i !== undefined && target.section !== this.streamingSection) {
@@ -123,6 +164,26 @@ export class Backing {
 
   /** Per frame: schedule the melody notes and the bars that fall inside the lookahead window. */
   update(): void {
+    const midi = this.song.backing?.midi;
+    if (midi) {
+      // Before any strike the clock is the bake's: the intro plays up to the first note.
+      if (!Number.isFinite(this.anchor)) {
+        if (this.song.firstStrike === undefined || !this.song.events.length) return;
+        this.anchor = this.song.firstStrike - beatSeconds(this.song, this.song.events[0].beat);
+        this.anchoredSection = this.song.events[0].section ?? 0;
+      }
+      const now = this.sim.simTime;
+      while (this.nextMidi < midi.length) {
+        const [t, note, dur, vel] = midi[this.nextMidi];
+        const at = this.sourceToSim(t);
+        if (at > now + LOOKAHEAD) break;
+        this.nextMidi++;
+        if (at < now - 0.25) continue; // long gone (a respawn skipped ahead)
+        const end = this.sourceToSim(t + dur);
+        this.player.playMidiNote(Math.max(at, now), note, Math.max(0.05, end - at), vel);
+      }
+      return;
+    }
     const audio = this.song.backing?.audio;
     if (audio) {
       // The recording's intro leads into the first strike, which the bake fixed in time.
@@ -174,7 +235,14 @@ export class Backing {
     }
   }
 
-  private stop(silence: boolean): void {
+  private stop(silence: boolean, respawn = false): void {
+    // After a checkpoint respawn the clock was restored too, so the anchor still holds;
+    // the arrangement resumes from the respawn point (notes now in the past are skipped).
+    if (respawn && this.song.backing?.midi && Number.isFinite(this.anchor)) {
+      this.nextMidi = 0;
+      if (silence) this.player.stopChords();
+      return;
+    }
     this.anchor = NaN;
     this.anchoredSection = -1;
     this.scheduledBar = -1;
@@ -182,6 +250,8 @@ export class Backing {
     this.lastScheduledAt = -Infinity;
     this.introPlayed = false;
     this.streamingSection = -1;
+    this.nextMidi = 0;
+    this.strikeShift = 0;
     if (silence) this.player.stopChords();
   }
 

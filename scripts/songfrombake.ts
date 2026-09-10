@@ -17,7 +17,7 @@ if (baked.song.events.length !== m.song.events.length) throw new Error(`baked ${
 const events = baked.song.events.map((e, i) => {
   const a = m.song.events[i];
   if (a.object !== e.object) throw new Error(`event ${i}: ${a.object} vs ${e.object}`);
-  return `    { beat: ${e.beat}, object: '${e.object}', note: '${a.note}', lyric: ${JSON.stringify(a.lyric ?? '')}, section: ${e.section} },`;
+  return `    { beat: ${e.beat}, object: '${e.object}', note: '${a.note}', lyric: ${JSON.stringify(a.lyric ?? '')}, section: ${e.section}${a.at !== undefined ? `, at: ${a.at}` : ''}${a.at !== undefined && e.struck !== undefined ? `, struck: ${e.struck}` : ''} },`;
 });
 const sections = baked.song.sections!.map((_, i) => `'Part ${i + 1}'`);
 let src = readFileSync(file, 'utf8');

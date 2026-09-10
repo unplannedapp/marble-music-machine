@@ -40,6 +40,8 @@ export interface BackingPlayer {
   playChord(simTime: number, notes: string[], seconds: number, bassBeats: number[]): void;
   /** One note of the song's melody line, soft, under the machine. */
   playMelody(simTime: number, note: string, seconds: number): void;
+  /** One note of a MIDI arrangement on the piano voice (bass voice below C3), at a simulation time. */
+  playMidiNote(simTime: number, midi: number, seconds: number, velocity: number): void;
   /** Load a recording so slices of it can be played. */
   loadClip(src: string): void;
   /**

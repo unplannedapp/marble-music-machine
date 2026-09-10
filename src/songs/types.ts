@@ -13,6 +13,10 @@ export interface SongEvent {
   lyric?: string;
   /** Index into `sections`; the song clock re-anchors at each section's first strike. */
   section?: number;
+  /** Seconds into the source (a MIDI file or recording) where this note begins, for playing the source in step with the marble. */
+  at?: number;
+  /** Exact simulation second the machine strikes this note (from the bake; beats are rounded, this is not). */
+  struck?: number;
 }
 
 /** Accompaniment that plays under the machine: one chord symbol per bar, in song order. */
@@ -27,6 +31,13 @@ export interface BackingDef {
    * plays when the marble strikes the matching pad, so it is the real sound,
    * kept in step with the marble.
    */
+  /**
+   * The full arrangement from a MIDI file: every note of every track, as
+   * [seconds, midi note, seconds held, velocity 0..1]. It plays on a synthesised
+   * piano, warped between the marble's strikes so the whole song follows the
+   * marble exactly (each event's `at` is its time in this timeline).
+   */
+  midi?: [number, number, number, number][];
   audio?: {
     /** URL (a data URI in the bundle). */
     src: string;

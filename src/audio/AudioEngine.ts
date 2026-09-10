@@ -171,6 +171,44 @@ export class AudioEngine implements NotePlayer {
     if (this.chords.length > 8) this.chords.shift();
   }
 
+  /**
+   * A note of a MIDI arrangement: a plain piano-like voice (sine partials with
+   * a quick decay, velocity setting loudness and brightness), and a rounder,
+   * longer bass below C3. Everything the file holds, played as written.
+   */
+  playMidiNote(simTime: number, midi: number, seconds: number, velocity: number): void {
+    if (!this.unlocked) return;
+    const level = config.audio.midi * (0.35 + 0.65 * velocity);
+    if (level <= 0) return;
+    const ctx = this.ctx;
+    const lead = config.audio.leadSeconds;
+    let time = Number.isFinite(this.offset) ? simTime + this.offset + lead : ctx.currentTime + lead;
+    if (time < ctx.currentTime + 0.005) time = ctx.currentTime + 0.005;
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const bus = ctx.createGain();
+    bus.gain.value = 1;
+    bus.connect(this.dry);
+    bus.connect(this.wet);
+    const bass = midi < 48;
+    const hold = Math.min(Math.max(seconds, 0.12), bass ? 2.0 : 1.6);
+    const partials: [number, number, number][] = bass
+      ? [[1, 0.7, hold * 0.9], [2, 0.25, hold * 0.5], [3, 0.08, 0.3]]
+      : [[1, 0.6, hold * 0.8], [2, 0.22 * (0.5 + velocity), hold * 0.45], [3, 0.07 * velocity, 0.25], [4, 0.03 * velocity, 0.15]];
+    for (const [ratio, amp, decay] of partials) {
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, time);
+      g.gain.linearRampToValueAtTime(level * amp, time + 0.006);
+      g.gain.setTargetAtTime(level * amp * 0.45, time + 0.03, decay * 0.4);
+      g.gain.setTargetAtTime(0, time + hold, 0.08);
+      const o = ctx.createOscillator();
+      o.type = bass && ratio === 1 ? 'triangle' : 'sine';
+      o.frequency.value = f * ratio;
+      o.connect(g).connect(bus);
+      o.start(time);
+      o.stop(time + hold + 0.5);
+    }
+  }
+
   /** The song's melody, soft and round, so the tune carries on under the machine. */
   playMelody(simTime: number, note: string, seconds: number): void {
     if (!this.unlocked) return;

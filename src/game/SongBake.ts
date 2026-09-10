@@ -65,7 +65,7 @@ export function bakeMachine(level: LevelDef, opts: { bpm?: number; name?: string
     const gap = Math.max(0.25, Math.round(((n.simTime - prevTime) / beat) * 4) / 4);
     if (events.length > 0) b += gap;
     if (gap >= 2 && events.length > 0) section++;
-    events.push({ beat: b, object: n.object.id, note: n.object.def.note, lyric: n.object.def.note, section });
+    events.push({ beat: b, object: n.object.id, note: n.object.def.note, lyric: n.object.def.note, section, struck: +n.simTime.toFixed(3) });
     prevTime = n.simTime;
   }
   const r3 = (a: number[]): [number, number, number] => a.map((x) => +x.toFixed(3)) as [number, number, number];

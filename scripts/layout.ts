@@ -635,14 +635,32 @@ for (let k = startK; k < steps.length; k++) {
     continue;
   }
   if (step.k === 'pad') {
-    angle = solveNormal(d, o, config.materials.pad.restitution, speed, 0);
-    const n = [-Math.sin(angle * DEG), Math.cos(angle * DEG)];
-    const off = padHalfThick + config.marble.radius;
-    const pad: PadDef = {
-      type: 'pad', id,
-      position: [+(state.x - n[0] * off).toFixed(2), +(state.y - n[1] * off).toFixed(2), 0],
-      angle, color: step.color ?? colors[k % colors.length], note: step.note ?? notes[k % notes.length],
-    };
+    // Try the asked exit first, then flatter ones: a steep lob can drop the
+    // marble back onto the pad it left, where it sits. Keep the first exit
+    // that actually carries the marble on below the pad.
+    let pad: PadDef | null = null;
+    for (const ex of [exit, exit - 8, exit - 16, exit + 6, exit - 24]) {
+      const oo: [number, number] = [dir * Math.cos(ex * DEG), Math.sin(ex * DEG)];
+      const a = solveNormal(d, oo, config.materials.pad.restitution, speed, 0);
+      const n = [-Math.sin(a * DEG), Math.cos(a * DEG)];
+      const off = padHalfThick + config.marble.radius;
+      const cand: PadDef = {
+        type: 'pad', id,
+        position: [+(state.x - n[0] * off).toFixed(2), +(state.y - n[1] * off).toFixed(2), 0],
+        angle: a, color: step.color ?? colors[k % colors.length], note: step.note ?? notes[k % notes.length],
+      };
+      const probe = simulate({ ...base, objects: world([...placed, cand]) }, state.y - 1.2, state.t + 0.05);
+      if (probe.state) {
+        pad = cand;
+        angle = a;
+        if (ex !== exit) console.log(`${id}: exit ${exit} did not carry the marble on; using ${ex}`);
+        break;
+      }
+    }
+    if (!pad) {
+      console.log(`${id}: no exit angle carries the marble on from (${state.x.toFixed(2)}, ${state.y.toFixed(2)})`);
+      break;
+    }
     def = pad;
   } else {
     angle = solveNormal(d, o, config.materials.bumper.restitution, speed, config.bumper.kick);

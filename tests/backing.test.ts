@@ -5,6 +5,7 @@ import { MusicSystem } from '../src/audio/MusicSystem';
 import { Backing } from '../src/audio/Backing';
 import { findMachine } from '../src/machines';
 import { beatSeconds } from '../src/songs/types';
+import { noteToMidi } from '../src/audio/notes';
 import type { BackingPlayer, NoteEvent, NotePlayer } from '../src/audio/types';
 
 class Recorder implements NotePlayer, BackingPlayer {
@@ -16,6 +17,10 @@ class Recorder implements NotePlayer, BackingPlayer {
     this.melody.push({ at, note });
   }
   clips: { at: number; offset: number; seconds: number }[] = [];
+  midi: { at: number; midi: number; seconds: number; vel: number }[] = [];
+  playMidiNote(at: number, midi: number, seconds: number, vel: number): void {
+    this.midi.push({ at, midi, seconds, vel });
+  }
   loaded = '';
   loadClip(src: string): void {
     this.loaded = src;
@@ -113,6 +118,41 @@ describe('backing', () => {
       expect(c.seconds).toBe(Number.POSITIVE_INFINITY);
     });
     // No synthesised bed under a recording.
+    expect(rec.chords.length).toBe(0);
+    expect(rec.melody.length).toBe(0);
+    music.dispose();
+    backing.dispose();
+  });
+
+  it('plays a MIDI arrangement warped between strikes, each melody note landing on its pad', async () => {
+    await initRapier();
+    const m = findMachine('pirate');
+    const arrangement = m.song.backing!.midi!;
+    const sim = new Simulation();
+    sim.load(m.level);
+    const rec = new Recorder();
+    const music = new MusicSystem(sim, rec);
+    const backing = new Backing(sim, rec, m.song);
+    const dt = config.physics.fixedDt;
+    let finished = false;
+    sim.bus.on('marble:reset', (e) => (finished = finished || e.reason === 'finished'));
+    for (let t = 0; t < 120 && !finished; t += dt) {
+      sim.fixedUpdate(dt);
+      if (finished) break;
+      backing.update();
+    }
+    const strikes = rec.notes.filter((n) => n.object.type === 'pad');
+    expect(strikes.length).toBe(m.song.events.length);
+    // The whole file is played, in order, and the intro sounds before the first strike.
+    expect(rec.midi.length).toBe(arrangement.length);
+    for (let i = 1; i < rec.midi.length; i++) expect(rec.midi[i].at).toBeGreaterThanOrEqual(rec.midi[i - 1].at - 1e-6);
+    expect(rec.midi[0].at).toBeLessThan(strikes[0].simTime - 0.5);
+    // Every strike's own note in the arrangement lands on the strike (within a physics step).
+    m.song.events.forEach((e, i) => {
+      const own = rec.midi.filter((n) => Math.abs(n.at - strikes[i].simTime) < 0.02 && n.midi === noteToMidi(e.note!));
+      expect(own.length).toBeGreaterThan(0);
+    });
+    // No synthesised bed or melody line under an arrangement.
     expect(rec.chords.length).toBe(0);
     expect(rec.melody.length).toBe(0);
     music.dispose();
