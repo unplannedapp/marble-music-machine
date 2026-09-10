@@ -233,9 +233,10 @@ async function main(): Promise<void> {
     start,
     machines,
     (m) => {
-      void audio.unlock();
       gameHud.hidden = false;
       selectMachine(m);
+      // Unlock after the machine is chosen, so its recording decodes inside this tap.
+      void audio.unlock();
       menu.hide();
       loop.paused = false;
     },
