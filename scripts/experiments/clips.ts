@@ -1,0 +1,21 @@
+import { config } from '../../src/core/Config';
+import { Simulation, initRapier } from '../../src/sim/Simulation';
+import { MusicSystem } from '../../src/audio/MusicSystem';
+import { Backing } from '../../src/audio/Backing';
+import { findMachine } from '../../src/machines';
+await initRapier();
+const m = findMachine('calm');
+const sim = new Simulation();
+sim.load(m.level);
+const clips: string[] = [];
+const rec = { play() {}, setRolling() {}, playChord() {}, playMelody() {}, loadClip() {}, stopChords() { clips.push('STOP'); }, playClip(at: number, off: number, s: number) { clips.push(`at ${at.toFixed(2)} from ${off.toFixed(2)} for ${s}`); return true; } };
+const music = new MusicSystem(sim, rec);
+const backing = new Backing(sim, rec, m.song);
+sim.bus.on('marble:reset', (e) => clips.push(`reset ${e.reason} @${e.simTime.toFixed(2)}`));
+const dt = config.physics.fixedDt;
+let finished = false;
+sim.bus.on('marble:reset', (e) => (finished = finished || e.reason === 'finished'));
+for (let t = 0; t < 60 && !finished; t += dt) { sim.fixedUpdate(dt); backing.update(); }
+console.log(clips.join('\n'));
+console.log('sections of events:', m.song.events.map((e) => e.section).join(''));
+music.dispose(); backing.dispose();

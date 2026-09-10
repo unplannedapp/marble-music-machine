@@ -289,32 +289,33 @@ export class AudioEngine implements NotePlayer {
    * fades in over a few ms and out at its end; a slice still sounding when the
    * next begins is faded out under it, so cuts never click.
    */
-  playClip(simTime: number, offset: number, seconds: number): void {
-    if (!this.unlocked) return;
+  playClip(simTime: number, offset: number, seconds: number): boolean {
+    if (!this.unlocked) return false;
     if (!this.clip) {
       this.decodeClip();
-      return;
+      return false;
     }
     const ctx = this.ctx;
     const lead = config.audio.leadSeconds;
     let time = Number.isFinite(this.offset) ? simTime + this.offset + lead : ctx.currentTime + lead;
     if (time < ctx.currentTime + 0.005) time = ctx.currentTime + 0.005;
     const level = config.audio.recording;
-    if (level <= 0 || seconds <= 0.02) return;
-    // Hand over from whatever is still sounding.
+    if (!Number.isFinite(seconds)) seconds = Math.max(0, this.clip.duration - offset);
+    if (level <= 0 || seconds <= 0.02) return false;
+    // Hand over from whatever is still sounding: a short crossfade, at a rest.
     for (const v of this.clipVoices) {
       if (v.end > time) {
         v.gain.gain.cancelScheduledValues(time);
         v.gain.gain.setValueAtTime(v.gain.gain.value, time);
-        v.gain.gain.linearRampToValueAtTime(0, time + 0.04);
-        v.end = time + 0.04;
+        v.gain.gain.linearRampToValueAtTime(0, time + 0.12);
+        v.end = time + 0.12;
       }
     }
     this.clipVoices = this.clipVoices.filter((v) => v.end > ctx.currentTime);
     const source = ctx.createBufferSource();
     source.buffer = this.clip;
     const gain = ctx.createGain();
-    const fadeIn = 0.008;
+    const fadeIn = 0.03;
     const fadeOut = Math.min(0.25, seconds * 0.3);
     gain.gain.setValueAtTime(0, time);
     gain.gain.linearRampToValueAtTime(level, time + fadeIn);
@@ -325,6 +326,7 @@ export class AudioEngine implements NotePlayer {
     gain.connect(this.wet);
     source.start(time, Math.max(0, offset), seconds + 0.05);
     this.clipVoices.push({ gain, end: time + seconds });
+    return true;
   }
 
   stopChords(): void {

@@ -64,8 +64,9 @@ export class Backing {
     if (song.backing?.audio) player.loadClip(song.backing.audio.src);
     this.lastBeat = song.events.length ? Math.max(...song.events.map((e) => e.beat)) : 0;
     this.offs.push(bus.on('music:note', (n) => this.onNote(n)));
-    this.offs.push(bus.on('marble:reset', () => this.stop()));
-    this.offs.push(bus.on('marble:respawn', () => this.stop()));
+    // A lost marble cuts the music; a finished run lets a recording ring out (the next run's start fades it under).
+    this.offs.push(bus.on('marble:reset', (e) => this.stop(e.reason !== 'finished' || !song.backing?.audio)));
+    this.offs.push(bus.on('marble:respawn', () => this.stop(true)));
   }
 
   get chords(): string[] {
@@ -76,15 +77,22 @@ export class Backing {
     return this.song.backing?.beatsPerBar ?? 4;
   }
 
-  /** With a recording: the slice of it that belongs to this event, from its onset to the next. */
-  private playSlice(index: number, at: number): void {
+  /** Section of the recording currently streaming, or -1. */
+  private streamingSection = -1;
+
+  /**
+   * With a recording: the record plays straight through. It is started so its
+   * first note lands on the first strike, and at the first strike of each later
+   * section it is re-synchronised to the marble under a short crossfade, at a
+   * rest where the record is holding rather than playing. Within a phrase
+   * nothing is cut: it is the real song, and the marble keeps to it.
+   */
+  private streamFrom(index: number, at: number): void {
     const audio = this.song.backing?.audio;
     if (!audio) return;
     const onset = audio.onsets[index];
     if (onset === undefined) return;
-    const next = audio.onsets[index + 1];
-    const seconds = next !== undefined ? next - onset : (audio.tail ?? 3);
-    this.player.playClip(at, onset, seconds);
+    this.player.playClip(at, onset, Number.POSITIVE_INFINITY);
   }
 
   private onNote(n: NoteEvent): void {
@@ -92,7 +100,10 @@ export class Backing {
     if (!target) return;
     if (this.song.backing?.audio) {
       const i = this.eventIndex.get(n.object.id);
-      if (i !== undefined) this.playSlice(i, n.simTime);
+      if (i !== undefined && target.section !== this.streamingSection) {
+        this.streamingSection = target.section;
+        this.streamFrom(i, n.simTime);
+      }
       return;
     }
     if (target.section !== this.anchoredSection || !Number.isFinite(this.anchor)) {
@@ -117,11 +128,15 @@ export class Backing {
       // The recording's intro leads into the first strike, which the bake fixed in time.
       const first = this.song.firstStrike;
       if (!this.introPlayed && first !== undefined && audio.onsets.length && this.sim.simTime >= 0 && this.sim.simTime < first) {
+        // Start the record so its first note lands on the first strike; it then runs on.
         const intro = audio.onsets[0];
         const start = first - intro;
         if (this.sim.simTime + LOOKAHEAD >= start) {
           this.introPlayed = true;
-          if (intro > 0.05) this.player.playClip(Math.max(start, this.sim.simTime), Math.max(0, intro - (first - Math.max(start, this.sim.simTime))), first - Math.max(start, this.sim.simTime));
+          const now = Math.max(start, this.sim.simTime);
+          if (this.player.playClip(now, Math.max(0, intro - (first - now)), Number.POSITIVE_INFINITY)) {
+            this.streamingSection = this.song.events[0]?.section ?? 0;
+          }
         }
       }
       return;
@@ -158,14 +173,15 @@ export class Backing {
     }
   }
 
-  private stop(): void {
+  private stop(silence: boolean): void {
     this.anchor = NaN;
     this.anchoredSection = -1;
     this.scheduledBar = -1;
     this.nextEvent = 0;
     this.lastScheduledAt = -Infinity;
     this.introPlayed = false;
-    this.player.stopChords();
+    this.streamingSection = -1;
+    if (silence) this.player.stopChords();
   }
 
   dispose(): void {

@@ -20,8 +20,9 @@ class Recorder implements NotePlayer, BackingPlayer {
   loadClip(src: string): void {
     this.loaded = src;
   }
-  playClip(at: number, offset: number, seconds: number): void {
+  playClip(at: number, offset: number, seconds: number): boolean {
     this.clips.push({ at, offset, seconds });
+    return true;
   }
   play(e: NoteEvent): void {
     this.notes.push(e);
@@ -63,7 +64,7 @@ describe('backing', () => {
     for (const c of rec.chords) expect(Math.abs(c.seconds - bar)).toBeLessThan(1e-6);
     // Chords never overlap or run backwards, even where a section re-anchors the clock.
     for (let i = 1; i < rec.chords.length; i++) expect(rec.chords[i].at - rec.chords[i - 1].at).toBeGreaterThan(bar - 0.06);
-    // The finishing reset cut the bed.
+    // The finishing reset cut the synthesised bed.
     expect(rec.stops).toBeGreaterThan(0);
     // Only objects with a note sound when struck: the rails carry the marble in silence.
     expect(rec.notes.every((n) => !!n.object.def.note)).toBe(true);
@@ -79,7 +80,7 @@ describe('backing', () => {
     backing.dispose();
   });
 
-  it('plays a song recording slice by slice, each cut at its onset, when the marble strikes the pad', async () => {
+  it('plays a song recording straight through, re-synchronised at each section from its first strike', async () => {
     await initRapier();
     const m = findMachine('calm');
     const audio = m.song.backing!.audio!;
@@ -94,20 +95,23 @@ describe('backing', () => {
     sim.bus.on('marble:reset', (e) => (finished = finished || e.reason === 'finished'));
     for (let t = 0; t < 60 && !finished; t += dt) {
       sim.fixedUpdate(dt);
+      if (finished) break;
       backing.update();
     }
     const strikes = rec.notes.filter((n) => n.object.type === 'pad');
-    // The intro leads into the first strike, then one slice per note, in order.
-    const slices = rec.clips.filter((c) => audio.onsets.includes(c.offset));
-    expect(slices.length).toBe(m.song.events.length);
-    slices.forEach((c, i) => {
+    // The record starts so its first note lands on the first strike and runs to the end;
+    // then one restart per later section, from that section's first note, at its strike.
+    expect(rec.clips.length).toBe(m.song.sections!.length);
+    const intro = rec.clips[0];
+    expect(intro.at + (audio.onsets[0] - intro.offset)).toBeCloseTo(m.song.firstStrike!, 2);
+    expect(intro.seconds).toBe(Number.POSITIVE_INFINITY);
+    const sectionStarts = m.song.events.map((e, i) => ({ e, i })).filter(({ e, i }) => i === 0 || e.section !== m.song.events[i - 1].section);
+    rec.clips.slice(1).forEach((c, k) => {
+      const { i } = sectionStarts[k + 1];
       expect(c.offset).toBe(audio.onsets[i]);
       expect(Math.abs(c.at - strikes[i].simTime)).toBeLessThan(1e-6);
-      if (i + 1 < audio.onsets.length) expect(c.seconds).toBeCloseTo(audio.onsets[i + 1] - audio.onsets[i], 6);
+      expect(c.seconds).toBe(Number.POSITIVE_INFINITY);
     });
-    const intro = rec.clips.find((c) => !audio.onsets.includes(c.offset));
-    expect(intro).toBeDefined();
-    expect(intro!.at + intro!.seconds).toBeCloseTo(m.song.firstStrike!, 2);
     // No synthesised bed under a recording.
     expect(rec.chords.length).toBe(0);
     expect(rec.melody.length).toBe(0);
