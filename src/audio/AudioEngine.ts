@@ -212,6 +212,11 @@ export class AudioEngine implements NotePlayer {
   /** Where the song's recording stands, for a notice when a device cannot play it. */
   clipStatus: 'none' | 'loading' | 'ready' | 'failed' = 'none';
   clipError = '';
+  /** Whether a slice of the recording is scheduled or sounding right now. */
+  get clipPlaying(): boolean {
+    const now = this.ctx.currentTime;
+    return this.clipVoices.some((v) => v.end > now);
+  }
 
   /**
    * Take a recording (a data URI in the bundle) for slice playback. The bytes

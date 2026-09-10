@@ -20,10 +20,10 @@ export interface Machine {
 }
 
 export const machines: Machine[] = [
+  { id: 'calm', title: 'Calm Music 1 (your recording)', level: parseLevel(calmLevel), song: calmSong },
   { id: 'alphabet', title: 'The Alphabet Song', level: parseLevel(alphabetLevel), song: alphabetSong },
   { id: 'mary', title: 'Mary Had a Little Lamb', level: parseLevel(maryLevel), song: marySong },
   { id: 'joy', title: 'Ode to Joy', level: parseLevel(joyLevel), song: joySong },
-  { id: 'calm', title: 'Calm', level: parseLevel(calmLevel), song: calmSong },
 ];
 
 /** Source path of a machine's level file (for authoring scripts that write it back). */

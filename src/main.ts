@@ -62,6 +62,10 @@ async function main(): Promise<void> {
   let backing = new Backing(sim, audio, machine.song);
   music.strikeVoice = !machine.song.backing?.audio;
   let noticeShown = false;
+  const recordingLine = document.createElement('div');
+  recordingLine.className = 'recording-line';
+  recordingLine.hidden = true;
+  document.body.appendChild(recordingLine);
   let flow = new GameFlow(sim, scoring);
   let rings = new TargetRings(sim, scoring);
   view.scene.add(rings.group);
@@ -178,7 +182,13 @@ async function main(): Promise<void> {
       audio.syncClock(sim.simTime);
       music.update();
       backing.update();
-      // A song with a recording: at the first note, say on screen if the recording is not playing, and why.
+      // A song with a recording: a status line for the whole run, so a phone can say what it sees.
+      if (machine.song.backing?.audio) {
+        const label = `♪ original recording: ${audio.clipStatus}${audio.clipStatus === 'ready' ? (audio.clipPlaying ? ' · playing' : ' · waiting for the first note') : ''} · audio ${audio.ctx.state} · build ${typeof __BUILD__ === 'string' ? __BUILD__ : 'dev'}`;
+        if (recordingLine.textContent !== label) recordingLine.textContent = label;
+        recordingLine.hidden = gameHud.hidden;
+      } else if (!recordingLine.hidden) recordingLine.hidden = true;
+      // At the first note, say on screen if the recording is not playing, and why.
       if (machine.song.backing?.audio && !noticeShown && sim.simTime > (machine.song.firstStrike ?? 2) + 0.3) {
         noticeShown = true;
         const n = document.createElement('div');

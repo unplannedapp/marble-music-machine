@@ -87,12 +87,12 @@ export class Backing {
    * rest where the record is holding rather than playing. Within a phrase
    * nothing is cut: it is the real song, and the marble keeps to it.
    */
-  private streamFrom(index: number, at: number): void {
+  private streamFrom(index: number, at: number): boolean {
     const audio = this.song.backing?.audio;
-    if (!audio) return;
+    if (!audio) return false;
     const onset = audio.onsets[index];
-    if (onset === undefined) return;
-    this.player.playClip(at, onset, Number.POSITIVE_INFINITY);
+    if (onset === undefined) return false;
+    return this.player.playClip(at, onset, Number.POSITIVE_INFINITY);
   }
 
   private onNote(n: NoteEvent): void {
@@ -101,8 +101,8 @@ export class Backing {
     if (this.song.backing?.audio) {
       const i = this.eventIndex.get(n.object.id);
       if (i !== undefined && target.section !== this.streamingSection) {
-        this.streamingSection = target.section;
-        this.streamFrom(i, n.simTime);
+        // Only count the section as streaming once the record really started (it may still be decoding).
+        if (this.streamFrom(i, n.simTime)) this.streamingSection = target.section;
       }
       return;
     }
@@ -132,9 +132,10 @@ export class Backing {
         const intro = audio.onsets[0];
         const start = first - intro;
         if (this.sim.simTime + LOOKAHEAD >= start) {
-          this.introPlayed = true;
+          // Keep trying every frame until the record starts (audio may still be unlocking or decoding).
           const now = Math.max(start, this.sim.simTime);
           if (this.player.playClip(now, Math.max(0, intro - (first - now)), Number.POSITIVE_INFINITY)) {
+            this.introPlayed = true;
             this.streamingSection = this.song.events[0]?.section ?? 0;
           }
         }
