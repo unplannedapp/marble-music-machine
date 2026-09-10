@@ -60,6 +60,8 @@ async function main(): Promise<void> {
   // Song, timing, combo and score.
   let scoring = new ScoreSystem(sim, machine.song);
   let backing = new Backing(sim, audio, machine.song);
+  music.strikeVoice = !machine.song.backing?.audio;
+  let noticeShown = false;
   let flow = new GameFlow(sim, scoring);
   let rings = new TargetRings(sim, scoring);
   view.scene.add(rings.group);
@@ -82,6 +84,8 @@ async function main(): Promise<void> {
     scoring = new ScoreSystem(sim, m.song);
     backing.dispose();
     backing = new Backing(sim, audio, m.song);
+    music.strikeVoice = !m.song.backing?.audio;
+    noticeShown = false;
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
     rings.setColor(m.level.environment?.ring ?? '#f0e6c8');
@@ -142,6 +146,8 @@ async function main(): Promise<void> {
     scoring = new ScoreSystem(sim, target.song);
     backing.dispose();
     backing = new Backing(sim, audio, target.song);
+    music.strikeVoice = !target.song.backing?.audio;
+    noticeShown = false;
     flow = new GameFlow(sim, scoring);
     rings = new TargetRings(sim, scoring);
     overlay = new Hud(gameHud, sim.bus, view.camera, scoring, sim.marble.root);
@@ -157,7 +163,6 @@ async function main(): Promise<void> {
     lastNote = `${n.instrument}${n.note ? ' ' + n.note : ''}  vel ${n.velocity.toFixed(2)}`;
   });
 
-  let noticeShown = false;
   const marblePos = new THREE.Vector3();
   const marbleVel = new THREE.Vector3();
   const focus = new THREE.Vector3();
@@ -173,14 +178,19 @@ async function main(): Promise<void> {
       audio.syncClock(sim.simTime);
       music.update();
       backing.update();
-      // A song with a recording this device cannot decode: say so, once, on screen.
-      if (audio.clipStatus === 'failed' && !noticeShown) {
+      // A song with a recording: at the first note, say on screen if the recording is not playing, and why.
+      if (machine.song.backing?.audio && !noticeShown && sim.simTime > (machine.song.firstStrike ?? 2) + 0.3) {
         noticeShown = true;
-        const n = document.createElement('div');
-        n.className = 'notice';
-        n.textContent = `This song's recording could not be decoded here (${audio.clipError || 'unknown error'}).`;
-        document.body.appendChild(n);
-        setTimeout(() => n.remove(), 9000);
+        if (audio.clipStatus !== 'ready') {
+          const n = document.createElement('div');
+          n.className = 'notice';
+          n.textContent =
+            audio.clipStatus === 'failed'
+              ? `This song's recording could not be decoded here (${audio.clipError || 'unknown error'}).`
+              : `This song's recording is not ready (${audio.clipStatus}, audio ${audio.ctx.state}).`;
+          document.body.appendChild(n);
+          setTimeout(() => n.remove(), 9000);
+        }
       }
       effects.update(frameDt);
       rings.update(frameDt);
@@ -204,7 +214,7 @@ async function main(): Promise<void> {
       fps = fps * 0.95 + (1 / Math.max(frameDt, 1e-3)) * 0.05;
       const lc = sim.lastContact;
       if (!hud.hidden) hud.textContent =
-        `t ${sim.simTime.toFixed(2)}s   ${fps.toFixed(0)} fps${loop.paused ? '   PAUSED' : ''}\n` +
+        `t ${sim.simTime.toFixed(2)}s   ${fps.toFixed(0)} fps${loop.paused ? '   PAUSED' : ''}   recording ${audio.clipStatus}\n` +
         `speed ${sim.marble.speed().toFixed(2)}   contacts ${sim.physics.contactCount}\n` +
         (lc ? `last hit ${lc.object.id}  impact ${lc.impactSpeed.toFixed(2)}  @ ${lc.simTime.toFixed(2)}s` : 'last hit -') +
         (lastNote ? `\nnote ${lastNote}` : '');

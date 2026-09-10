@@ -43,6 +43,14 @@ export class MusicSystem {
   private lastNoteTime = new Map<InteractiveObject, number>();
   private readonly offs: (() => void)[] = [];
 
+  /**
+   * Whether a strike plays its synthesised note. Off when the song carries its
+   * own recording: the slice of the record that starts on the strike is the
+   * note, and a marimba on top would only restate the transcription's guesses.
+   * The `music:note` event still fires for the score, the visuals and the slice.
+   */
+  strikeVoice = true;
+
   constructor(
     private readonly sim: Simulation,
     private readonly player: NotePlayer,
@@ -74,7 +82,8 @@ export class MusicSystem {
       velocity: velocityFromImpact(e.impactSpeed, config.audio.referenceImpact),
       impactSpeed: e.impactSpeed,
     };
-    this.player.play(note);
+    if (this.strikeVoice) this.player.play(note);
+    else this.player.play({ ...note, instrument: 'click', note: null, velocity: Math.min(0.5, note.velocity * 0.5) }); // a soft tick for the touch
     bus.emit('music:note', note);
   }
 
