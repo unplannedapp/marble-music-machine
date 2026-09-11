@@ -73,6 +73,10 @@ export class AudioEngine implements NotePlayer {
     this.decodeClip();
   }
 
+  get clockOffset(): number {
+    return this.offset;
+  }
+
   /** Call every frame with the current simulation time to keep the clocks aligned. */
   syncClock(simTime: number): void {
     const now = this.ctx.currentTime;

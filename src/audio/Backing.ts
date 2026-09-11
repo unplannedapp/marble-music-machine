@@ -123,7 +123,30 @@ export class Backing {
     if (!audio) return false;
     const onset = audio.onsets[index];
     if (onset === undefined) return false;
-    return this.player.playClip(at, onset, Number.POSITIVE_INFINITY);
+    if (!this.player.playClip(at, onset, Number.POSITIVE_INFINITY)) return false;
+    this.stream = { onset, simTime: at, clockOffset: this.player.clockOffset ?? NaN };
+    return true;
+  }
+
+  /** The record as it is running: the second of it that sounded at a simulation second, and the clocks' offset then. */
+  private stream: { onset: number; simTime: number; clockOffset: number } | null = null;
+  /** How far the clocks may part before the record is re-seated on the marble. */
+  private static readonly LAG_TOLERANCE = 0.08;
+
+  /**
+   * A record plays on the audio clock; the marble on the simulation's. When
+   * frames drop the simulation falls behind and the record runs ahead of the
+   * marble, so once the gap is audible the record is restarted from where the
+   * marble is, under the usual crossfade.
+   */
+  private keepRecordOnMarble(): void {
+    const s = this.stream;
+    const offset = this.player.clockOffset;
+    if (!s || offset === undefined || !Number.isFinite(offset) || !Number.isFinite(s.clockOffset)) return;
+    if (Math.abs(offset - s.clockOffset) < Backing.LAG_TOLERANCE) return;
+    const now = this.sim.simTime;
+    const position = s.onset + (now - s.simTime);
+    if (this.player.playClip(now, position, Number.POSITIVE_INFINITY)) this.stream = { onset: position, simTime: now, clockOffset: offset };
   }
 
   private onNote(n: NoteEvent): void {
@@ -186,6 +209,7 @@ export class Backing {
     }
     const audio = this.song.backing?.audio;
     if (audio) {
+      this.keepRecordOnMarble();
       // The recording's intro leads into the first strike, which the bake fixed in time.
       const first = this.song.firstStrike;
       if (!this.introPlayed && first !== undefined && audio.onsets.length && this.sim.simTime >= 0 && this.sim.simTime < first) {
@@ -195,7 +219,9 @@ export class Backing {
         if (this.sim.simTime + LOOKAHEAD >= start) {
           // Keep trying every frame until the record starts (audio may still be unlocking or decoding).
           const now = Math.max(start, this.sim.simTime);
-          if (this.player.playClip(now, Math.max(0, intro - (first - now)), Number.POSITIVE_INFINITY)) {
+          const position = Math.max(0, intro - (first - now));
+          if (this.player.playClip(now, position, Number.POSITIVE_INFINITY)) {
+            this.stream = { onset: position, simTime: now, clockOffset: this.player.clockOffset ?? NaN };
             this.introPlayed = true;
             this.streamingSection = this.song.events[0]?.section ?? 0;
           }
@@ -250,6 +276,7 @@ export class Backing {
     this.lastScheduledAt = -Infinity;
     this.introPlayed = false;
     this.streamingSection = -1;
+    this.stream = null;
     this.nextMidi = 0;
     this.strikeShift = 0;
     if (silence) this.player.stopChords();

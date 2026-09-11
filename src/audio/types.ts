@@ -50,6 +50,12 @@ export interface BackingPlayer {
    * start (recording not decoded yet), so the caller can try again later.
    */
   playClip(simTime: number, offset: number, seconds: number): boolean;
+  /**
+   * Audio-clock seconds per simulation second offset, as last measured: when
+   * frames drop the simulation falls behind the clock a record plays on, and
+   * a change here says the record has run ahead of the marble.
+   */
+  readonly clockOffset?: number;
   /** Silence every chord still sounding or scheduled (the marble was put back). */
   stopChords(): void;
 }

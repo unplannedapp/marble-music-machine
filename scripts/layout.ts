@@ -18,6 +18,8 @@
  *   A 'ramp' step is a short tilted shelf. Both re-gather the marble so small
  *   deviations do not accumulate, and their lower end is the next drop origin.
  *     exit  outgoing elevation in degrees above horizontal (default 15)
+ *     time  (pad) seconds after the previous pad's strike; the drop is searched for it
+ *     silent (pad) a hop that plays no note: fills a gap too long for one hop
  *   prefix  id prefix; existing objects with this prefix are replaced (default "auto_")
  *   afterT  only consider the trajectory after this simulation time
  */
@@ -34,7 +36,7 @@ const levelPath = process.argv[2];
 if (!levelPath) throw new Error('usage: layout.ts <level.json> <steps json> [prefix] [afterT]');
 const playground = parseLevel(JSON.parse(readFileSync(levelPath, 'utf8')));
 
-interface Step { k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher' | 'bowl' | 'seesaw'; hold?: number; y?: number; drop?: number; dir: -1 | 0 | 1 | 'auto'; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number; shape?: RailShape; len?: number; slope?: number; time?: number }
+interface Step { silent?: boolean; k: 'pad' | 'bumper' | 'rail' | 'ramp' | 'pipe' | 'spinner' | 'loop' | 'launcher' | 'bowl' | 'seesaw'; hold?: number; y?: number; drop?: number; dir: -1 | 0 | 1 | 'auto'; exit?: number; note?: string; color?: string; rpm?: number; radius?: number; blades?: number; shape?: RailShape; len?: number; slope?: number; time?: number }
 const steps: Step[] = JSON.parse(process.argv[3] ?? '[]');
 const prefix = process.argv[4] ?? 'auto_';
 let afterT = Number(process.argv[5] ?? 0);
@@ -57,7 +59,7 @@ function simulate(level: LevelDef, yTarget: number, after: number): { state: Sta
   });
   let out: State | null = null;
   const dt = config.physics.fixedDt;
-  for (let t = 0; t < 60; t += dt) {
+  for (let t = 0; t < 120; t += dt) {
     sim.fixedUpdate(dt);
     if (resets > 0) break; // a second pass of the marble is never the state we want
     const p = sim.marble.body.translation();
@@ -94,7 +96,7 @@ function flight(level: LevelDef, id: string, after: number, settle = 0.9): { x: 
   let lowest = Infinity;
   let climb = -Infinity; // highest point reached after having been at least 1.2 below it (a loop's rise)
   let last: ReturnType<typeof flight> = null;
-  for (let t = 0; t < 30; t += dt) {
+  for (let t = 0; t < 120; t += dt) {
     sim.fixedUpdate(dt);
     if (bad || done) break;
     const p = sim.marble.body.translation();
@@ -180,11 +182,15 @@ const withPlaced = (placedSoFar: ObjectDef[]): ObjectDef[] => [
 ];
 const placed: ObjectDef[] = [];
 let stepsDone = 0;
+/** Simulation second of the last pad's strike, for pads timed to the song. */
+let lastStrikeT: number | undefined;
+/** Where the song's clock says the last pad's strike should have been (a run of timed pads). */
+let nominalT: number | undefined;
 const colors = ['#d9534f', '#d99a4e', '#5bc0de', '#8e6bd6', '#5cb85c', '#e86fb0', '#f7f7f7', '#2f9e8f'];
 const notes = ['C4', 'E4', 'G4', 'C5', 'A4', 'F4', 'D4', 'B4'];
 let lastY = 0;
 /** Per successful step: the drop origin and time the next step started from, and how many objects it placed. */
-const records: { lastY: number; afterT: number; objects: number }[] = [];
+const records: { lastY: number; afterT: number; objects: number; strikeT?: number; nominalT?: number }[] = [];
 let startK = 0;
 /**
  * Which placed object the final world fails to strike in order, if any. Later
@@ -264,26 +270,19 @@ if (pass > 0) {
   stepsDone = startK;
   lastY = startK > 0 ? records[startK - 1].lastY : 0;
   afterT = startK > 0 ? records[startK - 1].afterT : Number(process.argv[5] ?? 0);
+  lastStrikeT = startK > 0 ? records[startK - 1].strikeT : undefined;
+  nominalT = startK > 0 ? records[startK - 1].nominalT : undefined;
 }
 for (let k = startK; k < steps.length; k++) {
   const step = steps[k];
+  if (step.k !== 'pad') lastStrikeT = nominalT = undefined;
   const placedBefore = placed.length;
-  const record = () => records.push({ lastY, afterT, objects: placed.length - placedBefore });
-  const yTarget = step.y ?? lastY - (step.drop ?? 1.8);
-  const level = { ...base, objects: world(placed) };
-  const { state, hits } = simulate(level, yTarget, afterT);
-  if (!state) {
-    console.log(`step ${k}: marble never reached y=${yTarget}. Contacts: ${hits.join(' ')}`);
-    break;
-  }
-  const speed = Math.hypot(state.vx, state.vy);
-  const d: [number, number] = [state.vx / speed, state.vy / speed];
-  const exit = step.exit ?? 15;
+  const record = () => records.push({ lastY, afterT, objects: placed.length - placedBefore, strikeT: lastStrikeT, nominalT });
   // 'auto': sweep across the board. Keep going the way the marble is moving
   // until it nears the side band, then turn it back; before a rail (which runs
   // the marble's own way) turn toward the side with the most room.
   const nextStep = steps[k + 1];
-  const autoDir = (): -1 | 1 => {
+  const autoDir = (state: State): -1 | 1 => {
     const edge = base.board.width / 2 - 6; // a hop is ~4.3 wide: turn back before the next one reaches the wall
     const restAhead = (n: number) => steps[k + n] && steps[k + n].k === 'rail' && steps[k + n].time !== undefined;
     if (restAhead(1)) {
@@ -301,7 +300,82 @@ for (let k = startK; k < steps.length; k++) {
     if (state.x < -edge) return 1;
     return state.vx < 0 ? -1 : 1;
   };
-  const dir = (step.dir as unknown) === 'auto' ? autoDir() : step.dir === 0 ? (state.vx > 0 ? -1 : 1) : step.dir;
+  /**
+   * A pad with `time` is placed so its strike comes that many seconds after the
+   * previous pad's: the drop below the last pad is searched (a longer fall and
+   * a higher lob take longer), on the real path. Only between two pads: after a
+   * rest the song re-synchronises on the strike anyway.
+   */
+  if (step.k === 'pad' && step.time !== undefined && lastStrikeT !== undefined) {
+    // Aim at the song's own clock, not the last strike: a run of pads then never
+    // drifts, each small error being taken up by the next.
+    if (nominalT === undefined) nominalT = lastStrikeT;
+    const nominalNext = nominalT + step.time;
+    const want = nominalNext - lastStrikeT;
+    nominalT = nominalNext;
+    const id = `${prefix}${k + 1}`;
+    const measure = (drop: number): number | null => {
+      const r = simulate({ ...base, objects: world(placed) }, lastY - drop, afterT);
+      if (!r.state) return null;
+      const st = r.state;
+      const sp = Math.hypot(st.vx, st.vy);
+      const dd: [number, number] = [st.vx / sp, st.vy / sp];
+      const dr = (step.dir as unknown) === 'auto' ? autoDir(st) : step.dir === 0 ? (st.vx > 0 ? -1 : 1) : step.dir;
+      const ex0 = step.exit ?? 15;
+      for (const ex of [ex0, ex0 - 8, ex0 - 16, ex0 + 6, ex0 - 24]) {
+        const oo: [number, number] = [dr * Math.cos(ex * DEG), Math.sin(ex * DEG)];
+        const a = solveNormal(dd, oo, config.materials.pad.restitution, sp, 0);
+        const n = [-Math.sin(a * DEG), Math.cos(a * DEG)];
+        const off = padHalfThick + config.marble.radius;
+        const cand: PadDef = { type: 'pad', id, position: [+(st.x - n[0] * off).toFixed(2), +(st.y - n[1] * off).toFixed(2), 0], angle: a };
+        const probe = simulate({ ...base, objects: world([...placed, cand]) }, st.y - 1.2, st.t + 0.05);
+        if (!probe.state) continue;
+        const hit = probe.hits.find((h) => h.startsWith(`${id}@`));
+        return hit ? Number.parseFloat(hit.slice(id.length + 1)) - lastStrikeT : null;
+      }
+      return null;
+    };
+    const clampDrop = (d: number) => Math.min(4.6, Math.max(0.5, d));
+    let d0 = clampDrop(step.drop ?? 1.1 + (want - 0.45) * 3.0);
+    let t0 = measure(d0);
+    let best: { drop: number; err: number } | null = t0 === null ? null : { drop: d0, err: t0 - want };
+    let d1 = clampDrop(t0 === null || t0 > want ? d0 * 0.7 : d0 * 1.4);
+    for (let it = 0; it < 9 && (!best || Math.abs(best.err) > 0.012); it++) {
+      const t1 = measure(d1);
+      if (t1 !== null) {
+        if (!best || Math.abs(t1 - want) < Math.abs(best.err)) best = { drop: d1, err: t1 - want };
+        // Secant step on the two latest measurements; fall back to a proportional nudge.
+        let next = d1;
+        if (t0 !== null && Math.abs(t1 - t0) > 1e-3) next = d1 + (want - t1) * (d1 - d0) / (t1 - t0);
+        else next = d1 * (want / t1);
+        if (!Number.isFinite(next)) next = d1 * (want / t1);
+        d0 = d1; t0 = t1;
+        d1 = clampDrop(next);
+        if (Math.abs(d1 - d0) < 0.02) d1 = clampDrop(d0 + (t1 < want ? 0.15 : -0.15));
+      } else {
+        // The marble never got that far: a shorter fall.
+        d1 = clampDrop(d1 * 0.75);
+      }
+    }
+    if (best) {
+      // A gap no single hop can fill: let the song's clock start again from this strike.
+      if (Math.abs(best.err) > 0.2) nominalT = lastStrikeT + want + best.err;
+      step.drop = +best.drop.toFixed(2);
+      step.y = undefined;
+      console.log(`${id}: timed ${step.time}s after the last strike -> drop ${step.drop} (${(want + best.err).toFixed(3)}s for ${want.toFixed(3)})`);
+    } else console.log(`${id}: no drop gives a strike ${want}s after the last; using drop ${step.drop ?? 1.8}`);
+  }
+  const yTarget = step.y ?? lastY - (step.drop ?? 1.8);
+  const level = { ...base, objects: world(placed) };
+  const { state, hits } = simulate(level, yTarget, afterT);
+  if (!state) {
+    console.log(`step ${k}: marble never reached y=${yTarget}. Contacts: ${hits.join(' ')}`);
+    break;
+  }
+  const speed = Math.hypot(state.vx, state.vy);
+  const d: [number, number] = [state.vx / speed, state.vy / speed];
+  const exit = step.exit ?? 15;
+  const dir = (step.dir as unknown) === 'auto' ? autoDir(state) : step.dir === 0 ? (state.vx > 0 ? -1 : 1) : step.dir;
   const o: [number, number] = [dir * Math.cos(exit * DEG), Math.sin(exit * DEG)];
   const id = `${prefix}${k + 1}`;
   currentId = id;
@@ -639,6 +713,7 @@ for (let k = startK; k < steps.length; k++) {
     // marble back onto the pad it left, where it sits. Keep the first exit
     // that actually carries the marble on below the pad.
     let pad: PadDef | null = null;
+    let padStrikeT: number | undefined;
     for (const ex of [exit, exit - 8, exit - 16, exit + 6, exit - 24]) {
       const oo: [number, number] = [dir * Math.cos(ex * DEG), Math.sin(ex * DEG)];
       const a = solveNormal(d, oo, config.materials.pad.restitution, speed, 0);
@@ -648,11 +723,14 @@ for (let k = startK; k < steps.length; k++) {
         type: 'pad', id,
         position: [+(state.x - n[0] * off).toFixed(2), +(state.y - n[1] * off).toFixed(2), 0],
         angle: a, color: step.color ?? colors[k % colors.length], note: step.note ?? notes[k % notes.length],
+        ...(step.silent ? { instrument: 'none' as const } : {}),
       };
       const probe = simulate({ ...base, objects: world([...placed, cand]) }, state.y - 1.2, state.t + 0.05);
       if (probe.state) {
         pad = cand;
         angle = a;
+        const hit = probe.hits.find((h) => h.startsWith(`${id}@`));
+        padStrikeT = hit ? Number.parseFloat(hit.slice(id.length + 1)) : undefined;
         if (ex !== exit) console.log(`${id}: exit ${exit} did not carry the marble on; using ${ex}`);
         break;
       }
@@ -662,7 +740,9 @@ for (let k = startK; k < steps.length; k++) {
       break;
     }
     def = pad;
+    lastStrikeT = padStrikeT;
   } else {
+    lastStrikeT = undefined;
     angle = solveNormal(d, o, config.materials.bumper.restitution, speed, config.bumper.kick);
     const n = [-Math.sin(angle * DEG), Math.cos(angle * DEG)];
     const off = bumperRadius + config.marble.radius;

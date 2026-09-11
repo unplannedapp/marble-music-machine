@@ -162,9 +162,14 @@ The first twelve bars became 42 pads and four rails, laid out in one pass.
 A real MIDI file would skip the guesswork; the backing now voices any chord
 symbol (root plus optional m), not just the six it knew. The synthesised
 version of a transcribed track sounds nothing like the record, so a song
-from a recording now plays the recording: cut at its note onsets, one slice
-per strike, intro timed to end on the first strike. Bundle cost is the clip
-(about 250 KB for 32 s of mono 64 kbps).
+from a recording now plays the recording straight through, re-synchronised
+only at phrase breaks, its intro timed to end on the first strike. Bundle cost
+is the clip (about 1.4 MB for 32 s of 22 kHz mono WAV, the format every phone
+decodes). An uploaded MIDI ("He's a Pirate") is rendered with a General MIDI
+soundfont and played the same way; its machine is laid out to the file's own
+note times with the layout tool's timed pads (82 melody strikes at 0.9 s and
+0.45 s, two silent hops for the 1.8 s holds, 78 s of board), so the marble
+keeps to the record rather than the record being bent to the marble.
 
 ## Design decisions carried forward
 

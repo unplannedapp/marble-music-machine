@@ -113,13 +113,18 @@ and the next strike starts it again.
 
 A song that came from a recording carries the recording itself
 (`backing.audio`: a data URI inlined by Vite, plus the onset time of each
-event's note in it). Then nothing is synthesised under the machine: the
-recording is cut at those onsets and each slice plays when the marble strikes
-the matching pad (`AudioEngine.playClip`, fades at both ends, the previous
-slice faded out under it), and its intro is scheduled to end exactly on the
-first strike, whose time the bake fixed (`song.firstStrike`). The real sound,
-kept in step with the marble however the machine's rhythm differs from the
-record's.
+event's note in it). Then nothing is synthesised under the machine: the record
+plays straight through (`AudioEngine.playClip`), started so its first note
+lands on the first strike, whose time the bake fixed (`song.firstStrike`), and
+re-synchronised to the marble only at the first strike of each later section,
+under a short crossfade. Within a phrase it is never cut, so the machine has to
+keep the record's own rhythm: the layout tool times each pad to the song
+(`time` on a pad step searches the drop below the previous pad for the strike
+gap, against the song's running clock so errors do not add up; a `silent` pad
+is a hop with no note that fills a gap too long for one). A MIDI file is
+rendered to audio with a General MIDI soundfont (FluidSynth) and treated the
+same way; `backing.midi` can instead play the note list through the
+synthesiser, warped between strikes, which no shipped machine now uses.
 
 ## Objects
 

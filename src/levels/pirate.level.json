@@ -27,26 +27,26 @@
   "board": {
     "width": 20,
     "top": 8,
-    "bottom": -200
+    "bottom": -290
   },
   "spawn": {
     "position": [-5, 4.916, 0.55],
     "velocity": [1.174, -0.247, 0]
   },
-  "killY": -198,
+  "killY": -288,
   "objects": [
     {
       "type": "wall",
       "id": "wall_left",
-      "position": [-10.2, -96, 0.6],
-      "size": [0.4, 210, 1.2],
+      "position": [-10.2, -141, 0.6],
+      "size": [0.4, 300, 1.2],
       "instrument": "none"
     },
     {
       "type": "wall",
       "id": "wall_right",
-      "position": [10.2, -96, 0.6],
-      "size": [0.4, 210, 1.2],
+      "position": [10.2, -141, 0.6],
+      "size": [0.4, 300, 1.2],
       "instrument": "none"
     },
     {
@@ -69,583 +69,577 @@
     {
       "type": "pad",
       "id": "pirate_2",
-      "position": [6.96, 0.35, 0],
-      "angle": 36.5,
+      "position": [8.42, -2.5, 0],
+      "angle": 29.5,
       "color": "#f0ad4e",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_3",
-      "position": [5.58, -1.55, 0],
-      "angle": 10.5,
+      "position": [5.56, -6.74, 0],
+      "angle": 9.5,
       "color": "#5bc0de",
       "note": "A#4"
     },
     {
       "type": "pad",
       "id": "pirate_4",
-      "position": [4.27, -2.68, 0],
-      "angle": 21,
+      "position": [3.04, -7.29, 0],
+      "angle": 16.5,
       "color": "#8e6bd6",
       "note": "A4"
     },
     {
       "type": "pad",
       "id": "pirate_5",
-      "position": [2.32, -3.84, 0],
-      "angle": 13.5,
+      "position": [0.67, -8.63, 0],
+      "angle": 12.5,
       "color": "#5cb85c",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_6",
-      "position": [-0.57, -5.7, 0],
-      "angle": -4,
+      "position": [-4.3, -13.21, 0],
+      "angle": -29.5,
       "color": "#e86fb0",
       "note": "F4"
     },
     {
       "type": "pad",
       "id": "pirate_7",
-      "position": [-3.53, -7.56, 0],
-      "angle": 0.5,
+      "position": [-1.35, -17.55, 0],
+      "angle": -9.5,
       "color": "#f7f7f7",
       "note": "E4"
     },
     {
       "type": "pad",
       "id": "pirate_8",
-      "position": [-6.56, -9.31, 0],
-      "angle": -29,
+      "position": [2.15, -20.42, 0],
+      "angle": -4.5,
       "color": "#2f9e8f",
       "note": "C4"
     },
     {
       "type": "pad",
       "id": "pirate_9",
-      "position": [-5.07, -11.23, 0],
-      "angle": -9.5,
+      "position": [6.17, -24.04, 0],
+      "angle": 25.5,
       "color": "#d9534f",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_10",
-      "position": [-3.26, -13.09, 0],
-      "angle": -5.5,
+      "position": [3.5, -27.22, 0],
+      "angle": 8.5,
       "color": "#f0ad4e",
       "note": "F4"
     },
     {
       "type": "pad",
       "id": "pirate_11",
-      "position": [-1.1, -14.94, 0],
-      "angle": -3.5,
+      "position": [0.21, -30.91, 0],
+      "angle": 5.5,
       "color": "#5bc0de",
       "note": "E4"
     },
     {
       "type": "pad",
       "id": "pirate_12",
-      "position": [1.23, -16.8, 0],
-      "angle": -3,
+      "position": [-3.65, -33.97, 0],
+      "angle": 3.5,
       "color": "#8e6bd6",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_13",
-      "position": [3.71, -18.67, 0],
-      "angle": -2.5,
+      "position": [-7.94, -37.43, 0],
+      "angle": -26.5,
       "color": "#5cb85c",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_14",
-      "position": [6.48, -20.47, 0],
-      "angle": 27.5,
+      "position": [-5.34, -40.7, 0],
+      "angle": -8.5,
       "color": "#e86fb0",
       "note": "G4"
     },
     {
       "type": "pad",
       "id": "pirate_15",
-      "position": [5.04, -22.35, 0],
-      "angle": 9,
+      "position": [-2.18, -43.99, 0],
+      "angle": -5.5,
       "color": "#f7f7f7",
       "note": "A#4"
     },
     {
       "type": "pad",
       "id": "pirate_16",
-      "position": [3.26, -24.16, 0],
-      "angle": 5.5,
+      "position": [1.58, -47.44, 0],
+      "angle": -4,
       "color": "#2f9e8f",
       "note": "A4"
     },
     {
       "type": "pad",
       "id": "pirate_17",
-      "position": [1.13, -26.03, 0],
-      "angle": 4,
+      "position": [5.85, -50.61, 0],
+      "angle": 26.5,
       "color": "#d9534f",
       "note": "F4"
     },
     {
       "type": "pad",
       "id": "pirate_18",
-      "position": [-1.23, -27.89, 0],
-      "angle": 3,
+      "position": [3.42, -53.95, 0],
+      "angle": 9,
       "color": "#f0ad4e",
       "note": "A4"
     },
     {
       "type": "pad",
       "id": "pirate_19",
-      "position": [-3.69, -29.71, 0],
-      "angle": 2.5,
+      "position": [0.25, -57.44, 0],
+      "angle": 6,
       "color": "#5bc0de",
       "note": "E4"
     },
     {
       "type": "pad",
       "id": "pirate_20",
-      "position": [-6.45, -31.52, 0],
-      "angle": -28,
+      "position": [-3.66, -60.79, 0],
+      "angle": 4,
       "color": "#8e6bd6",
       "note": "E4"
     },
     {
       "type": "pad",
       "id": "pirate_21",
-      "position": [-4.87, -33.38, 0],
-      "angle": -8.5,
+      "position": [-7.97, -63.96, 0],
+      "angle": -27,
       "color": "#5cb85c",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_22",
-      "position": [-3.13, -35.2, 0],
-      "angle": -5.5,
+      "position": [-5.47, -67.32, 0],
+      "angle": -9,
       "color": "#e86fb0",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_23",
-      "position": [-1, -37.07, 0],
-      "angle": -4,
+      "position": [-2.26, -70.79, 0],
+      "angle": -5.5,
       "color": "#f7f7f7",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "pirate_24",
-      "position": [1.34, -38.94, 0],
-      "angle": -3,
+      "position": [1.57, -74.22, 0],
+      "angle": -4,
       "color": "#2f9e8f",
       "note": "C5"
     },
     {
       "type": "pad",
       "id": "pirate_25",
-      "position": [3.81, -40.81, 0],
-      "angle": -2.5,
+      "position": [5.83, -77.33, 0],
+      "angle": 27,
       "color": "#d9534f",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_26",
-      "position": [6.55, -42.59, 0],
-      "angle": 27.5,
+      "position": [3.34, -80.83, 0],
+      "angle": 9,
       "color": "#f0ad4e",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_27",
-      "position": [5.13, -44.48, 0],
-      "angle": 9.5,
+      "position": [0.13, -84.13, 0],
+      "angle": 5.5,
       "color": "#5bc0de",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "pirate_28",
-      "position": [3.33, -46.34, 0],
-      "angle": 5.5,
+      "position": [-3.66, -87.61, 0],
+      "angle": 4,
       "color": "#8e6bd6",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_29",
-      "position": [1.17, -48.18, 0],
-      "angle": 3.5,
+      "position": [-7.98, -90.75, 0],
+      "angle": -27,
       "color": "#5cb85c",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_30",
-      "position": [-1.15, -50.02, 0],
-      "angle": 3,
+      "position": [-5.45, -94.25, 0],
+      "angle": -9,
       "color": "#e86fb0",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "pirate_31",
-      "position": [-3.62, -51.89, 0],
-      "angle": 2.5,
+      "position": [-2.21, -97.54, 0],
+      "angle": -5.5,
       "color": "#f7f7f7",
       "note": "A#5"
     },
     {
       "type": "pad",
       "id": "pirate_32",
-      "position": [-6.36, -53.65, 0],
-      "angle": -28,
+      "position": [1.61, -100.85, 0],
+      "angle": -4,
       "color": "#2f9e8f",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_33",
-      "position": [-4.88, -55.58, 0],
-      "angle": -9,
+      "position": [5.97, -104.24, 0],
+      "angle": 26.5,
       "color": "#d9534f",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_34",
-      "position": [-3.07, -57.43, 0],
-      "angle": -5.5,
+      "position": [3.42, -107.5, 0],
+      "angle": 9,
       "color": "#f0ad4e",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_35",
-      "position": [-0.92, -59.27, 0],
-      "angle": -3.5,
+      "position": [0.22, -110.92, 0],
+      "angle": 5.5,
       "color": "#5bc0de",
       "note": "E5"
     },
     {
       "type": "pad",
       "id": "pirate_36",
-      "position": [1.41, -61.11, 0],
-      "angle": -3,
+      "position": [-3.59, -114.34, 0],
+      "angle": 4,
       "color": "#8e6bd6",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_37",
-      "position": [3.85, -62.92, 0],
-      "angle": -2.5,
+      "position": [-7.94, -117.62, 0],
+      "angle": -26.5,
       "color": "#5cb85c",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_38",
-      "position": [6.56, -64.68, 0],
-      "angle": 28,
+      "position": [-5.47, -120.81, 0],
+      "angle": -9,
       "color": "#e86fb0",
       "note": "A5"
     },
     {
-      "type": "rail",
+      "type": "pad",
       "id": "pirate_39",
-      "points": [
-        [5.88, -65.44, 0],
-        [5.48, -65.7, 0],
-        [4.98, -65.86, 0],
-        [3.85, -66.14, 0],
-        [2.72, -66.42, 0],
-        [1.58, -66.71, 0]
-      ]
+      "position": [-2.26, -124.45, 0],
+      "angle": -6,
+      "color": "#6b6b6b",
+      "note": "D4",
+      "instrument": "none"
     },
     {
       "type": "pad",
       "id": "pirate_40",
-      "position": [-0.66, -68.78, 0],
-      "angle": -46.5,
+      "position": [1.64, -127.78, 0],
+      "angle": -4,
       "color": "#f7f7f7",
       "note": "A#5"
     },
     {
-      "type": "rail",
+      "type": "pad",
       "id": "pirate_41",
-      "points": [
-        [0.89, -69.57, 0],
-        [1.29, -69.83, 0],
-        [1.79, -69.99, 0],
-        [3.08, -70.31, 0],
-        [4.38, -70.64, 0],
-        [5.67, -70.96, 0]
-      ]
+      "position": [5.98, -130.86, 0],
+      "angle": 27,
+      "color": "#6b6b6b",
+      "note": "C4",
+      "instrument": "none"
     },
     {
       "type": "pad",
       "id": "pirate_42",
-      "position": [8.14, -73.01, 0],
-      "angle": 48.5,
+      "position": [3.53, -134.35, 0],
+      "angle": 9,
       "color": "#2f9e8f",
       "note": "E4"
     },
     {
       "type": "pad",
       "id": "pirate_43",
-      "position": [6.02, -74.27, 0],
-      "angle": 17,
+      "position": [1.35, -134.88, 0],
+      "angle": 16.5,
       "color": "#d9534f",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_44",
-      "position": [4.17, -75.43, 0],
-      "angle": 14.5,
+      "position": [-0.26, -135.41, 0],
+      "angle": 7.5,
       "color": "#f0ad4e",
       "note": "F4"
     },
     {
       "type": "pad",
       "id": "pirate_45",
-      "position": [1.36, -77.3, 0],
-      "angle": -3.5,
+      "position": [-4.38, -140.02, 0],
+      "angle": -27.5,
       "color": "#5bc0de",
       "note": "A4"
     },
     {
       "type": "pad",
       "id": "pirate_46",
-      "position": [-1.51, -79.14, 0],
-      "angle": 1,
+      "position": [-1.49, -144.19, 0],
+      "angle": -9.5,
       "color": "#8e6bd6",
       "note": "A#4"
     },
     {
       "type": "pad",
       "id": "pirate_47",
-      "position": [-4.54, -80.95, 0],
-      "angle": -28.5,
+      "position": [2.14, -147.28, 0],
+      "angle": -4.5,
       "color": "#5cb85c",
       "note": "G4"
     },
     {
       "type": "pad",
       "id": "pirate_48",
-      "position": [-3.1, -82.82, 0],
-      "angle": -9.5,
+      "position": [6.21, -150.62, 0],
+      "angle": 26,
       "color": "#e86fb0",
       "note": "A4"
     },
     {
       "type": "pad",
       "id": "pirate_49",
-      "position": [-1.31, -84.68, 0],
-      "angle": -5.5,
+      "position": [3.53, -154.12, 0],
+      "angle": 8.5,
       "color": "#f7f7f7",
       "note": "A4"
     },
     {
       "type": "pad",
       "id": "pirate_50",
-      "position": [0.84, -86.54, 0],
-      "angle": -4,
+      "position": [0.32, -157.38, 0],
+      "angle": 5.5,
       "color": "#2f9e8f",
       "note": "A#4"
     },
     {
       "type": "pad",
       "id": "pirate_51",
-      "position": [3.2, -88.4, 0],
-      "angle": -3,
+      "position": [-3.52, -160.85, 0],
+      "angle": 4,
       "color": "#d9534f",
       "note": "G4"
     },
     {
       "type": "pad",
       "id": "pirate_52",
-      "position": [5.92, -90.19, 0],
-      "angle": 27.5,
+      "position": [-7.82, -163.91, 0],
+      "angle": -27,
       "color": "#f0ad4e",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_53",
-      "position": [4.47, -92.09, 0],
-      "angle": 9,
+      "position": [-5.34, -167.43, 0],
+      "angle": -9,
       "color": "#5bc0de",
       "note": "F4"
     },
     {
       "type": "pad",
       "id": "pirate_54",
-      "position": [2.69, -93.95, 0],
-      "angle": 5.5,
+      "position": [-2.15, -170.7, 0],
+      "angle": -5.5,
       "color": "#8e6bd6",
       "note": "G4"
     },
     {
       "type": "pad",
       "id": "pirate_55",
-      "position": [0.55, -95.78, 0],
-      "angle": 3.5,
+      "position": [1.63, -174.17, 0],
+      "angle": -4,
       "color": "#5cb85c",
       "note": "F4"
     },
     {
       "type": "pad",
       "id": "pirate_56",
-      "position": [-1.76, -97.63, 0],
-      "angle": 3,
+      "position": [5.92, -177.34, 0],
+      "angle": 26.5,
       "color": "#e86fb0",
       "note": "G4"
     },
     {
       "type": "pad",
       "id": "pirate_57",
-      "position": [-4.44, -99.45, 0],
-      "angle": -27.5,
+      "position": [3.49, -180.66, 0],
+      "angle": 9,
       "color": "#f7f7f7",
       "note": "A4"
     },
     {
       "type": "pad",
       "id": "pirate_58",
-      "position": [-2.95, -101.3, 0],
-      "angle": -9,
+      "position": [0.32, -184.16, 0],
+      "angle": 6,
       "color": "#2f9e8f",
       "note": "E4"
     },
     {
       "type": "pad",
       "id": "pirate_59",
-      "position": [-1.16, -103.12, 0],
-      "angle": -5.5,
+      "position": [-3.56, -187.67, 0],
+      "angle": 4,
       "color": "#d9534f",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_60",
-      "position": [1, -104.99, 0],
-      "angle": -3.5,
+      "position": [-7.87, -190.7, 0],
+      "angle": -27,
       "color": "#f0ad4e",
       "note": "D4"
     },
     {
       "type": "pad",
       "id": "pirate_61",
-      "position": [3.33, -106.8, 0],
-      "angle": -3,
+      "position": [-5.44, -194.2, 0],
+      "angle": -9.5,
       "color": "#5bc0de",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_62",
-      "position": [6.03, -108.57, 0],
-      "angle": 27.5,
+      "position": [-2.17, -197.68, 0],
+      "angle": -5.5,
       "color": "#8e6bd6",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "pirate_63",
-      "position": [4.58, -110.42, 0],
-      "angle": 9,
+      "position": [1.63, -200.9, 0],
+      "angle": -4,
       "color": "#5cb85c",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_64",
-      "position": [2.81, -112.24, 0],
-      "angle": 5.5,
+      "position": [5.99, -204.31, 0],
+      "angle": 26.5,
       "color": "#e86fb0",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_65",
-      "position": [0.68, -114.1, 0],
-      "angle": 3.5,
+      "position": [3.47, -207.47, 0],
+      "angle": 9,
       "color": "#f7f7f7",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_66",
-      "position": [-1.64, -115.91, 0],
-      "angle": 3,
+      "position": [0.25, -211.13, 0],
+      "angle": 6,
       "color": "#2f9e8f",
       "note": "A#5"
     },
     {
       "type": "pad",
       "id": "pirate_67",
-      "position": [-4.28, -117.72, 0],
-      "angle": -27.5,
+      "position": [-3.66, -214.48, 0],
+      "angle": 4,
       "color": "#d9534f",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_68",
-      "position": [-2.82, -119.63, 0],
-      "angle": -9,
+      "position": [-8.02, -217.48, 0],
+      "angle": -27,
       "color": "#f0ad4e",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_69",
-      "position": [-1.01, -121.48, 0],
-      "angle": -5.5,
+      "position": [-5.61, -220.99, 0],
+      "angle": -9.5,
       "color": "#5bc0de",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_70",
-      "position": [1.14, -123.34, 0],
-      "angle": -3.5,
+      "position": [-2.35, -224.43, 0],
+      "angle": -5.5,
       "color": "#8e6bd6",
       "note": "A#5"
     },
     {
       "type": "pad",
       "id": "pirate_71",
-      "position": [3.47, -125.17, 0],
-      "angle": -3,
+      "position": [1.44, -227.58, 0],
+      "angle": -3.5,
       "color": "#5cb85c",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_72",
-      "position": [6.16, -126.98, 0],
-      "angle": 27.5,
+      "position": [5.65, -230.92, 0],
+      "angle": 26.5,
       "color": "#e86fb0",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_73",
-      "position": [4.68, -128.9, 0],
+      "position": [3.09, -234.25, 0],
       "angle": 9,
       "color": "#f7f7f7",
       "note": "G5"
@@ -653,7 +647,7 @@
     {
       "type": "pad",
       "id": "pirate_74",
-      "position": [2.87, -130.75, 0],
+      "position": [-0.2, -237.69, 0],
       "angle": 5.5,
       "color": "#2f9e8f",
       "note": "F5"
@@ -661,80 +655,80 @@
     {
       "type": "pad",
       "id": "pirate_75",
-      "position": [0.72, -132.59, 0],
-      "angle": 3.5,
+      "position": [-4.26, -241.04, 0],
+      "angle": -26,
       "color": "#d9534f",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_76",
-      "position": [-1.62, -134.43, 0],
-      "angle": 3,
+      "position": [-1.67, -244.4, 0],
+      "angle": -8.5,
       "color": "#f0ad4e",
       "note": "D5"
     },
     {
       "type": "pad",
       "id": "pirate_77",
-      "position": [-4.28, -136.19, 0],
-      "angle": -27.5,
+      "position": [1.56, -247.86, 0],
+      "angle": -5.5,
       "color": "#5bc0de",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_78",
-      "position": [-2.72, -138.07, 0],
-      "angle": -9,
+      "position": [5.62, -251.15, 0],
+      "angle": 26,
       "color": "#8e6bd6",
       "note": "A#5"
     },
     {
       "type": "pad",
       "id": "pirate_79",
-      "position": [-0.96, -139.9, 0],
-      "angle": -5.5,
+      "position": [3.03, -254.55, 0],
+      "angle": 8.5,
       "color": "#5cb85c",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_80",
-      "position": [1.16, -141.76, 0],
-      "angle": -4,
+      "position": [-0.19, -257.97, 0],
+      "angle": 5.5,
       "color": "#e86fb0",
       "note": "A5"
     },
     {
       "type": "pad",
       "id": "pirate_81",
-      "position": [3.52, -143.63, 0],
-      "angle": -3,
+      "position": [-4.22, -261.37, 0],
+      "angle": -25.5,
       "color": "#f7f7f7",
       "note": "G5"
     },
     {
       "type": "pad",
       "id": "pirate_82",
-      "position": [6.22, -145.46, 0],
-      "angle": 27.5,
+      "position": [-1.69, -264.76, 0],
+      "angle": -9,
       "color": "#2f9e8f",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_83",
-      "position": [4.75, -147.37, 0],
-      "angle": 9,
+      "position": [1.57, -268.12, 0],
+      "angle": -5.5,
       "color": "#d9534f",
       "note": "F5"
     },
     {
       "type": "pad",
       "id": "pirate_84",
-      "position": [2.95, -149.22, 0],
-      "angle": 5.5,
+      "position": [5.64, -271.41, 0],
+      "angle": 26,
       "color": "#f0ad4e",
       "note": "D5"
     }
@@ -749,17 +743,17 @@
     },
     {
       "section": 1,
-      "position": [1.32, -66.672, 0.299],
-      "velocity": [-4.932, -2.109, -0.046],
-      "spin": [5.883, -16.416, 16.027],
-      "time": 28.3
+      "position": [0.259, -124.165, 0.299],
+      "velocity": [4.199, -6.134, -0.046],
+      "spin": [12.094, 13.654, -11.359],
+      "time": 36.3583
     },
     {
       "section": 2,
-      "position": [5.901, -70.908, 0.298],
-      "velocity": [5.668, -2.125, -0.048],
-      "spin": [6.122, 18.886, -18.466],
-      "time": 30
+      "position": [4.16, -130.678, 0.299],
+      "velocity": [-2.11, -6.303, -0.046],
+      "spin": [11.857, -5.702, 0.466],
+      "time": 38.1583
     }
   ]
 }
